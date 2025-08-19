@@ -1,155 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/fundamentals/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/fundamentals/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/quick-start/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/quick-start/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/errors/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/errors/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/field/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/field/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/fkey/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/fkey/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/model/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/model/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/relation/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/relation/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/api/transaction/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/api/transaction/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/architecture/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/architecture/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/architecture/factory/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/architecture/factory/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/architecture/metadata/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/architecture/metadata/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/architecture/overview/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/architecture/overview/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/architecture/query-processing/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/architecture/query-processing/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/blog/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/blog/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/ecommerce/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/ecommerce/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/gitlab/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/gitlab/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/web-apps/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/web-apps/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/examples/instant-rest-api/instant-rest-api/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/examples/instant-rest-api/instant-rest-api/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/extensions/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/extensions/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/configuration/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/configuration/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/error-handling/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/error-handling/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/migration/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/migration/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/performance/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/performance/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/testing/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/testing/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/development/development-workflow/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/development/development-workflow/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/development/documentation-workflow/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/development/documentation-workflow/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/guides/development/extension-development/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/guides/development/extension-development/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/first-steps/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/first-steps/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/foreign-keys/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/foreign-keys/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/installation/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/installation/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/models-relations/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/models-relations/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/queries/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/queries/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
     <url>
-         <loc>https://collorg.github.io/halfORM/dev/tutorial/transactions/</loc>
-         <lastmod>2025-08-18</lastmod>
+         <loc>https://half-orm.github.io/dev/tutorial/transactions/</loc>
+         <lastmod>2025-08-19</lastmod>
     </url>
 </urlset>
