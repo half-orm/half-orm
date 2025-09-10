@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
     
     
       
@@ -1945,7 +1945,7 @@ then in <code>/etc/half_orm</code>. The file format is as follows:</p>
 <a id="__codelineno-0-213" name="__codelineno-0-213"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">execute_query</span><span class="p">(</span><span class="s2">&quot;select 1&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-214" name="__codelineno-0-214"></a>            <span class="k">except</span> <span class="p">(</span><span class="n">psycopg2</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span> <span class="c1">#pragma: no cover</span>
 <a id="__codelineno-0-215" name="__codelineno-0-215"></a>                <span class="c1"># log reconnection attempt failure</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>                <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">exception</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>                <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 <a id="__codelineno-0-217" name="__codelineno-0-217"></a>                <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 <a id="__codelineno-0-218" name="__codelineno-0-218"></a>            <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-219" name="__codelineno-0-219"></a>
@@ -3403,7 +3403,7 @@ Attempts a new connection otherwise.</p>
 <a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">execute_query</span><span class="p">(</span><span class="s2">&quot;select 1&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="k">except</span> <span class="p">(</span><span class="n">psycopg2</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span> <span class="c1">#pragma: no cover</span>
 <a id="__codelineno-0-215" name="__codelineno-0-215"></a>            <span class="c1"># log reconnection attempt failure</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">exception</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 <a id="__codelineno-0-217" name="__codelineno-0-217"></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 <a id="__codelineno-0-218" name="__codelineno-0-218"></a>        <span class="k">return</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
