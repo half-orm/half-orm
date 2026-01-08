@@ -6744,7 +6744,8 @@ class Person(model.get_relation_class(actor.person)):
 <span class="normal"><a href="#__codelineno-0-1075">1075</a></span>
 <span class="normal"><a href="#__codelineno-0-1076">1076</a></span>
 <span class="normal"><a href="#__codelineno-0-1077">1077</a></span>
-<span class="normal"><a href="#__codelineno-0-1078">1078</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1058" name="__codelineno-0-1058"></a><span class="k">def</span><span class="w"> </span><span class="nf">transaction</span><span class="p">(</span><span class="n">fct</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-1078">1078</a></span>
+<span class="normal"><a href="#__codelineno-0-1079">1079</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1058" name="__codelineno-0-1058"></a><span class="k">def</span><span class="w"> </span><span class="nf">transaction</span><span class="p">(</span><span class="n">fct</span><span class="p">):</span>
 <a id="__codelineno-0-1059" name="__codelineno-0-1059"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator. Enforces every SQL insert, update or delete operation called within a</span>
 <a id="__codelineno-0-1060" name="__codelineno-0-1060"></a><span class="sd">    Relation method to be executed in a transaction.</span>
 <a id="__codelineno-0-1061" name="__codelineno-0-1061"></a>
@@ -6761,10 +6762,11 @@ class Person(model.get_relation_class(actor.person)):
 <a id="__codelineno-0-1072" name="__codelineno-0-1072"></a><span class="sd">        Pers().insert_many([{...}, {...}])</span>
 <a id="__codelineno-0-1073" name="__codelineno-0-1073"></a>
 <a id="__codelineno-0-1074" name="__codelineno-0-1074"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-1075" name="__codelineno-0-1075"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-1076" name="__codelineno-0-1076"></a>        <span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ho_model</span><span class="p">):</span>
-<a id="__codelineno-0-1077" name="__codelineno-0-1077"></a>            <span class="k">return</span> <span class="n">fct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-1078" name="__codelineno-0-1078"></a>    <span class="k">return</span> <span class="n">wrapper</span>
+<a id="__codelineno-0-1075" name="__codelineno-0-1075"></a>    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fct</span><span class="p">)</span>
+<a id="__codelineno-0-1076" name="__codelineno-0-1076"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-1077" name="__codelineno-0-1077"></a>        <span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ho_model</span><span class="p">):</span>
+<a id="__codelineno-0-1078" name="__codelineno-0-1078"></a>            <span class="k">return</span> <span class="n">fct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-1079" name="__codelineno-0-1079"></a>    <span class="k">return</span> <span class="n">wrapper</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
