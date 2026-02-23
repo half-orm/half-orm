@@ -90,8 +90,10 @@ class Model:
         """
         self.__config_file = config_file
         config = ConfigParser()
-        file_ = os.path.join(CONF_DIR, self.__config_file)
-        if config.read([file_]):
+        self.__config_file_path = os.path.join(CONF_DIR, self.__config_file)
+        file_ = self.__config_file_path
+        self.__config_file_found = bool(config.read([file_]))
+        if self.__config_file_found:
             try:
                 database = config['database']
             except KeyError as exc:
@@ -136,7 +138,16 @@ class Model:
 
         if config_file:
             self.__load_config(config_file)
-        self.__conn = psycopg2.connect(**self._dbinfo, cursor_factory=RealDictCursor)
+        try:
+            self.__conn = psycopg2.connect(**self._dbinfo, cursor_factory=RealDictCursor)
+        except psycopg2.OperationalError as exc:
+            if self.__config_file_found:
+                config_info = f"Configuration file: '{self.__config_file_path}'"
+            else:
+                config_info = (
+                    f"No configuration file found: '{self.__config_file_path}' "
+                    f"(using peer authentication with dbname '{self.__config_file}')")
+            raise psycopg2.OperationalError(f"{exc}\n{config_info}") from exc
         self.__conn.autocommit = True
         self.__pg_meta = pg_meta.PgMeta(self.__conn, reload)
         if reload:
