@@ -25,10 +25,10 @@ from typing import Dict, Any, Optional
 
 # Modern import to replace pkg_resources
 try:
-    from importlib.metadata import distributions, version
+    from importlib.metadata import distributions
 except ImportError:
     # Fallback for Python < 3.8
-    from importlib_metadata import distributions, version
+    from importlib_metadata import distributions
 
 import click
 
