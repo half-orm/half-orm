@@ -5,6 +5,8 @@
 
 import sys
 
+import psycopg2
+
 class Transaction:
     """
     """
@@ -34,7 +36,7 @@ class Transaction:
             try:
                 self.__transaction['model']._connection.commit()
                 self.__transaction['model']._connection.autocommit = True
-            except Exception as exc:
+            except psycopg2.Error:
                 self.__transaction['model']._connection.rollback()
 
     @property

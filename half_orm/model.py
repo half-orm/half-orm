@@ -297,7 +297,7 @@ class Model:
             self.ping()
             cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(query, values)
-        except Exception as exc:
+        except psycopg2.Error as exc:
             vals = ''
             if not self._production_mode:
                 # report values only in development mode

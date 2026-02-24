@@ -6,6 +6,7 @@ with the halfORM CLI system.
 """
 
 from typing import Optional
+from importlib.metadata import metadata, PackageNotFoundError
 import click
 
 
@@ -48,42 +49,32 @@ def get_package_metadata(module):
     Returns:
         dict: Package metadata (version, author, description, etc.)
     """
+    # Convert module name to package name
+    module_name = module.__name__
+    if '.' in module_name:
+        package_name = module_name.split('.')[0]
+    else:
+        package_name = module_name
+
+    # Convert underscores back to hyphens for package lookup
+    package_name = package_name.replace('_', '-')
+
     try:
-        # Modern import to replace pkg_resources
-        try:
-            from importlib.metadata import metadata
-        except ImportError:
-            # Fallback for Python < 3.8
-            from importlib_metadata import metadata
-
-        # Convert module name to package name
-        module_name = module.__name__
-        if '.' in module_name:
-            package_name = module_name.split('.')[0]
-        else:
-            package_name = module_name
-
-        # Convert underscores back to hyphens for package lookup
-        package_name = package_name.replace('_', '-')
-
-        # Get package metadata
         pkg_metadata = metadata(package_name)
-
+    except PackageNotFoundError:
         return {
-            'version': pkg_metadata.get('Version', 'unknown'),
-            'author': pkg_metadata.get('Author', 'unknown'),
-            'description': pkg_metadata.get('Summary', pkg_metadata.get('Description', '')),
+            'version': 'unknown',
+            'author': 'unknown',
+            'description': '',
             'package_name': package_name
         }
 
-    except Exception:
-        # Fallback if metadata not available
-        return {
-            'version': 'unknown',
-            'author': 'unknown', 
-            'description': '',
-            'package_name': 'unknown'
-        }
+    return {
+        'version': pkg_metadata.get('Version', 'unknown'),
+        'author': pkg_metadata.get('Author', 'unknown'),
+        'description': pkg_metadata.get('Summary', pkg_metadata.get('Description', '')),
+        'package_name': package_name
+    }
 
 
 def get_extension_commands(extension_group):
@@ -96,10 +87,7 @@ def get_extension_commands(extension_group):
     Returns:
         list: List of command names
     """
-    try:
-        return list(extension_group.commands.keys())
-    except Exception:
-        return []
+    return list(extension_group.commands.keys())
 
 
 def create_and_register_extension(main_group, module, description: Optional[str] = None):

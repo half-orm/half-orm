@@ -13,6 +13,10 @@ from pathlib import Path
 import tempfile
 import shutil
 
+import psycopg2
+
+from half_orm import model_errors
+
 
 class TestMainModule:
     """Tests pour python -m half_orm (subprocess)"""
@@ -127,7 +131,7 @@ class TestIndividualFunctions:
         
         # Mock connexion échouée
         error_msg = "peer authentication failed"
-        mock_model.side_effect = Exception(error_msg)
+        mock_model.side_effect = psycopg2.OperationalError(error_msg)
         
         check_peer_authentication()
         
@@ -153,7 +157,7 @@ class TestIndividualFunctions:
             if name == 'db1':
                 return MagicMock()
             else:
-                raise Exception("Connection failed")
+                raise psycopg2.OperationalError("Connection failed")
         
         mock_model.side_effect = mock_model_side_effect
 
@@ -289,7 +293,7 @@ class TestMainFunction:
         from half_orm.__main__ import main
         
         # Mock échec de connexion
-        mock_model.side_effect = Exception("Connection failed")
+        mock_model.side_effect = psycopg2.OperationalError("Connection failed")
         
         main()
         
@@ -339,7 +343,7 @@ class TestMainFunction:
         
         # Mock modèle OK mais relation échoue
         mock_model_instance = MagicMock()
-        mock_model_instance.get_relation_class.side_effect = Exception("Table not found")
+        mock_model_instance.get_relation_class.side_effect = model_errors.UnknownRelation(('test_db', 'invalid', 'table'))
         mock_model.return_value = mock_model_instance
         
         main()

@@ -175,5 +175,5 @@ def get_caller_info(skip_frames=2):
             'function': frame_info.function,
             'code_context': code_line
         }
-    except Exception:
+    except (IndexError, OSError, TypeError):
         return None

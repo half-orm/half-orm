@@ -21,7 +21,7 @@ import traceback
 
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # Modern import to replace pkg_resources
 try:
@@ -204,18 +204,6 @@ def warn_unofficial_extension(package_name, current_version):
         add_trusted_extension(package_name, current_version)
         click.echo(f"✅ Trusted '{package_name}' v{current_version}")
 
-def get_distribution_name(dist) -> Optional[str]:
-    """Get distribution name in a robust way."""
-    try:
-        if hasattr(dist, 'metadata'):
-            return dist.metadata.get('Name') or dist.metadata.get('name')
-        elif hasattr(dist, 'name'):
-            return dist.name
-        else:
-            return None
-    except Exception:
-        return None
-
 def discover_extensions() -> Dict[str, Any]:
     """Discover all installed halfORM extensions."""
     global _cached_extensions
@@ -229,7 +217,7 @@ def discover_extensions() -> Dict[str, Any]:
 
     for dist in distributions():
         try:
-            package_name = get_distribution_name(dist)
+            package_name = dist.metadata.get('Name') or dist.metadata.get('name')
             if not package_name or not (
                 package_name.startswith('half-orm-') or
                 package_name.startswith('half_orm_')
@@ -237,10 +225,7 @@ def discover_extensions() -> Dict[str, Any]:
                 continue
 
             # Get extension version
-            try:
-                current_version = dist.version
-            except Exception:
-                current_version = version(package_name)
+            current_version = dist.version
 
             # Version compatibility check (applies to all extensions)
             if not check_version_compatibility(current_version, core_version):
@@ -248,11 +233,6 @@ def discover_extensions() -> Dict[str, Any]:
 
             # Security check for non-official extensions
             if not is_official_extension(package_name):
-                try:
-                    current_version = dist.version
-                except Exception:
-                    current_version = version(package_name)
-
                 warn_unofficial_extension(package_name, current_version)
 
             # Import extension
@@ -263,11 +243,6 @@ def discover_extensions() -> Dict[str, Any]:
                 # Use package name as key instead of derived name to avoid conflicts
                 extension_key = package_name
 
-                try:
-                    dist_version = dist.version
-                except Exception:
-                    dist_version = version(package_name)
-
                 # Import the utility functions for consistent metadata extraction
                 from .cli_utils import get_extension_name_from_module, get_package_metadata
                 display_name = get_extension_name_from_module(module_name)
@@ -276,7 +251,7 @@ def discover_extensions() -> Dict[str, Any]:
                 extensions[extension_key] = {
                     'module': extension_module,
                     'package_name': package_name,
-                    'version': dist_version,
+                    'version': current_version,
                     'metadata': pkg_metadata,  # Use auto-discovered metadata
                     'display_name': display_name
                 }
