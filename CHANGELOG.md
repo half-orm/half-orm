@@ -1,3 +1,11 @@
+# 0.17.6 (2026-25-02)
+
+* fix: improve error handling and connection error messages (631e0ad)
+* fix: include config file info in database connection errors (8edf683)
+* fix(cli): remove unused  import from importlib.metadata. (2e0b54d)
+* build(deps-dev): bump cryptography from 44.0.1 to 46.0.5 (c18f01c)
+* fix(readme): license is GPL-3.0 not LGPL-3.0. (bb72cc2)
+
 # 0.17.5 (2026-30-01)
 
 * fix: [half-orm-dev] check False string in connection file for production param. (e8a967f)
