@@ -61,6 +61,7 @@ jobs:
       run: |
         HALFORM_CONF_DIR=$PWD/.config coverage run --source=half_orm -m pytest test
     - name: Upload coverage data to coveralls.io
+      continue-on-error: true
       run: coveralls --service=github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,6 +76,7 @@ jobs:
       contents: read
     steps:
     - name: Finished
+      continue-on-error: true
       run: |
         pip3 install --upgrade coveralls
         coveralls --service=github --finish
