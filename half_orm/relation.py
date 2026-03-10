@@ -145,7 +145,7 @@ class DC_Relation: # pragma: no cover
         """
         ...
 
-    def ho_get(self, *args: List[str]) -> 'Relation':
+    def _ho_get(self, *args: List[str]) -> 'Relation':
         """The get method allows you to fetch a singleton from the database.
         It garantees that the constraint references one and only one tuple.
 
@@ -352,7 +352,7 @@ class Relation:
                 yield dict(elt)
 
     #@utils.trace
-    def ho_get(self, *args: List[str]) -> 'Relation':
+    def _ho_get(self, *args: List[str]) -> 'Relation':
         """The get method allows you to fetch a singleton from the database.
         It garantees that the constraint references one and only one tuple.
 
@@ -369,7 +369,7 @@ class Relation:
             ExpectedOneError: an exception is raised if no or more than one element is found.
 
         Example:
-            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston').ho_get()
+            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston')._ho_get()
             >>> type(gaston) is Person
             True
             >>> gaston.id
@@ -987,6 +987,10 @@ Fkeys = {"""
         return next(self.ho_select())
 
     # deprecated. To remove with release 1.0.0
+
+    @utils._ho_deprecated
+    def ho_get(self, *args, **kwargs):
+        return self._ho_get(*args, **kwargs)
 
     @utils._ho_deprecated
     def select(self, *args): # pragma: no cover
