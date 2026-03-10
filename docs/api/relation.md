@@ -19,13 +19,15 @@ Return modified relation objects without executing SQL:
 - Set operations: `&`, `|`, `-`, `^`
 - Foreign key navigation: `relation_fk()`, `relation_rfk()`
 
-### Query Executors (Eager)  
+### Query Executors (Eager)
 Execute SQL immediately and return results:
 - `ho_select(*fields)` → **Generator**
 - `ho_count()` → **int**
-- `ho_get()` → **dict**
 - `ho_is_empty()` → **bool**
 - `ho_insert()`, `ho_update()`, `ho_delete()` → **dict**
+
+!!! warning "ho_get() is deprecated"
+    Use the `@singleton` decorator instead. See [The Singleton Pattern](../fundamentals.md#the-singleton-pattern).
 
 !!! warning "No Chaining After Execution"
     ```python

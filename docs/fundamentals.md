@@ -131,8 +131,7 @@ query = (Author(is_active=True)
 ```python
 # These methods execute SQL and return results
 results = query.ho_select('name', 'email')  # Returns generator - SQL executes NOW
-count = query.ho_count()                    # Returns int - SQL executes NOW  
-author = query.ho_get()                     # Returns dict - SQL executes NOW
+count = query.ho_count()                    # Returns int - SQL executes NOW
 exists = query.ho_is_empty()                # Returns bool - SQL executes NOW
 
 # ❌ IMPORTANT: Once executed, you cannot chain more builders!
@@ -153,22 +152,43 @@ for author in query.ho_select('name', 'email'):  # SQL executes here
     print(f"{author['name']}: {author['email']}")
 ```
 
-### The ho_get() Anti-Pattern
+### The Singleton Pattern
 
-A common halfORM anti-pattern is calling `ho_get()` too early:
+When a method must operate on exactly one row, use the `@singleton` decorator instead of calling `ho_get()` directly:
 
 ```python
-# ❌ Anti-pattern - breaks the declarative flow
-alice = Author(email='alice@example.com').ho_get()  # Forces execution
-alice_posts = alice.posts_rfk()  # Now we're working with a singleton
+from half_orm.relation import singleton
+
+class Author(blog.get_relation_class('blog.author')):
+    @singleton
+    def publish_all_drafts(self):
+        """Publishes all draft posts for this specific author."""
+        Post(author_id=self['id'], is_published=False).ho_update(is_published=True)
+```
+
+`@singleton` guarantees that `self` refers to exactly one row, raising `NotASingletonError` otherwise:
+
+```python
+# ✅ Exactly one author → method executes
+Author(email='alice@example.com').publish_all_drafts()
+
+# ❌ Zero or multiple results → NotASingletonError
+Author(is_active=True).publish_all_drafts()
+```
+
+Keep building query intentions rather than forcing early execution:
+
+```python
+# ❌ Old pattern (deprecated) - breaks the declarative flow
+alice = Author(email='alice@example.com').ho_get()
+alice_posts = alice.posts_rfk()
 
 # ✅ Better - keep building intentions
-alice = Author(email='alice@example.com')  # Just an intention
-alice_posts = alice.posts_rfk(is_published=True)  # Still building
-popular_posts = alice_posts.ho_order_by('view_count DESC')  # Still building
+alice = Author(email='alice@example.com')
+alice_posts = alice.posts_rfk(is_published=True)
+popular_posts = alice_posts.ho_order_by('view_count DESC')
 
-# Execute when ready
-for post in popular_posts:  # Query executes here
+for post in popular_posts:
     print(post['title'])
 ```
 
@@ -466,7 +486,7 @@ either_but_not_both = active_authors ^ gmail_authors
 ```python
 # Membership testing
 young_authors = Author(birth_date=('>', '1990-01-01'))
-alice = Author(email='alice@example.com').ho_get()
+alice = Author(email='alice@example.com')
 if alice in young_authors:
     print("Alice is young")
 
@@ -525,7 +545,6 @@ All halfORM-Relation specific methods use the `ho_` prefix to avoid conflicts wi
 
 ```python
 # halfORM methods (always prefixed)
-author.ho_get()         # Get single record
 author.ho_insert()      # Insert record
 author.ho_update()      # Update record
 author.ho_delete()      # Delete record
