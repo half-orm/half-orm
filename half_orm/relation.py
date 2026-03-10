@@ -951,7 +951,7 @@ Fkeys = {"""
     def __eq__(self, right):
         if id(self) == id(right):
             return True
-        return self in right and right in self
+        return ((self - right) | (right - self)).ho_is_empty()
 
     def __enter__(self):
         """Context management entry
