@@ -1,3 +1,15 @@
+# 0.17.7
+
+## BREAKING CHANGE
+
+Relation method ho_get is now private (_ho_get) and has been marked deprecated. It was
+an anti-pattern. Use @singleton decorator instead.
+
+* deprecate(relation): deprecate ho_get in favor of @singleton decorator (HEAD -> main) (f6ecff4)
+* feat(relation): redefine equality as (A - B) | (B - A) == ∅ (3307892)
+* fix(ci): remove python3.7 from tests on gitlab + add python3.14 (bf42640)
+* fix(ci): ignore coveralls errors. (0d03f19)
+
 # 0.17.6 (2026-25-02)
 
 * fix: improve error handling and connection error messages (631e0ad)
