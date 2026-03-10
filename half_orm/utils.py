@@ -93,25 +93,33 @@ def trace(fct): #pragma: no coverage
     return wrapper
 
 
-def _ho_deprecated(fct):
-    @wraps(fct)
-    def wrapper(*args, **kwargs):
-        name = fct.__name__
-        ho_name = f'ho_{name}'
-        callerframerecord = inspect.stack()[1]
-        frame = callerframerecord[0]
-        info = inspect.getframeinfo(frame)
-        context = ''
-        warn_msg = (f'HalfORM WARNING! "{Color.bold(name)}" is deprecated. '
-            'It will be removed in half_orm 1.0.\n'
-            f'Use "{Color.bold(ho_name)}" instead.\n')
-        if info.code_context:
-            context = info.code_context[0]
-            warn_msg += (f'{info.filename}:{info.lineno}, in {info.function}\n'
-                f'{context}\n')
-        sys.stderr.write(warn_msg)
-        return fct(*args, **kwargs)
-    return wrapper
+def _ho_deprecated(fct=None, *, replacement=None):
+    """Decorator marking a method as deprecated.
+
+    Usage:
+        @_ho_deprecated                        # replacement auto-computed as ho_<name>
+        @_ho_deprecated(replacement='@singleton')  # custom replacement message
+    """
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            name = f.__name__
+            repl = replacement if replacement is not None else f'ho_{name}'
+            callerframerecord = inspect.stack()[1]
+            frame = callerframerecord[0]
+            info = inspect.getframeinfo(frame)
+            warn_msg = (f'HalfORM WARNING! "{Color.bold(name)}" is deprecated. '
+                'It will be removed in half_orm 1.0.\n'
+                f'Use "{Color.bold(repl)}" instead.\n')
+            if info.code_context:
+                warn_msg += (f'{info.filename}:{info.lineno}, in {info.function}\n'
+                    f'{info.code_context[0]}\n')
+            sys.stderr.write(warn_msg)
+            return f(*args, **kwargs)
+        return wrapper
+    if fct is not None:  # used as @_ho_deprecated without arguments
+        return decorator(fct)
+    return decorator  # used as @_ho_deprecated(replacement='...')
 
 def check_attribute_name(string: str):
     err = None

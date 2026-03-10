@@ -988,7 +988,7 @@ Fkeys = {"""
 
     # deprecated. To remove with release 1.0.0
 
-    @utils._ho_deprecated
+    @utils._ho_deprecated(replacement='@singleton decorator or _ho_get')
     def ho_get(self, *args, **kwargs):
         return self._ho_get(*args, **kwargs)
 
