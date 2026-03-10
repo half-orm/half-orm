@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
     
     
       
@@ -4762,7 +4762,7 @@ relation considered.</p>
 <a id="__codelineno-0-951" name="__codelineno-0-951"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
 <a id="__codelineno-0-952" name="__codelineno-0-952"></a>        <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="n">right</span><span class="p">):</span>
 <a id="__codelineno-0-953" name="__codelineno-0-953"></a>            <span class="k">return</span> <span class="kc">True</span>
-<a id="__codelineno-0-954" name="__codelineno-0-954"></a>        <span class="k">return</span> <span class="bp">self</span> <span class="ow">in</span> <span class="n">right</span> <span class="ow">and</span> <span class="n">right</span> <span class="ow">in</span> <span class="bp">self</span>
+<a id="__codelineno-0-954" name="__codelineno-0-954"></a>        <span class="k">return</span> <span class="p">((</span><span class="bp">self</span> <span class="o">-</span> <span class="n">right</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="bp">self</span><span class="p">))</span><span class="o">.</span><span class="n">ho_is_empty</span><span class="p">()</span>
 <a id="__codelineno-0-955" name="__codelineno-0-955"></a>
 <a id="__codelineno-0-956" name="__codelineno-0-956"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <a id="__codelineno-0-957" name="__codelineno-0-957"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Context management entry</span>
