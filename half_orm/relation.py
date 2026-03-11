@@ -698,9 +698,9 @@ Fkeys = {"""
             fk_rel._ho_query_type = orig_rel._ho_query_type
             if fk_rel.ho_id not in deja_vu:
                 deja_vu[fk_rel.ho_id] = []
-            # elif (fk_rel, fkey) in deja_vu[fk_rel.ho_id] or fk_rel is orig_rel:
-            #     #sys.stderr.write(f"déjà vu in from! {fk_rel._fqrn}\n")
-            #     continue
+            elif deja_vu[fk_rel.ho_id]:
+                # fk_rel already joined (two fkeys pointing to the same relation)
+                continue
             fk_rel.__get_from(orig_rel, deja_vu)
             deja_vu[fk_rel.ho_id].append((fk_rel, fkey))
             _, where, values = fk_rel.__where_args()
@@ -909,7 +909,7 @@ Fkeys = {"""
         if operator:
             new._ho_set_operators.left = self
             new._ho_set_operators.operator = operator
-        dct_join = self._ho_join_to
+        dct_join = dict(self._ho_join_to)
         if right is not None:
             new._ho_set_operators.right = right
             dct_join.update(right._ho_join_to)
