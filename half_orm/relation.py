@@ -948,6 +948,10 @@ Fkeys = {"""
     def __contains__(self, right):
         return (right - self).ho_count() == 0
 
+    # Relation objects are not hashable: __eq__ executes SQL queries.
+    # Using a Relation as a dict key or in a set would be meaningless.
+    __hash__ = None
+
     def __eq__(self, right):
         if id(self) == id(right):
             return True
