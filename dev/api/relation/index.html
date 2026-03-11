@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
     
     
       
@@ -4320,9 +4320,9 @@ relation considered.</p>
 <a id="__codelineno-0-698" name="__codelineno-0-698"></a>            <span class="n">fk_rel</span><span class="o">.</span><span class="n">_ho_query_type</span> <span class="o">=</span> <span class="n">orig_rel</span><span class="o">.</span><span class="n">_ho_query_type</span>
 <a id="__codelineno-0-699" name="__codelineno-0-699"></a>            <span class="k">if</span> <span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">deja_vu</span><span class="p">:</span>
 <a id="__codelineno-0-700" name="__codelineno-0-700"></a>                <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-701" name="__codelineno-0-701"></a>            <span class="c1"># elif (fk_rel, fkey) in deja_vu[fk_rel.ho_id] or fk_rel is orig_rel:</span>
-<a id="__codelineno-0-702" name="__codelineno-0-702"></a>            <span class="c1">#     #sys.stderr.write(f&quot;déjà vu in from! {fk_rel._fqrn}\n&quot;)</span>
-<a id="__codelineno-0-703" name="__codelineno-0-703"></a>            <span class="c1">#     continue</span>
+<a id="__codelineno-0-701" name="__codelineno-0-701"></a>            <span class="k">elif</span> <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]:</span>
+<a id="__codelineno-0-702" name="__codelineno-0-702"></a>                <span class="c1"># fk_rel already joined (two fkeys pointing to the same relation)</span>
+<a id="__codelineno-0-703" name="__codelineno-0-703"></a>                <span class="k">continue</span>
 <a id="__codelineno-0-704" name="__codelineno-0-704"></a>            <span class="n">fk_rel</span><span class="o">.</span><span class="n">__get_from</span><span class="p">(</span><span class="n">orig_rel</span><span class="p">,</span> <span class="n">deja_vu</span><span class="p">)</span>
 <a id="__codelineno-0-705" name="__codelineno-0-705"></a>            <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fk_rel</span><span class="p">,</span> <span class="n">fkey</span><span class="p">))</span>
 <a id="__codelineno-0-706" name="__codelineno-0-706"></a>            <span class="n">_</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">fk_rel</span><span class="o">.</span><span class="n">__where_args</span><span class="p">()</span>
@@ -4531,7 +4531,7 @@ relation considered.</p>
 <a id="__codelineno-0-909" name="__codelineno-0-909"></a>        <span class="k">if</span> <span class="n">operator</span><span class="p">:</span>
 <a id="__codelineno-0-910" name="__codelineno-0-910"></a>            <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="bp">self</span>
 <a id="__codelineno-0-911" name="__codelineno-0-911"></a>            <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span>
-<a id="__codelineno-0-912" name="__codelineno-0-912"></a>        <span class="n">dct_join</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ho_join_to</span>
+<a id="__codelineno-0-912" name="__codelineno-0-912"></a>        <span class="n">dct_join</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ho_join_to</span><span class="p">)</span>
 <a id="__codelineno-0-913" name="__codelineno-0-913"></a>        <span class="k">if</span> <span class="n">right</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-914" name="__codelineno-0-914"></a>            <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
 <a id="__codelineno-0-915" name="__codelineno-0-915"></a>            <span class="n">dct_join</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">right</span><span class="o">.</span><span class="n">_ho_join_to</span><span class="p">)</span>
@@ -4865,9 +4865,9 @@ for elt in rel:
 <a id="__codelineno-0-698" name="__codelineno-0-698"></a>        <span class="n">fk_rel</span><span class="o">.</span><span class="n">_ho_query_type</span> <span class="o">=</span> <span class="n">orig_rel</span><span class="o">.</span><span class="n">_ho_query_type</span>
 <a id="__codelineno-0-699" name="__codelineno-0-699"></a>        <span class="k">if</span> <span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">deja_vu</span><span class="p">:</span>
 <a id="__codelineno-0-700" name="__codelineno-0-700"></a>            <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-701" name="__codelineno-0-701"></a>        <span class="c1"># elif (fk_rel, fkey) in deja_vu[fk_rel.ho_id] or fk_rel is orig_rel:</span>
-<a id="__codelineno-0-702" name="__codelineno-0-702"></a>        <span class="c1">#     #sys.stderr.write(f&quot;déjà vu in from! {fk_rel._fqrn}\n&quot;)</span>
-<a id="__codelineno-0-703" name="__codelineno-0-703"></a>        <span class="c1">#     continue</span>
+<a id="__codelineno-0-701" name="__codelineno-0-701"></a>        <span class="k">elif</span> <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]:</span>
+<a id="__codelineno-0-702" name="__codelineno-0-702"></a>            <span class="c1"># fk_rel already joined (two fkeys pointing to the same relation)</span>
+<a id="__codelineno-0-703" name="__codelineno-0-703"></a>            <span class="k">continue</span>
 <a id="__codelineno-0-704" name="__codelineno-0-704"></a>        <span class="n">fk_rel</span><span class="o">.</span><span class="n">__get_from</span><span class="p">(</span><span class="n">orig_rel</span><span class="p">,</span> <span class="n">deja_vu</span><span class="p">)</span>
 <a id="__codelineno-0-705" name="__codelineno-0-705"></a>        <span class="n">deja_vu</span><span class="p">[</span><span class="n">fk_rel</span><span class="o">.</span><span class="n">ho_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fk_rel</span><span class="p">,</span> <span class="n">fkey</span><span class="p">))</span>
 <a id="__codelineno-0-706" name="__codelineno-0-706"></a>        <span class="n">_</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">fk_rel</span><span class="o">.</span><span class="n">__where_args</span><span class="p">()</span>
@@ -5041,7 +5041,7 @@ On crée un nouvel objet sans contrainte et on a left et right et opérateur</p>
 <a id="__codelineno-0-909" name="__codelineno-0-909"></a>    <span class="k">if</span> <span class="n">operator</span><span class="p">:</span>
 <a id="__codelineno-0-910" name="__codelineno-0-910"></a>        <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="bp">self</span>
 <a id="__codelineno-0-911" name="__codelineno-0-911"></a>        <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span>
-<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="n">dct_join</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ho_join_to</span>
+<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="n">dct_join</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ho_join_to</span><span class="p">)</span>
 <a id="__codelineno-0-913" name="__codelineno-0-913"></a>    <span class="k">if</span> <span class="n">right</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="n">new</span><span class="o">.</span><span class="n">_ho_set_operators</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
 <a id="__codelineno-0-915" name="__codelineno-0-915"></a>        <span class="n">dct_join</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">right</span><span class="o">.</span><span class="n">_ho_join_to</span><span class="p">)</span>
