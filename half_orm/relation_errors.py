@@ -24,12 +24,12 @@ class DuplicateAttributeError(Exception):
     """Attempt to setattr to an already existing attribute."""
 
 class NotASingletonError(Exception):
-    """The constraint do not define a singleton.
-    
-    Raised from ExpectedOneError (err).
+    """The constraint does not define a singleton.
+
+    Raised when the primary key is not fully set with equality comparators.
     """
-    def __init__(self, err):
-        Exception.__init__(self, f'Not a singleton. Got {err.count} tuple{err.plural}')
+    def __init__(self, msg):
+        Exception.__init__(self, f'Not a singleton. {msg}')
 
 class WrongFkeyError(Exception):
     "Raised when Fkeys contains a wrong name"

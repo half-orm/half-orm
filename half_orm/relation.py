@@ -329,6 +329,20 @@ class Relation:
             res = [dict(elt) for elt in cursor.fetchall()] or [{}]
             return res[0]
 
+    def _ho_result_is_relation(self, *args) -> bool:
+        """Returns True if ho_select(*args) produces a proper relation in the
+        relational-theory sense: the relation has a primary key (views without
+        a PK return False) and all PK fields are present in the result,
+        guaranteeing that each tuple is uniquely identifiable.
+
+        Used to decide whether automatic deduplication applies when JOINs are present.
+        """
+        if not self._ho_pkey:
+            return False  # views or relations without a PK are not proper relations
+        if not args:
+            return True  # all fields selected — PK is necessarily included
+        return all(pk in args for pk in self._ho_pkey)
+
     #@utils.trace
     def ho_select(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None):
@@ -363,11 +377,8 @@ class Relation:
         offset = offset or self._ho_select_params.get('offset')
         distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
 
+        can_dedup = bool(self._ho_join_to) and self._ho_result_is_relation(*args)
         pk_names = list(self._ho_pkey.keys())
-        result_fields = set(args) if args else None  # None means all fields
-        can_dedup = bool(self._ho_join_to) and bool(pk_names) and (
-            result_fields is None or all(pk in result_fields for pk in pk_names)
-        )
 
         query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         seen = set()
@@ -1105,20 +1116,26 @@ Fkeys = {"""
         return self.ho_is_empty()
 
 def singleton(fct):
-    """Decorator. Enforces the relation to define a singleton.
+    """Decorator. Enforces the intention to define a singleton.
 
-    _ho_is_singleton is set by Relation.get.
-    _ho_is_singleton is unset as soon as a Field is set.
+    A singleton is defined when all primary key fields are set with the '='
+    comparator. No database query is performed: the check is purely on the
+    intention (the constraints set on the relation object).
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):
         if self._ho_is_singleton:
             return fct(self, *args, **kwargs)
-        try:
-            self = self._ho_get()
-            return fct(self, *args, **kwargs)
-        except relation_errors.ExpectedOneError as err:
-            raise relation_errors.NotASingletonError(err)
+        pk = self._ho_pkey
+        if not pk:
+            raise relation_errors.NotASingletonError(
+                f"{self.__class__.__name__} has no primary key.")
+        unset = [name for name, field in pk.items()
+                 if not field.is_set() or field._comp() != '=']
+        if unset:
+            raise relation_errors.NotASingletonError(
+                f"PK field(s) not set with '=': {', '.join(unset)}.")
+        return fct(self, *args, **kwargs)
     wrapper.__is_singleton = True
     wrapper.__orig_args = inspect.getfullargspec(fct)
     return wrapper
