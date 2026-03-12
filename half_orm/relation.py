@@ -363,10 +363,33 @@ class Relation:
         offset = offset or self._ho_select_params.get('offset')
         distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
 
+        pk_names = list(self._ho_pkey.keys())
+        result_fields = set(args) if args else None  # None means all fields
+        can_dedup = bool(self._ho_join_to) and bool(pk_names) and (
+            result_fields is None or all(pk in result_fields for pk in pk_names)
+        )
+
         query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
-        with self.__execute(query, values) as cursor:
-            for elt in cursor:
-                yield dict(elt)
+        seen = set()
+        dup_count = 0
+        try:
+            with self.__execute(query, values) as cursor:
+                for elt in cursor:
+                    row = dict(elt)
+                    if can_dedup:
+                        pk_key = tuple(row[pk] for pk in pk_names)
+                        if pk_key in seen:
+                            dup_count += 1
+                            continue
+                        seen.add(pk_key)
+                    yield row
+        finally:
+            if dup_count:
+                utils.warning(
+                    f"{dup_count} duplicate(s) removed in"
+                    f" ho_select on {self.__class__.__name__}."
+                    f" Consider using distinct=True for better performance.\n"
+                )
 
     #@utils.trace
     def _ho_get(self, *args: List[str]) -> 'Relation':

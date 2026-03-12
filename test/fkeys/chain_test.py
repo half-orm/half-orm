@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding:  utf-8 -*-
 
+import contextlib
+import io
 import random
 from unittest import TestCase
 
@@ -87,3 +89,19 @@ class Test(TestCase):
     def test_chain_comment_post_author(self):
         "it should be possible to chain from comment to author via post"
         self.assertIsInstance(self.comment().post_fk().author_fk(), halftest.person_cls)
+
+    def test_ho_select_dedup_on_join(self):
+        "ho_select should deduplicate rows when a JOIN produces duplicate PKs"
+        # comment → post_fk → author_fk: one row per comment without dedup (5 posts × 3 comments = 15),
+        # one row per distinct post-author with dedup.
+        persons_with_join = self.comment.post_fk().author_fk()
+        distinct_post_authors = {
+            author_id
+            for post in self.posts
+            for author_id in self.authors_by_post[post['id']]
+        }
+        stderr_output = io.StringIO()
+        with contextlib.redirect_stderr(stderr_output):
+            result = list(persons_with_join.ho_select())
+        self.assertEqual(len(result), len(distinct_post_authors))
+        self.assertIn('duplicate(s) removed', stderr_output.getvalue())
