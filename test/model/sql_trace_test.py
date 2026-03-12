@@ -64,8 +64,7 @@ class TestSqlTrace(TestCase):
             # Execute a query that will trigger the trace
             Person = model.get_relation_class(PERSON)
             person = Person()
-            person.ho_limit(1)
-            list(person.ho_select())
+            list(person.ho_select(limit=1))
 
             # Get the output
             output = captured_output.getvalue()
@@ -97,8 +96,7 @@ class TestSqlTrace(TestCase):
             # Execute a query
             Person = model.get_relation_class(PERSON)
             person = Person()
-            person.ho_limit(1)
-            list(person.ho_select())
+            list(person.ho_select(limit=1))
 
             # Get the output
             output = captured_output.getvalue()
@@ -124,8 +122,7 @@ class TestSqlTrace(TestCase):
             # Execute a query from a specific location
             Person = model.get_relation_class(PERSON)
             person = Person()
-            person.ho_limit(1)
-            result = list(person.ho_select())  # This line should be traced
+            result = list(person.ho_select(limit=1))  # This line should be traced
 
             # Get the output
             output = captured_output.getvalue()
@@ -209,8 +206,7 @@ class TestSqlTrace(TestCase):
         try:
             Person = model.get_relation_class(PERSON)
             person = Person()
-            person.ho_limit(1)
-            list(person.ho_select())
+            list(person.ho_select(limit=1))
 
             output = captured_output.getvalue()
 

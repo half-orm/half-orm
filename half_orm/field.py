@@ -112,7 +112,7 @@ class Field():
         "Returns the value of the field object"
         return self.__value
 
-    def set(self, *args):
+    def set(self, *args, unaccent:bool=False):
         """Sets the value (and the comparator) associated with the field."""
         self.__relation._ho_is_singleton = False
         value = args[0]
@@ -120,7 +120,9 @@ class Field():
             self.__is_set = False
             self.__value = None
             self.__comp = '='
+            self.__unaccent = False
             return
+        self.__unaccent = unaccent
         comp = None
         if isinstance(value, tuple):
             if len(value) != 2:

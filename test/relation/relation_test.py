@@ -86,21 +86,16 @@ class Test(TestCase):
         pers.ho_freeze()
         self.assertTrue(pers._ho_isfrozen)
 
-    def testho_unaccent(self):
+    def test_field_set_unaccent(self):
         self.assertFalse(self.pers.first_name.unaccent)
         self.assertFalse(self.pers.last_name.unaccent)
-        self.pers.ho_unaccent('first_name', 'last_name')
+        self.pers.first_name.set('Gaston', unaccent=True)
+        self.pers.last_name.set('Lagaffe', unaccent=True)
         self.assertTrue(self.pers.first_name.unaccent)
         self.assertTrue(self.pers.last_name.unaccent)
-
-    def testho_unaccent_error(self):
-        class Person(halftest.model.get_relation_class('actor.person')):
-            def __init__(self):
-                self.coucou = 'coucou'
-        pers = Person()
-        with self.assertRaises(ValueError) as exc:
-            pers.ho_unaccent('coucou')
-        self.assertEqual("coucou is not a Field!", str(exc.exception))
+        # reset clears unaccent
+        self.pers.first_name.set(None)
+        self.assertFalse(self.pers.first_name.unaccent)
 
     def test_repr(self):
         self.maxDiff = None
@@ -116,21 +111,13 @@ class Test(TestCase):
 
     def test_ho_count_limit(self):
         pers = self.pers()
-        pers.ho_limit(2)
-        self.assertEqual(pers.ho_count(), 2)
+        self.assertEqual(len(list(pers.ho_select(limit=2))), 2)
 
     def test_ho_count_distinct(self):
         pers = self.pers()
         pers.ho_mogrify()
-        pers.ho_distinct()
-        self.assertEqual(pers.ho_count('birth_date'), 1)
-        pers.ho_distinct(False)
+        self.assertEqual(pers.ho_count('birth_date', distinct=True), 1)
         self.assertEqual(pers.ho_count('birth_date'), 60)
-
-    def test_ho_count_arg(self):
-        with self.assertRaises(ValueError) as exc:
-            self.pers().ho_distinct(2)
-        self.assertEqual("ho_distinct argument must be either True or False!", str(exc.exception))
 
     def test_keys(self):
         self.assertEqual(list(self.pers.keys()), ['id', 'first_name', 'last_name', 'birth_date'])

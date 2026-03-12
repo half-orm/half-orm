@@ -66,51 +66,40 @@ class Test(TestCase):
     def test_ho_order_by(self):
         "it should return the set ordered by..."
         list_ = ['Easy', 'Super', 'A super easy', 'Bad']
-        posts = halftest.post_cls().ho_order_by('content, title')
-        self.assertEqual([elt['title'] for elt in list(posts)], list_)
-        posts = halftest.post_cls().ho_order_by('title')
-        ordered_list_on_title = list(list_)
-        ordered_list_on_title.sort()
-        self.assertEqual([elt['title'] for elt in list(posts)], ordered_list_on_title)
-        posts = halftest.post_cls().ho_order_by('title desc')
-        ordered_list_on_title_reversed = list(ordered_list_on_title)
-        ordered_list_on_title_reversed.reverse()
-        self.assertEqual([elt['title'] for elt in list(posts)], ordered_list_on_title_reversed)
+        posts = halftest.post_cls()
+        self.assertEqual([elt['title'] for elt in posts.ho_select(order_by='content, title')], list_)
+        ordered_list_on_title = sorted(list_)
+        self.assertEqual([elt['title'] for elt in posts.ho_select(order_by='title')], ordered_list_on_title)
+        self.assertEqual([elt['title'] for elt in posts.ho_select(order_by='title desc')], list(reversed(ordered_list_on_title)))
 
     def test_ho_limit(self):
         "it should return the set limited to limit"
-        limit = randint(1, halftest.post_cls().ho_count())
-        posts = halftest.post_cls().ho_order_by('content, title').ho_limit(limit)
-        self.assertEqual(len(list(posts)), limit)
+        posts = halftest.post_cls()
+        limit = randint(1, posts.ho_count())
+        self.assertEqual(len(list(posts.ho_select(order_by='content, title', limit=limit))), limit)
 
     def test_ho_limit_with_no_limit(self):
-        "it should return the set"
+        "it should return the full set when no limit is given"
         posts = halftest.post_cls()
-        posts.ho_limit(1)
-        self.assertEqual(len(list(posts)), 1)
-        posts.ho_limit(0)
-        self.assertEqual(len(list(posts)), 0)
-        posts.ho_limit(None)
-        self.assertEqual(len(list(posts)), halftest.post_cls().ho_count())
+        self.assertEqual(len(list(posts.ho_select(limit=1))), 1)
+        self.assertEqual(len(list(posts.ho_select())), posts.ho_count())
 
     def test_ho_limit_error(self):
-        "it should raise an error"
-        posts = halftest.post_cls()
+        "it should raise a ValueError for non-integer limit"
         with self.assertRaises(ValueError):
-            posts.ho_limit("a")
+            list(halftest.post_cls().ho_select(limit="a"))
 
     def test_ho_offset(self):
-        "it should set the offset"
+        "it should skip the given number of rows"
         posts = halftest.post_cls()
-        offset = randint(0, halftest.post_cls().ho_count())
-        posts.ho_offset(offset)
-        self.assertEqual(len(list(posts)), halftest.post_cls().ho_count() - offset)
+        total = posts.ho_count()
+        offset = randint(0, total)
+        self.assertEqual(len(list(posts.ho_select(offset=offset))), total - offset)
 
     def test_ho_offset_error(self):
-        "it should raise an error"
-        posts = halftest.post_cls()
+        "it should raise a ValueError for non-integer offset"
         with self.assertRaises(ValueError):
-            posts.ho_offset("a")
+            list(halftest.post_cls().ho_select(offset="a"))
 
     def test_cast(self):
         "it should cast to the new relation"

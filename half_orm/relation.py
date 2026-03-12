@@ -107,7 +107,8 @@ class DC_Relation: # pragma: no cover
             It is not possible to insert more than one row with the ho_insert method
         """
         ...
-    def ho_select(self, *args: List[str]) -> [Dict]:
+    def ho_select(self, *args: List[str],
+        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None) -> [Dict]:
         """Gets the set of values correponding to the constraint attached to self.
         This method is a generator.
 
@@ -162,7 +163,7 @@ class DC_Relation: # pragma: no cover
             ExpectedOneError: an exception is raised if no or more than one element is found.
 
         Example:
-            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston').ho_get()
+            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston')._ho_get()
             >>> type(gaston) is Person
             True
             >>> gaston.id
@@ -329,24 +330,40 @@ class Relation:
             return res[0]
 
     #@utils.trace
-    def ho_select(self, *args):
+    def ho_select(self, *args,
+        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None):
         """Gets the set of values correponding to the constraint attached to the object.
         This method is a generator.
 
         Arguments:
             *args: the fields names of the returned attributes. If omitted,
                 all the fields are returned.
+            distinct (bool): if True, adds DISTINCT to the SQL SELECT. Default: False.
+            order_by (str): SQL ORDER BY clause (e.g. 'last_name, first_name'). Default: None.
+            limit (int): maximum number of rows to return. Default: None (no limit).
+            offset (int): number of rows to skip before returning results. Default: None.
 
         Yields:
             the result of the query as a dictionary.
 
         Example:
-            >>> for person in Person(last_name=('like', 'La%')).ho_select('id'):
+            >>> for person in Person(last_name=('like', 'La%')).ho_select('id', order_by='id', limit=10):
             >>>     print(person)
             {'id': 1772}
         """
         self._ho_check_colums(*args)
-        query, values = self._ho_prep_select(*args)
+        if limit is not None and not isinstance(limit, int):
+            raise ValueError(f"limit must be an integer, got {type(limit).__name__!r}")
+        if offset is not None and not isinstance(offset, int):
+            raise ValueError(f"offset must be an integer, got {type(offset).__name__!r}")
+        # TODO(1.0): remove fallback to _ho_select_params once deprecated methods are removed
+        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
+        order_by = order_by or self._ho_select_params.get('order_by')
+        limit = limit or self._ho_select_params.get('limit')
+        offset = offset or self._ho_select_params.get('offset')
+        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+
+        query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         with self.__execute(query, values) as cursor:
             for elt in cursor:
                 yield dict(elt)
@@ -763,19 +780,20 @@ Fkeys = {"""
             values)
 
     #@utils.trace
-    def _ho_prep_select(self, *args):
-        distinct = self._ho_select_params.get('distinct', '')
+    def _ho_prep_select(self, *args,
+        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
         query_template = f"select\n {distinct} {{}}\nfrom\n  {{}} {{}}\n  {{}}"
         query, values = self.__prep_query(query_template, *args)
         values = tuple(self._ho_sql_values + values)
-        if 'order_by' in self._ho_select_params:
-            query = f"{query} order by {self._ho_select_params['order_by']}"
-        if 'limit' in self._ho_select_params:
-            query = f"{query} limit {self._ho_select_params['limit']}"
-        if 'offset' in self._ho_select_params:
-            query = f"{query} offset {self._ho_select_params['offset']}"
+        if order_by:
+            query = f"{query} order by {order_by}"
+        if limit is not None:
+            query = f"{query} limit {limit}"
+        if offset is not None:
+            query = f"{query} offset {offset}"
         return query, values
 
+    @utils._ho_deprecated(replacement="use ho_select(distinct=...)")
     def ho_distinct(self, dist=True):
         """Set distinct in SQL select request."""
         distinct = 'distinct'
@@ -794,6 +812,7 @@ Fkeys = {"""
             self.__dict__[field_name].unaccent = True
         return self
 
+    @utils._ho_deprecated(replacement="use ho_select(order_by=...)")
     def ho_order_by(self, _order_):
         """Set SQL order by according to the "order" string passed
 
@@ -803,6 +822,7 @@ Fkeys = {"""
         self._ho_select_params['order_by'] = _order_
         return self
 
+    @utils._ho_deprecated(replacement="use ho_select(limit=...)")
     def ho_limit(self, _limit_):
         """Set limit for the next SQL select request."""
         if _limit_ is not None:
@@ -811,6 +831,7 @@ Fkeys = {"""
             self._ho_select_params.pop('limit')
         return self
 
+    @utils._ho_deprecated(replacement="use ho_select(offset=...)")
     def ho_offset(self, _offset_):
         """Set the offset for the next SQL select request."""
         if _offset_ is not None:
@@ -825,11 +846,21 @@ Fkeys = {"""
         return self
 
     # @utils.trace
-    def ho_count(self, *args):
+    def ho_count(self, *args, distinct:bool=False):
         """Returns the number of tuples matching the intention in the relation.
+
+        Arguments:
+            *args: field names to count on (useful with distinct).
+            distinct (bool): if True, adds DISTINCT to the inner SELECT. Default: False.
         """
         self._ho_query = "select"
-        query, values = self._ho_prep_select(*args)
+        # TODO(1.0): remove _ho_select_params reads once deprecated methods are removed
+        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
+        order_by = self._ho_select_params.get('order_by')
+        limit = self._ho_select_params.get('limit')
+        offset = self._ho_select_params.get('offset')
+        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         query = f'select\n  count(*) from ({query}) as ho_count'
         return self.__execute(query, values).fetchone()['count']
 
@@ -983,7 +1014,13 @@ Fkeys = {"""
         return False
 
     def __iter__(self):
-        query, values = self._ho_prep_select()
+        # TODO(1.0): remove _ho_select_params reads once deprecated methods are removed
+        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
+        order_by = self._ho_select_params.get('order_by')
+        limit = self._ho_select_params.get('limit')
+        offset = self._ho_select_params.get('offset')
+        distinct = 'distinct' if self._ho_select_params.get('distinct') else ''
+        query, values = self._ho_prep_select(distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         for elt in self.__execute(query, values):
             yield dict(elt)
 
@@ -1055,7 +1092,7 @@ def singleton(fct):
         if self._ho_is_singleton:
             return fct(self, *args, **kwargs)
         try:
-            self = self.ho_get()
+            self = self._ho_get()
             return fct(self, *args, **kwargs)
         except relation_errors.ExpectedOneError as err:
             raise relation_errors.NotASingletonError(err)
