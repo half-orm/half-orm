@@ -49,6 +49,12 @@ from half_orm import relation_errors
 from half_orm.transaction import Transaction
 from half_orm.field import Field
 from half_orm import utils
+from half_orm.sql_ast import (
+    Select as ASTSelect, Insert as ASTInsert, Update as ASTUpdate,
+    Delete as ASTDelete, Join as ASTJoin, Raw as ASTRaw,
+    Returning as ASTReturning,
+    And as ASTAnd, Not as ASTNot, Group as ASTGroup, SetOp as ASTSetOp,
+)
 
 class _SetOperators:
     """_SetOperators class stores the set operations made on the Relation class objects
@@ -287,8 +293,7 @@ class Relation:
         self._ho_set_fkeys()
         self._ho_query = ""
         self._ho_query_type = None
-        self._ho_sql_query = []
-        self._ho_sql_values = []
+        self._ho_ast_joins = []
         self._ho_set_operators = _SetOperators(self)
         self._ho_select_params = {}
         self._ho_id_cast = None
@@ -324,19 +329,23 @@ class Relation:
             It is not possible to insert more than one row with the insert method
         """
         _ = args and args != ('*',) and self._ho_check_colums(*args)
-        query_template = "insert into {} ({}) values ({})"
         self._ho_query_type = 'insert'
         fields_names, values, fk_fields, fk_query, fk_values = self.__what()
-        what_to_insert = ["%s" for _ in range(len(values))]
+        placeholders = ["%s" for _ in range(len(values))]
         if fk_fields:
             fields_names += fk_fields
-            what_to_insert += fk_query
+            placeholders += fk_query
             values += fk_values
-        query = query_template.format(self._qrn, ", ".join(fields_names), ", ".join(what_to_insert))
         returning = args or ['*']
-        if returning:
-            query = self._ho_add_returning(query, *returning)
-        with self.__execute(query, tuple(values)) as cursor:
+        stmt = ASTInsert(
+            table=self._qrn,
+            columns=fields_names,
+            placeholders=placeholders,
+            values=values,
+            returning=ASTReturning(list(returning)),
+        )
+        query, vals = stmt.to_sql()
+        with self.__execute(query, tuple(vals)) as cursor:
             res = [dict(elt) for elt in cursor.fetchall()] or [{}]
             return res[0]
 
@@ -498,13 +507,26 @@ class Relation:
         if not update_args:
             return None # no new value update. Should we raise an error here?
 
-        query_template = "update {} set {} {}"
-        what, where, values = self.__update_args(**update_args)
-        where, values = self.__fkey_where(where, values)
-        query = query_template.format(self._qrn, what, where)
-        if args:
-            query = self._ho_add_returning(query, *args)
-        with self.__execute(query, tuple(values)) as cursor:
+        self._ho_query_type = 'update'
+        _, where_expr = self.__where_args()
+
+        set_clause = []
+        for field_name, new_value in update_args.items():
+            col_name = self._ho_fields[field_name].name
+            set_clause.append((f'"{col_name}" = %s', new_value))
+
+        fk_where_str, fk_values = self.__fkey_where('', [])
+
+        stmt = ASTUpdate(
+            table=self._qrn,
+            set_clause=set_clause,
+            where=where_expr,
+            fk_where=fk_where_str or None,
+            fk_values=fk_values,
+            returning=ASTReturning(list(args)) if args else None,
+        )
+        query, vals = stmt.to_sql()
+        with self.__execute(query, tuple(vals)) as cursor:
             for field_name, value in update_args.items():
                 self._ho_fields[field_name].set(value)
             if args:
@@ -521,26 +543,23 @@ class Relation:
             raise RuntimeError(
                 f'Attempt to delete all rows from {self.__class__.__name__}'
                 ' without delete_all being set to True!')
-        query_template = "delete from {} {}"
-        _, values = self.__prep_query(query_template)
+
         self._ho_query_type = 'delete'
-        _, where, _ = self.__where_args()
-        where, values = self.__fkey_where(where, values)
-        where = f" where {where}" if where else ''
-        query = f"delete from {self._qrn} {where}"
-        if args:
-            query = self._ho_add_returning(query, *args)
-        with self.__execute(query, tuple(values)) as cursor:
+        _, where_expr = self.__where_args()
+        fk_where_str, fk_values = self.__fkey_where('', [])
+
+        stmt = ASTDelete(
+            table=self._qrn,
+            where=where_expr,
+            fk_where=fk_where_str or None,
+            fk_values=fk_values,
+            returning=ASTReturning(list(args)) if args else None,
+        )
+        query, vals = stmt.to_sql()
+        with self.__execute(query, tuple(vals)) as cursor:
             if args:
                 return [dict(elt) for elt in cursor.fetchall()]
         return None
-
-    def _ho_add_returning(self, query, *args) -> str:
-        "Adds the SQL returning clause to the query"
-        if args:
-            returning = ', '.join(args)
-            return f'{query} returning {returning}'
-        return query
 
     def ho_unfreeze(self):
         "Allow to add attributs to a relation"
@@ -736,39 +755,43 @@ Fkeys = {"""
         return [field for field in self._ho_fields.values() if field.is_set()]
 
     #@utils.trace
-    def __walk_op(self, rel_id_, out=None, _fields_=None, _in_set_op_=False):
-        """Walk the set operators tree and return a list of SQL where
-        representation of the query with a list of the fields of the query.
+    def __walk_op(self, rel_id_, _in_set_op_=False):
+        """Walk the set operators tree and return an Expr node (or None).
 
         _in_set_op_: True when called as a child of a set operator. An
-        unconstrained leaf must produce '1 = 1' in that context so that it
+        unconstrained leaf must produce TRUE in that context so that it
         can be combined with AND / OR / NOT without generating invalid SQL.
-        At the top level (False) an unconstrained leaf produces '' so the
+        At the top level (False) an unconstrained leaf returns None so the
         WHERE clause is omitted entirely.
         """
-        if out is None:
-            out = []
-            _fields_ = []
         if self._ho_set_operators.operator:
-            if self._ho_neg:
-                out.append("not (")
-            out.append("(")
             left = self._ho_set_operators.left
             left._ho_query_type = self._ho_query_type
-            left.__walk_op(rel_id_, out, _fields_, True)
+            left_expr = left.__walk_op(rel_id_, True)
+
             if self._ho_set_operators.right is not None:
-                out.append(f" {self._ho_set_operators.operator}\n    ")
                 right = self._ho_set_operators.right
                 right._ho_query_type = self._ho_query_type
-                right.__walk_op(rel_id_, out, _fields_, True)
-            out.append(")")
+                right_expr = right.__walk_op(rel_id_, True)
+                inner = ASTSetOp(
+                    left=ASTGroup(left_expr),
+                    operator=self._ho_set_operators.operator,
+                    right=ASTGroup(right_expr),
+                )
+            else:
+                inner = ASTGroup(left_expr)
+
+            inner = ASTGroup(inner)
             if self._ho_neg:
-                out.append(")")
+                inner = ASTNot(inner)
+            return inner
         else:
-            where = self.__where_repr(rel_id_)
-            out.append(where if where else ('TRUE' if _in_set_op_ else ''))
-            _fields_ += self.__get_set_fields()
-        return out, _fields_
+            expr = self.__where_expr(rel_id_)
+            if expr is None:
+                if _in_set_op_:
+                    return ASTRaw("TRUE")
+                return None
+            return expr
 
     def _ho_sql_id(self):
         """Returns the FQRN as alias for the sql query."""
@@ -776,10 +799,10 @@ Fkeys = {"""
 
     #@utils.trace
     def __get_from(self, orig_rel=None, deja_vu=None):
-        """Constructs the _ho_sql_query and gets the _ho_sql_values for self."""
+        """Constructs the AST join nodes for self."""
         if deja_vu is None:
             orig_rel = self
-            self._ho_sql_query = [self._ho_sql_id()]
+            self._ho_ast_joins = []
             deja_vu = {self.ho_id:[(self, None)]}
         for fkey, fk_rel in self._ho_join_to.items():
             fk_rel._ho_query_type = orig_rel._ho_query_type
@@ -790,52 +813,57 @@ Fkeys = {"""
                 continue
             fk_rel.__get_from(orig_rel, deja_vu)
             deja_vu[fk_rel.ho_id].append((fk_rel, fkey))
-            _, where, values = fk_rel.__where_args()
-            orig_rel._ho_sql_query.insert(1, f'\n  join {fk_rel._ho_sql_id()} on\n   ')
-            orig_rel._ho_sql_query.insert(2, fkey._join_query(self))
-            if where:
-                orig_rel._ho_sql_query.append(f" and\n {where}")
-            orig_rel._ho_sql_values += values
+            _, where_expr = fk_rel.__where_args()
+            orig_rel._ho_ast_joins.insert(0, ASTJoin(
+                table=fk_rel._ho_sql_id(),
+                on=fkey._join_query(self),
+                where=where_expr,
+            ))
 
     #@utils.trace
-    def __where_repr(self, rel_id_):
-        where_repr = [
-            field._where_repr(self._ho_query_type, rel_id_)
+    def __where_expr(self, rel_id_):
+        """Returns an Expr node for this relation's field constraints, or None."""
+        field_exprs = [
+            field._where_expr(self._ho_query_type, rel_id_)
             for field in self.__get_set_fields()
         ]
-        if not where_repr:
-            return 'FALSE' if self._ho_neg else ''
-        ret = f"({'  and '.join(where_repr)})"
+        if not field_exprs:
+            if self._ho_neg:
+                return ASTRaw("FALSE")
+            return None
+        expr = ASTAnd(field_exprs) if len(field_exprs) > 1 else field_exprs[0]
+        expr = ASTGroup(expr)
         if self._ho_neg:
-            ret = f"not ({ret})"
-        return ret
+            expr = ASTNot(expr)
+        return expr
 
     #@utils.trace
     def __where_args(self, *args):
-        """Returns the what, where and values needed to construct the queries.
+        """Returns the columns expression and WHERE Expr node.
         """
         rel_id_ = self.ho_id
         what = f'r{rel_id_}.*'
         if args:
             what = ', '.join([f'r{rel_id_}.{arg}' for arg in args])
-        s_where, set_fields = self.__walk_op(rel_id_)
-        s_where = ''.join(s_where)
-        return what, s_where, set_fields
+        where_expr = self.__walk_op(rel_id_)
+        return what, where_expr
 
     #@utils.trace
-    def __prep_query(self, query_template, *args):
-        """Prepare the SQL query to be executed."""
+    def _ho_prep_select(self, *args,
+        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
         from half_orm.fkey import FKey
-        self._ho_sql_values = []
+
+        # Initialize state
+        self._ho_ast_joins = []
         self._ho_query_type = 'select'
-        what, where, values = self.__where_args(*args)
-        where = f"\nwhere\n    {where}" if where else ''
+
+        # Get columns and WHERE expression
+        what, where_expr = self.__where_args(*args)
+
+        # Build joins (populates _ho_ast_joins)
         self.__get_from()
-        # remove duplicates
-        for idx, elt in reversed(list(enumerate(self._ho_sql_query))):
-            if elt.find('\n  join ') == 0 and self._ho_sql_query.count(elt) > 1:
-                self._ho_sql_query[idx] = '  and\n'
-        # check that fkeys are fkeys
+
+        # Validate FKeys
         for fkey_name in self._ho_fkeys_attr:
             fkey_cls = self.__dict__[fkey_name].__class__
             if fkey_cls != FKey:
@@ -843,27 +871,29 @@ Fkeys = {"""
                     f'self.{fkey_name} is not a FKey (got a {fkey_cls.__name__} object instead).\n'
                     f'- use: self.{fkey_name}.set({fkey_cls.__name__}(...))\n'
                     f'- not: self.{fkey_name} = {fkey_cls.__name__}(...)'
-                    )
-        return (
-            query_template.format(
-                what,
-                self._ho_only and "only" or "",
-                ' '.join(self._ho_sql_query), where),
-            values)
+                )
 
-    #@utils.trace
-    def _ho_prep_select(self, *args,
-        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
-        query_template = f"select\n {distinct} {{}}\nfrom\n  {{}} {{}}\n  {{}}"
-        query, values = self.__prep_query(query_template, *args)
-        values = tuple(self._ho_sql_values + values)
-        if order_by:
-            query = f"{query} order by {order_by}"
-        if limit is not None:
-            query = f"{query} limit {limit}"
-        if offset is not None:
-            query = f"{query} offset {offset}"
-        return query, values
+        # Deduplicate joins by table alias
+        seen_tables = set()
+        unique_joins = []
+        for j in self._ho_ast_joins:
+            if j.table not in seen_tables:
+                seen_tables.add(j.table)
+                unique_joins.append(j)
+
+        # Build AST and render SQL
+        stmt = ASTSelect(
+            columns=[what],
+            from_table=self._ho_sql_id(),
+            only=bool(self._ho_only),
+            joins=unique_joins,
+            where=where_expr,
+            distinct=bool(distinct),
+            order_by=order_by,
+            limit=limit,
+            offset=offset,
+        )
+        return stmt.to_sql()
 
     @utils._ho_deprecated(replacement="use ho_select(distinct=...)")
     def ho_distinct(self, dist=True):
@@ -941,20 +971,6 @@ Fkeys = {"""
         """
         self.ho_limit(1)
         return self.ho_count() == 0
-
-    #@utils.trace
-    def __update_args(self, **kwargs):
-        """Returns the what, where an values for the update query."""
-        what_fields = []
-        new_values = []
-        self._ho_query_type = 'update'
-        _, where, values = self.__where_args()
-        where = f" where {where}" if where else ''
-        for field_name, new_value in kwargs.items():
-            what_fields.append(self._ho_fields[field_name].name)
-            new_values.append(new_value)
-        what = ", ".join([f'"{elt}" = %s' for elt in what_fields])
-        return what, where, new_values + values
 
     #@utils.trace
     def __what(self):

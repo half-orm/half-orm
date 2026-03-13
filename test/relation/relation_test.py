@@ -68,12 +68,6 @@ class Test(TestCase):
         "_relationname should be 'person' for the halftest.person_cls() class"
         self.assertEqual(halftest.person_cls()._relationname, "person")
 
-    def test_add_returning(self):
-        "it should return a returning clause"
-        add_returning = self.pers.__class__._ho_add_returning
-        self.assertEqual(add_returning(self.pers, 'query', 'a', 'b'), 'query returning a, b')
-        self.assertEqual(add_returning(self.pers, 'query'), 'query')
-
     def testho_is_frozen(self):
         pers = self.pers()
         self.assertTrue(pers._ho_isfrozen)

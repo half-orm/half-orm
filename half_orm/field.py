@@ -11,6 +11,7 @@ import psycopg2.extras
 from collections.abc import Iterable
 from half_orm.null import NULL
 from half_orm.sql_adapter import SQL_ADAPTER
+from half_orm.sql_ast import FieldExpr
 
 class Field():
     """The class Field is for Relation internal usage. It is called by
@@ -106,6 +107,27 @@ class Field():
         else:
             where_repr = f"unaccent({self.__praf(query, ho_id)}) {comp} unaccent({comp_str}{cast})"
         return where_repr
+
+    def _where_expr(self, query, ho_id):
+        """Returns a FieldExpr AST node for this field's WHERE condition."""
+        comp_str = '%s'
+        isiterable = type(self.__value) in {tuple, list, set}
+        col_is_array = self.__sql_type[0] == '_'
+        comp = self._comp()
+        if comp == '=' and isiterable:
+            comp = 'in'
+        is_array_any = col_is_array and comp == '='
+        cast = ''
+        if not is_array_any and self.__value != NULL and not isiterable:
+            cast = f'::{self.__sql_type}'
+        return FieldExpr(
+            column=self.__praf(query, ho_id),
+            comp=comp,
+            placeholder=f'{comp_str}{cast}',
+            value=self,
+            unaccent=self.unaccent,
+            array_any=is_array_any,
+        )
 
     @property
     def value(self):
