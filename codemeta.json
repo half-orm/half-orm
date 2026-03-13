@@ -1,0 +1,104 @@
+{
+    "@context": [
+        "https://w3id.org/codemeta/3.0",
+        "https://w3id.org/software-iodata",
+        "https://raw.githubusercontent.com/jantman/repostatus.org/master/badges/latest/ontology.jsonld",
+        "https://schema.org",
+        "https://w3id.org/software-types"
+    ],
+    "@type": "SoftwareSourceCode",
+    "applicationCategory": [
+        "Database > Front-Ends",
+        "Software Development > Libraries > Application Frameworks"
+    ],
+    "audience": {
+        "@type": "Audience",
+        "audienceType": "Developers"
+    },
+    "author": [
+        {
+            "@type": "Person",
+            "email": "joel.maizi@collorg.org",
+            "familyName": "Maïzi",
+            "givenName": "Joël"
+        }
+    ],
+    "codeRepository": "https://github.com/half-orm/half-orm",
+    "contributor": [
+        {
+            "@type": "Person",
+            "email": "cyril.bouvier@lirmm.fr",
+            "familyName": "Bouvier",
+            "givenName": "Cyril"
+        },
+        {
+            "@type": "Person",
+            "email": "joel.maizi@lirmm.fr",
+            "familyName": "Maizi",
+            "givenName": "Joël"
+        },
+        {
+            "@type": "Person",
+            "email": "maxime@freepoteries.fr",
+            "familyName": "Alves",
+            "givenName": "maxime"
+        }
+    ],
+    "dateCreated": "2015-10-18T18:14:41Z+0200",
+    "dateModified": "2026-02-25T09:57:12Z+0100",
+    "description": "A simple PostgreSQL to Python mapper.",
+    "developmentStatus": "https://www.repostatus.org/#wip",
+    "identifier": "half-orm",
+    "isSourceCodeOf": {
+        "@type": "CommandLineApplication",
+        "executableName": "half_orm",
+        "name": "half_orm",
+        "runtimePlatform": "Python 3"
+    },
+    "license": "http://spdx.org/licenses/GPL-3.0-only",
+    "maintainer": {
+        "@type": "Person",
+        "email": "joel.maizi@collorg.org",
+        "familyName": "Maïzi",
+        "givenName": "Joël"
+    },
+    "name": "half_orm",
+    "operatingSystem": "OS Independent",
+    "programmingLanguage": "Python",
+    "runtimePlatform": [
+        "Python 3",
+        "Python 3.10",
+        "Python 3.11",
+        "Python 3.12",
+        "Python 3.13",
+        "Python 3.14",
+        "Python 3.8",
+        "Python 3.9"
+    ],
+    "softwareHelp": "https://half-orm.github.io/half-orm/",
+    "softwareRequirements": [
+        {
+            "@type": "SoftwareApplication",
+            "identifier": "click",
+            "name": "click",
+            "runtimePlatform": "Python 3"
+        },
+        {
+            "@type": "SoftwareApplication",
+            "identifier": "importlib-metadata",
+            "name": "importlib-metadata",
+            "runtimePlatform": "Python 3"
+        },
+        {
+            "@type": "SoftwareApplication",
+            "identifier": "psycopg2-binary",
+            "name": "psycopg2-binary",
+            "runtimePlatform": "Python 3"
+        }
+    ],
+    "url": [
+        "https://github.com/half-orm/half-orm",
+        "https://github.com/half-orm/half-orm/issues"
+    ],
+    "version": "0.17.7"
+}

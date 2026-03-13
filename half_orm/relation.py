@@ -446,7 +446,7 @@ class Relation:
         if fk_fields:
             fk_where = " and ".join([f"({a}) in ({b})" for a, b in zip(fk_fields, fk_query)])
             if fk_where:
-                where = f"{where} and {fk_where}"
+                where = f"{where} and {fk_where}" if where else fk_where
             values += fk_values
         return where, values
 
@@ -496,8 +496,7 @@ class Relation:
         self._ho_query_type = 'delete'
         _, where, _ = self.__where_args()
         where, values = self.__fkey_where(where, values)
-        if where:
-            where = f" where {where}"
+        where = f" where {where}" if where else ''
         query = f"delete from {self._qrn} {where}"
         if args:
             query = self._ho_add_returning(query, *args)
@@ -707,9 +706,15 @@ Fkeys = {"""
         return [field for field in self._ho_fields.values() if field.is_set()]
 
     #@utils.trace
-    def __walk_op(self, rel_id_, out=None, _fields_=None):
+    def __walk_op(self, rel_id_, out=None, _fields_=None, _in_set_op_=False):
         """Walk the set operators tree and return a list of SQL where
         representation of the query with a list of the fields of the query.
+
+        _in_set_op_: True when called as a child of a set operator. An
+        unconstrained leaf must produce '1 = 1' in that context so that it
+        can be combined with AND / OR / NOT without generating invalid SQL.
+        At the top level (False) an unconstrained leaf produces '' so the
+        WHERE clause is omitted entirely.
         """
         if out is None:
             out = []
@@ -720,17 +725,18 @@ Fkeys = {"""
             out.append("(")
             left = self._ho_set_operators.left
             left._ho_query_type = self._ho_query_type
-            left.__walk_op(rel_id_, out, _fields_)
+            left.__walk_op(rel_id_, out, _fields_, True)
             if self._ho_set_operators.right is not None:
                 out.append(f" {self._ho_set_operators.operator}\n    ")
                 right = self._ho_set_operators.right
                 right._ho_query_type = self._ho_query_type
-                right.__walk_op(rel_id_, out, _fields_)
+                right.__walk_op(rel_id_, out, _fields_, True)
             out.append(")")
             if self._ho_neg:
                 out.append(")")
         else:
-            out.append(self.__where_repr(rel_id_))
+            where = self.__where_repr(rel_id_)
+            out.append(where if where else ('1 = 1' if _in_set_op_ else ''))
             _fields_ += self.__get_set_fields()
         return out, _fields_
 
@@ -755,19 +761,22 @@ Fkeys = {"""
             fk_rel.__get_from(orig_rel, deja_vu)
             deja_vu[fk_rel.ho_id].append((fk_rel, fkey))
             _, where, values = fk_rel.__where_args()
-            where = f" and\n {where}"
             orig_rel._ho_sql_query.insert(1, f'\n  join {fk_rel._ho_sql_id()} on\n   ')
             orig_rel._ho_sql_query.insert(2, fkey._join_query(self))
-            orig_rel._ho_sql_query.append(where)
+            if where:
+                orig_rel._ho_sql_query.append(f" and\n {where}")
             orig_rel._ho_sql_values += values
 
     #@utils.trace
     def __where_repr(self, rel_id_):
-        where_repr = []
-        for field in self.__get_set_fields():
-            where_repr.append(field._where_repr(self._ho_query_type, rel_id_))
-        where_repr = ' and '.join(where_repr) or '1 = 1'
-        ret = f"({where_repr})"
+        where_repr = [
+            field._where_repr(self._ho_query_type, rel_id_)
+            for field in self.__get_set_fields()
+        ]
+        if not where_repr:
+            # negation of unconstrained = FALSE (no rows)
+            return 'not (1 = 1)' if self._ho_neg else ''
+        ret = f"({'  and '.join(where_repr)})"
         if self._ho_neg:
             ret = f"not ({ret})"
         return ret
@@ -791,7 +800,7 @@ Fkeys = {"""
         self._ho_sql_values = []
         self._ho_query_type = 'select'
         what, where, values = self.__where_args(*args)
-        where = f"\nwhere\n    {where}"
+        where = f"\nwhere\n    {where}" if where else ''
         self.__get_from()
         # remove duplicates
         for idx, elt in reversed(list(enumerate(self._ho_sql_query))):
@@ -911,7 +920,7 @@ Fkeys = {"""
         new_values = []
         self._ho_query_type = 'update'
         _, where, values = self.__where_args()
-        where = f" where {where}"
+        where = f" where {where}" if where else ''
         for field_name, new_value in kwargs.items():
             what_fields.append(self._ho_fields[field_name].name)
             new_values.append(new_value)

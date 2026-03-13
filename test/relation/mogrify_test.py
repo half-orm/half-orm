@@ -9,7 +9,7 @@ from half_orm.hotest import HoTestCase
 
 from ..init import halftest
 
-expected = re.compile(r"""select r\d+\.\* from "blog"\."post" as r\d+ where \(1 = 1\)""")
+expected = re.compile(r"""select r\d+\.\* from "blog"\."post" as r\d+""")
 
 class Test(HoTestCase):
     def setUp(self):
