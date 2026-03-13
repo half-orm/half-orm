@@ -20,23 +20,27 @@ class Test(TestCase):
         self.pers = halftest.person_cls()
         self.post = halftest.post_cls()
         self.today = halftest.today
+        self.blog_view_cls = halftest.blog_view_cls
 
     def test_singleton_ok(self):
         """name method is decorated with @singleton in halftest.actor.person.Person class"""
         aa = self.pers(last_name='aa', first_name='b', birth_date='1970-01-01')
+        aa.ho_assert_is_singleton()
         aa.name()
 
     def test_not_a_singleton_raised_after_field_set(self):
         """Should raise NotASingletonError after setting a field on an OK singleton"""
         aa = self.pers(last_name='aa')
         with self.assertRaises(NotASingletonError):
+            aa.ho_assert_is_singleton()
+        with self.assertRaises(NotASingletonError):
             aa.name()
 
     def test_not_a_singleton_raised_whole_set(self):
-        """Should raise NotASingletonError on whole set if it has more than one element"""
-        aa = self.pers()
+        """Should raise NotASingletonError on a view"""
+        aa = self.blog_view_cls()
         with self.assertRaises(NotASingletonError):
-            aa.name()
+            aa.ho_assert_is_singleton()
 
     def test_orig_args_attribute(self):
         "Test that a function decorated by @singleton has the attribute __orig_args and that it is a FullArgSpec object"

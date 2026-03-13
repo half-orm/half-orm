@@ -146,6 +146,17 @@ class DC_Relation: # pragma: no cover
         """
         ...
 
+    def ho_assert_is_singleton(self):
+        """
+        A singleton is defined when all primary key fields are set with the '='
+        comparator. No database query is performed: the check is purely on the
+        intention (the constraints set on the relation object).
+
+        raises:
+            NotASingletonError if self is not a singleton
+        """
+        ...
+
     def _ho_get(self, *args: List[str]) -> 'Relation':
         """The get method allows you to fetch a singleton from the database.
         It garantees that the constraint references one and only one tuple.
@@ -401,6 +412,25 @@ class Relation:
                     f" ho_select on {self.__class__.__name__}."
                     f" Consider using distinct=True for better performance.\n"
                 )
+
+    def ho_assert_is_singleton(self):
+        """
+        A singleton is defined when all primary key fields are set with the '='
+        comparator. No database query is performed: the check is purely on the
+        intention (the constraints set on the relation object).
+
+        raises:
+            NotASingletonError if self is not a singleton
+        """
+        pk = self._ho_pkey
+        if not pk:
+            raise relation_errors.NotASingletonError(
+                f"{self.__class__.__name__} has no primary key.")
+        unset = [name for name, field in pk.items()
+                 if not field.is_set() or field._comp() != '=']
+        if unset:
+            raise relation_errors.NotASingletonError(
+                f"PK field(s) not set with '=': {', '.join(unset)}.")
 
     #@utils.trace
     def _ho_get(self, *args: List[str]) -> 'Relation':
@@ -736,7 +766,7 @@ Fkeys = {"""
                 out.append(")")
         else:
             where = self.__where_repr(rel_id_)
-            out.append(where if where else ('1 = 1' if _in_set_op_ else ''))
+            out.append(where if where else ('TRUE' if _in_set_op_ else ''))
             _fields_ += self.__get_set_fields()
         return out, _fields_
 
@@ -774,8 +804,7 @@ Fkeys = {"""
             for field in self.__get_set_fields()
         ]
         if not where_repr:
-            # negation of unconstrained = FALSE (no rows)
-            return 'not (1 = 1)' if self._ho_neg else ''
+            return 'FALSE' if self._ho_neg else ''
         ret = f"({'  and '.join(where_repr)})"
         if self._ho_neg:
             ret = f"not ({ret})"
@@ -1126,24 +1155,12 @@ Fkeys = {"""
 
 def singleton(fct):
     """Decorator. Enforces the intention to define a singleton.
-
-    A singleton is defined when all primary key fields are set with the '='
-    comparator. No database query is performed: the check is purely on the
-    intention (the constraints set on the relation object).
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):
         if self._ho_is_singleton:
             return fct(self, *args, **kwargs)
-        pk = self._ho_pkey
-        if not pk:
-            raise relation_errors.NotASingletonError(
-                f"{self.__class__.__name__} has no primary key.")
-        unset = [name for name, field in pk.items()
-                 if not field.is_set() or field._comp() != '=']
-        if unset:
-            raise relation_errors.NotASingletonError(
-                f"PK field(s) not set with '=': {', '.join(unset)}.")
+        self.ho_assert_is_singleton()
         return fct(self, *args, **kwargs)
     wrapper.__is_singleton = True
     wrapper.__orig_args = inspect.getfullargspec(fct)
