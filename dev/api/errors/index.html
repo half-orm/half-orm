@@ -1598,8 +1598,8 @@
 
 
 
-        <p>The constraint do not define a singleton.</p>
-<p>Raised from ExpectedOneError (err).</p>
+        <p>The constraint does not define a singleton.</p>
+<p>Raised when the primary key is not fully set with equality comparators.</p>
 
 
 
@@ -1617,12 +1617,12 @@
 <span class="normal"><a href="#__codelineno-0-30">30</a></span>
 <span class="normal"><a href="#__codelineno-0-31">31</a></span>
 <span class="normal"><a href="#__codelineno-0-32">32</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="k">class</span><span class="w"> </span><span class="nc">NotASingletonError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The constraint do not define a singleton.</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The constraint does not define a singleton.</span>
 <a id="__codelineno-0-28" name="__codelineno-0-28"></a>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    Raised from ExpectedOneError (err).</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    Raised when the primary key is not fully set with equality comparators.</span>
 <a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err</span><span class="p">):</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a>        <span class="ne">Exception</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Not a singleton. Got </span><span class="si">{</span><span class="n">err</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s1"> tuple</span><span class="si">{</span><span class="n">err</span><span class="o">.</span><span class="n">plural</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a>        <span class="ne">Exception</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Not a singleton. </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
