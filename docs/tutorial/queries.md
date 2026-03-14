@@ -136,7 +136,7 @@ def get_sorted_authors_right():
 !!! warning "Execution vs Building"
     **Query Builders**: `ho_order_by()`, `ho_limit()`, `ho_offset()`, `ho_where()`, set operations (`&`, `|`, `-`)
     
-    **Query Executors**: `ho_select()`, `ho_count()`, `ho_get()`, `ho_is_empty()`, `ho_insert()`, `ho_update()`, `ho_delete()`
+    **Query Executors**: `ho_select()`, `ho_count()`, `ho_is_empty()`, `ho_insert()`, `ho_update()`, `ho_delete()`
     
     Once you call an executor, you get results - not a query object!
 
@@ -198,20 +198,23 @@ for post in page_data['posts']:
 
 ```python
 # Minimal field selection for lists
-def get_post_index():
-    """Get lightweight post list for index pages"""
+def get_post_index(limit=None, offset=None):
+    """Get a generator of lightweight post list for index pages"""
     return Post(is_published=True).ho_select(
-        'id', 'title', 'excerpt', 'published_at', 'view_count'
-    ).ho_order_by('published_at DESC')
+        'id', 'title', 'excerpt', 'published_at', 'view_count',
+        limit=limit,
+        offset=offset,
+        order_by='published_at DESC'
+    )   
 
 # Full selection for detail views
 def get_post_detail(post_id):
-    """Get complete post data for detail view"""
-    return Post(id=post_id).ho_get()  # All columns
+    """Get a dict of complete post data for detail view"""
+    return list(Post(id=post_id))[0]  # All columns
 
 # Custom field combinations
 def get_author_summary():
-    """Get author data optimized for summary cards"""
+    """Get a generator of author data optimized for summary cards"""
     return Author(is_active=True).ho_select(
         'id', 'first_name', 'last_name', 'email'
     )

@@ -59,9 +59,15 @@ class Field():
         "Returns True if the field is part of the PK"
         return bool(self.__metadata['pkey'])
 
+    def _fieldnum(self):
+        return self.__metadata['fieldnum']
+
+    def _pkeynum(self):
+        return self.__metadata['pkeynum']
+
     def _is_unique(self):
         "Returns True if the field is unique"
-        return bool(self.__metadata['uniq'])
+        return self.__metadata['uniq']
 
     def is_not_null(self):
         "Returns True if the field is defined as not null."

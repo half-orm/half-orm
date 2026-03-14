@@ -203,7 +203,7 @@ print(f"Found: {alice.name}")
 ### Update
 ```python
 # Update author
-Author(name='Charlie Brown').ho_update(
+Author(id=42).ho_assert_is_singleton().ho_update(
     email='charlie.brown@newdomain.com'
 )
 ```
@@ -211,7 +211,7 @@ Author(name='Charlie Brown').ho_update(
 ### Delete
 ```python
 # Delete author
-Author(name='Charlie Brown').ho_delete()
+Author(id=42).ho_assert_is_singleton().ho_delete()
 ```
 
 ## Step 8: Working with Relationships

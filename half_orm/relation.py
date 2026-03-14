@@ -154,11 +154,15 @@ class DC_Relation: # pragma: no cover
 
     def ho_assert_is_singleton(self):
         """
-        A singleton is defined when all primary key fields are set with the '='
-        comparator. No database query is performed: the check is purely on the
-        intention (the constraints set on the relation object).
+        A singleton is defined when all fields of a unique identifier are set
+        with the '=' comparator. A unique identifier is either the primary key
+        or any unique NOT NULL constraint. No database query is performed: the
+        check is purely on the intention (the constraints set on the relation
+        object).
 
-        raises:
+        Returns:
+            self
+        Raises:
             NotASingletonError if self is not a singleton
         """
         ...
@@ -281,8 +285,9 @@ class Relation:
             raise DeprecationWarning(err)
         self._ho_fk_loop = set()
         self._ho_fields = {}
+        self._ho_fields_by_fieldnum = {}
         self._ho_pkey = {}
-        self._ho_ukeys = OrderedDict()
+        self._ho_ukeys = []
         self._ho_fkeys = OrderedDict()
         self._ho_fkeys_attr = set()
         self._ho_join_to = {}
@@ -424,22 +429,30 @@ class Relation:
 
     def ho_assert_is_singleton(self):
         """
-        A singleton is defined when all primary key fields are set with the '='
-        comparator. No database query is performed: the check is purely on the
-        intention (the constraints set on the relation object).
+        A singleton is defined when all fields of a unique identifier are set
+        with the '=' comparator. A unique identifier is either the primary key
+        or any unique NOT NULL constraint. No database query is performed: the
+        check is purely on the intention (the constraints set on the relation
+        object).
 
-        raises:
+        Returns:
+            self
+        Raises:
             NotASingletonError if self is not a singleton
         """
-        pk = self._ho_pkey
-        if not pk:
+        def _fully_set(fields):
+            return all(f.is_set() and f._comp() == '=' for f in fields.values())
+
+        if self._ho_pkey and _fully_set(self._ho_pkey):
+            return self
+        for ukey in self._ho_ukeys:
+            if _fully_set(ukey):
+                return self
+        if not self._ho_pkey and not self._ho_ukeys:
             raise relation_errors.NotASingletonError(
-                f"{self.__class__.__name__} has no primary key.")
-        unset = [name for name, field in pk.items()
-                 if not field.is_set() or field._comp() != '=']
-        if unset:
-            raise relation_errors.NotASingletonError(
-                f"PK field(s) not set with '=': {', '.join(unset)}.")
+                f"{self.__class__.__name__} has no primary key or unique NOT NULL constraint.")
+        raise relation_errors.NotASingletonError(
+            f"No unique identifier fully set with '=' on {self.__class__.__name__}.")
 
     #@utils.trace
     def _ho_get(self, *args: List[str]) -> 'Relation':
@@ -627,15 +640,29 @@ class Relation:
         """Initialise the fields of the relation."""
         _fields_metadata = self._ho_model._fields_metadata(self._t_fqrn)
 
+        ukeys = set()
         for field_name, f_metadata in _fields_metadata.items():
             field = Field(field_name, self, f_metadata)
             field_name = self.__py_field_name(field_name, f_metadata['fieldnum'])
             self._ho_fields[field_name] = field
             setattr(self, field_name, field)
+            fieldnum = field._fieldnum()
+            self._ho_fields_by_fieldnum[fieldnum] = field
             if field._is_part_of_pk():
                 self._ho_pkey[field_name] = field
             if field._is_unique():
-                self._ho_ukeys[field_name] = field
+                pkeynum = tuple(field._pkeynum())
+                if field.is_not_null():
+                    ukeys.add(pkeynum)
+                elif pkeynum in ukeys:
+                    ukeys.remove(pkeynum)
+        self._ho_ukeys = []
+        for ukey in ukeys:
+            ho_ukey = {}
+            for fieldnum in ukey:
+                field = self._ho_fields_by_fieldnum[fieldnum]
+                ho_ukey[field.name] = field
+            self._ho_ukeys.append(ho_ukey)
 
     def _ho_set_fkeys(self):
         """Initialisation of the foreign keys of the relation"""

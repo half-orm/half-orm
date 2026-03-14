@@ -154,7 +154,11 @@ for author in query.ho_select('name', 'email'):  # SQL executes here
 
 ### The Singleton Pattern
 
-When a method must operate on exactly one row, use the `@singleton` decorator instead of calling `ho_get()` directly:
+A singleton is defined when all primary key fields are set with the '='
+comparator. No database query is performed: the check is purely on the
+intention (the constraints set on the relation object).
+
+When a method must operate on exactly one row, use the `@singleton` or `ho_assert_is_a_singleton`:
 
 ```python
 from half_orm.relation import singleton
@@ -166,37 +170,23 @@ class Author(blog.get_relation_class('blog.author')):
         Post(author_id=self['id'], is_published=False).ho_update(is_published=True)
 ```
 
-`@singleton` guarantees that `self` refers to exactly one row, raising `NotASingletonError` otherwise:
+Each guarantee that `self` defines a singleton, raising `NotASingletonError` otherwise:
 
 ```python
-# ✅ Exactly one author → method executes
-Author(email='alice@example.com').publish_all_drafts()
+# ✅ Exactly one author defined → method executes
+Author(email='alice@example.com').ho_assert_is_singleton().ho_delete()
 
 # ❌ Zero or multiple results → NotASingletonError
-Author(is_active=True).publish_all_drafts()
+Author(is_active=True).ho_assert_is_singleton().ho_delete()
 ```
 
 Keep building query intentions rather than forcing early execution:
-
-```python
-# ❌ Old pattern (deprecated) - breaks the declarative flow
-alice = Author(email='alice@example.com').ho_get()
-alice_posts = alice.posts_rfk()
-
-# ✅ Better - keep building intentions
-alice = Author(email='alice@example.com')
-alice_posts = alice.posts_rfk(is_published=True)
-popular_posts = alice_posts.ho_order_by('view_count DESC')
-
-for post in popular_posts:
-    print(post['title'])
-```
 
 ## Object-as-Filter Pattern
 
 ### The Core Concept
 
-In halfORM, **the object IS the filter**. When you create a relation instance with parameters, you're defining a subset of rows:
+In halfORM a Relation object is a predicate. **The object IS the filter**. When you create a relation instance with parameters, you're defining a subset of rows:
 
 ```python
 # These are all "filters" - they represent subsets of data
