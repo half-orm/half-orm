@@ -37,7 +37,6 @@ class Test(TestCase):
         "Should rollback with correct error"
         with contextlib.redirect_stderr(io.StringIO()) as f:
             self.assertRaises(UniqueViolation, Pers().unique_violation)
-        print('XXX UNIQUE VIOLATION IT WAS')
         # self.assertEqual(DUP_ERR_MSG, f.getvalue())
         self.assertEqual(60, self.pers.ho_count())
 

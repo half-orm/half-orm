@@ -672,14 +672,27 @@ class Relation:
         _fkeys_metadata = self._ho_model._fkeys_metadata(self._t_fqrn)
         for fkeyname, f_metadata in _fkeys_metadata.items():
             self._ho_fkeys[fkeyname] = FKey(fkeyname, self, *f_metadata)
-        if hasattr(self.__class__, 'Fkeys') and not self._ho_fkeys_properties:
-            for key, value in self.Fkeys.items():
-                try:
-                    if key != '': # we skip empty keys
-                        setattr(self, key, self._ho_fkeys[value])
-                        self._ho_fkeys_attr.add(key)
-                except KeyError as exp:
-                    raise relation_errors.WrongFkeyError(self, value) from exp
+        if not self._ho_fkeys_properties:
+            aliased_fkeys = set()
+            if hasattr(self.__class__, 'Fkeys'):
+                for key, value in self.Fkeys.items():
+                    try:
+                        if key != '': # we skip empty keys
+                            setattr(self, key, self._ho_fkeys[value])
+                            self._ho_fkeys_attr.add(key)
+                            aliased_fkeys.add(value)
+                    except KeyError as exp:
+                        raise relation_errors.WrongFkeyError(self, value) from exp
+            # Auto-expose non-aliased FK with fk_/rfk_ prefix
+            for fkeyname, fkey in self._ho_fkeys.items():
+                if fkeyname in aliased_fkeys:
+                    continue
+                if fkeyname.startswith('_reverse_fkey_'):
+                    attr_name = 'rfk_' + fkeyname[len('_reverse_fkey_'):]
+                else:
+                    attr_name = 'fk_' + fkeyname
+                setattr(self, attr_name, fkey)
+                self._ho_fkeys_attr.add(attr_name)
         self._ho_fkeys_properties = True
 
     @classmethod
@@ -713,10 +726,10 @@ class Relation:
     def __repr__(self):
 
         fkeys_usage = """\
-To use the foreign keys as direct attributes of the class, copy/paste the Fkeys below into
-your code as a class attribute and replace the empty string key(s) with the alias(es) you
-want to use. The aliases must be unique and different from any of the column names. Empty
-string keys are ignored.
+Foreign keys are already accessible as fk_<name> (direct) or rfk_<name> (reverse) attributes.
+To rename them, add a Fkeys class attribute: the aliased fk_/rfk_ attribute is then replaced
+by the alias. Aliases must be unique and different from any column name. Empty string keys
+are ignored.
 
 Fkeys = {"""
 

@@ -33,10 +33,10 @@ FOREIGN KEYS:
 - _reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date: ("first_name", "last_name", "birth_date")
  ↳ "halftest":"blog"."post"(author_first_name, author_last_name, author_birth_date)
 
-To use the foreign keys as direct attributes of the class, copy/paste the Fkeys below into
-your code as a class attribute and replace the empty string key(s) with the alias(es) you
-want to use. The aliases must be unique and different from any of the column names. Empty
-string keys are ignored.
+Foreign keys are already accessible as fk_<name> (direct) or rfk_<name> (reverse) attributes.
+To rename them, add a Fkeys class attribute: the aliased fk_/rfk_ attribute is then replaced
+by the alias. Aliases must be unique and different from any column name. Empty string keys
+are ignored.
 
 Fkeys = {
     '': '_reverse_fkey_halftest_blog_comment_author_id',

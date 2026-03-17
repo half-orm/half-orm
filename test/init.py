@@ -98,7 +98,6 @@ class HalfTest:
                     first_name = name(letter, 0)
                     birth_date = self.today
                     print(list(pers()))
-                    print('XXX', last_name)
                     pers(
                         last_name=last_name,
                         first_name=first_name,
