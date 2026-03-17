@@ -64,3 +64,24 @@ class Test(TestCase):
             self.assertRaises(UniqueViolation, error)
             # self.assertEqual(DUP_ERR_MSG, self.f.getvalue())
         self.assertEqual(Transaction(halftest.model).level, 0)
+
+    def test_savepoint_isolation(self):
+        "Inner @transaction failure must not abort the outer transaction"
+        class Pers(halftest.person_cls):
+            @transaction
+            def insert_one(self, **kwargs):
+                self(**kwargs).ho_insert()
+
+        initial_count = self.pers.ho_count()
+        try:
+            with Transaction(halftest.model):
+                Pers().insert_one(first_name='x', last_name='x', birth_date='2000-01-01')
+                try:
+                    # duplicate → UniqueViolation, rolled back via savepoint
+                    Pers().insert_one(first_name='aa', last_name='aa', birth_date='1970-01-01')
+                except UniqueViolation:
+                    pass
+                # outer transaction is still valid: x/x is committed, aa/aa was rolled back
+            self.assertEqual(initial_count + 1, self.pers.ho_count())
+        finally:
+            halftest.person_cls(first_name='x', last_name='x').ho_delete()

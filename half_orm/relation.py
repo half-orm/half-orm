@@ -1116,31 +1116,6 @@ Fkeys = {"""
             return True
         return ((self - right) | (right - self)).ho_is_empty()
 
-    def __enter__(self):
-        """Context management entry
-
-        Returns self in a transaction context.
-
-        Example usage:
-        with relation as rel:
-            rel.ho_update(col=new_val)
-
-        Equivalent to (in a transaction context):
-        rel = relation.ho_select()
-        for elt in rel:
-            new_elt = relation(**elt)
-            new_elt.ho_update(col=new_val)
-        """
-        self.ho_transaction._enter(self._ho_model)
-        return self
-
-    def __exit__(self, *__):
-        """Context management exit
-
-        """
-        self.ho_transaction._exit(self._ho_model)
-        return False
-
     def __iter__(self):
         # TODO(1.0): remove _ho_select_params reads once deprecated methods are removed
         # (ho_distinct, ho_order_by, ho_limit, ho_offset)

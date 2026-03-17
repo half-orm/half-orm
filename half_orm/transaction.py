@@ -20,24 +20,41 @@ class Transaction:
             self.__transaction = self.__class__.__transactions[self.__id]
             self.__transaction['level'] = 0
             self.__transaction['model'] = model
+            self.__transaction['sp_counter'] = 0
+            self.__transaction['sp_stack'] = []
         else:
             self.__transaction = self.__transactions[self.__id]
 
     __init__ = __call__
 
     def __enter__(self):
-        if self.__transaction['model']._connection.autocommit:
-            self.__transaction['model']._connection.autocommit = False
+        conn = self.__transaction['model']._connection
+        if conn.autocommit:
+            conn.autocommit = False
+        if self.__transaction['level'] > 0:
+            self.__transaction['sp_counter'] += 1
+            sp_name = f'sp_{self.__transaction["sp_counter"]}'
+            self.__transaction['sp_stack'].append(sp_name)
+            with conn.cursor() as cur:
+                cur.execute(f'SAVEPOINT {sp_name}')
         self.__transaction['level'] += 1
 
-    def __exit__(self, *_):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.__transaction['level'] -= 1
-        if self.__transaction['level'] == 0:
+        conn = self.__transaction['model']._connection
+        if self.__transaction['level'] > 0:
+            sp_name = self.__transaction['sp_stack'].pop()
+            with conn.cursor() as cur:
+                if exc_type is not None:
+                    cur.execute(f'ROLLBACK TO SAVEPOINT {sp_name}')
+                cur.execute(f'RELEASE SAVEPOINT {sp_name}')
+        else:
             try:
-                self.__transaction['model']._connection.commit()
-                self.__transaction['model']._connection.autocommit = True
+                conn.commit()
+                conn.autocommit = True
             except psycopg2.Error:
-                self.__transaction['model']._connection.rollback()
+                conn.rollback()
+        return False
 
     @property
     def level(self):
