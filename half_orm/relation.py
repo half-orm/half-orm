@@ -319,20 +319,8 @@ class Relation:
             raise relation_errors.UnknownAttributeError(', '.join([elt for elt in args if elt in diff]))
 
     #@utils.trace
-    def ho_insert(self, *args) -> '[dict]':
-        """Insert a new tuple into the Relation.
-
-        Returns:
-            [dict]: A singleton containing the data inserted.
-
-        Example:
-            >>> gaston = Person(last_name='La', first_name='Ga', birth_date='1970-01-01').ho_insert()
-            >>> print(gaston)
-            {'id': 1772, 'first_name': 'Ga', 'last_name': 'La', 'birth_date': datetime.date(1970, 1, 1)}
-
-        Note:
-            It is not possible to insert more than one row with the insert method
-        """
+    def _ho_prep_insert(self, *args):
+        """Prepare an INSERT query. Returns (query, vals)."""
         _ = args and args != ('*',) and self._ho_check_colums(*args)
         self._ho_query_type = 'insert'
         fields_names, values, fk_fields, fk_query, fk_values = self.__what()
@@ -350,7 +338,24 @@ class Relation:
             returning=ASTReturning(list(returning)),
         )
         query, vals = stmt.to_sql()
-        with self.__execute(query, tuple(vals)) as cursor:
+        return query, tuple(vals)
+
+    def ho_insert(self, *args) -> '[dict]':
+        """Insert a new tuple into the Relation.
+
+        Returns:
+            [dict]: A singleton containing the data inserted.
+
+        Example:
+            >>> gaston = Person(last_name='La', first_name='Ga', birth_date='1970-01-01').ho_insert()
+            >>> print(gaston)
+            {'id': 1772, 'first_name': 'Ga', 'last_name': 'La', 'birth_date': datetime.date(1970, 1, 1)}
+
+        Note:
+            It is not possible to insert more than one row with the insert method
+        """
+        query, vals = self._ho_prep_insert(*args)
+        with self.__execute(query, vals) as cursor:
             res = [dict(elt) for elt in cursor.fetchall()] or [{}]
             return res[0]
 
@@ -369,6 +374,25 @@ class Relation:
         return all(pk in args for pk in self._ho_pkey)
 
     #@utils.trace
+    def _ho_prep_select_query(self, *args,
+        distinct=False, order_by=None, limit=None, offset=None):
+        """Validate select parameters and return (query, values, can_dedup, pk_names)."""
+        self._ho_check_colums(*args)
+        if limit is not None and not isinstance(limit, int):
+            raise ValueError(f"limit must be an integer, got {type(limit).__name__!r}")
+        if offset is not None and not isinstance(offset, int):
+            raise ValueError(f"offset must be an integer, got {type(offset).__name__!r}")
+        # TODO(1.0): remove fallback to _ho_select_params once deprecated methods are removed
+        order_by = order_by or self._ho_select_params.get('order_by')
+        limit = limit or self._ho_select_params.get('limit')
+        offset = offset or self._ho_select_params.get('offset')
+        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        can_dedup = bool(self._ho_join_to) and self._ho_result_is_relation(*args)
+        pk_names = list(self._ho_pkey.keys())
+        query, values = self._ho_prep_select(
+            *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        return query, values, can_dedup, pk_names
+
     def ho_select(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None):
         """Gets the set of values correponding to the constraint attached to the object.
@@ -390,22 +414,8 @@ class Relation:
             >>>     print(person)
             {'id': 1772}
         """
-        self._ho_check_colums(*args)
-        if limit is not None and not isinstance(limit, int):
-            raise ValueError(f"limit must be an integer, got {type(limit).__name__!r}")
-        if offset is not None and not isinstance(offset, int):
-            raise ValueError(f"offset must be an integer, got {type(offset).__name__!r}")
-        # TODO(1.0): remove fallback to _ho_select_params once deprecated methods are removed
-        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
-        order_by = order_by or self._ho_select_params.get('order_by')
-        limit = limit or self._ho_select_params.get('limit')
-        offset = offset or self._ho_select_params.get('offset')
-        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
-
-        can_dedup = bool(self._ho_join_to) and self._ho_result_is_relation(*args)
-        pk_names = list(self._ho_pkey.keys())
-
-        query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        query, values, can_dedup, pk_names = self._ho_prep_select_query(
+            *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         seen = set()
         dup_count = 0
         try:
@@ -503,33 +513,24 @@ class Relation:
         return where, values
 
     #@utils.trace
-    def ho_update(self, *args, update_all=False, **kwargs):
-        """
-        kwargs represents the values to be updated {[field name:value]}
-        The object self must be set unless update_all is True.
-        The constraints of self are updated with kwargs.
-        """
+    def _ho_prep_update(self, *args, update_all=False, **kwargs):
+        """Prepare an UPDATE query. Returns (query, vals, update_args) or None if nothing to update."""
         if not (self.ho_is_set() or update_all):
             raise RuntimeError(
                 f'Attempt to update all rows of {self.__class__.__name__}'
                 ' without update_all being set to True!')
-
         _ = args and args != ('*',) and self._ho_check_colums(*args)
         self._ho_check_colums(*(kwargs.keys()))
         update_args = {key: value for key, value in kwargs.items() if value is not None}
         if not update_args:
-            return None # no new value update. Should we raise an error here?
-
+            return None
         self._ho_query_type = 'update'
         _, where_expr = self.__where_args()
-
         set_clause = []
         for field_name, new_value in update_args.items():
             col_name = self._ho_fields[field_name].name
             set_clause.append((f'"{col_name}" = %s', new_value))
-
         fk_where_str, fk_values = self.__fkey_where('', [])
-
         stmt = ASTUpdate(
             table=self._qrn,
             set_clause=set_clause,
@@ -539,28 +540,35 @@ class Relation:
             returning=ASTReturning(list(args)) if args else None,
         )
         query, vals = stmt.to_sql()
-        with self.__execute(query, tuple(vals)) as cursor:
+        return query, tuple(vals), update_args
+
+    def ho_update(self, *args, update_all=False, **kwargs):
+        """
+        kwargs represents the values to be updated {[field name:value]}
+        The object self must be set unless update_all is True.
+        The constraints of self are updated with kwargs.
+        """
+        prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
+        if prep is None:
+            return None
+        query, vals, update_args = prep
+        with self.__execute(query, vals) as cursor:
             for field_name, value in update_args.items():
                 self._ho_fields[field_name].set(value)
             if args:
                 return [dict(elt) for elt in cursor.fetchall()]
         return None
 
-    #@utils.trace
-    def ho_delete(self, *args, delete_all=False):
-        """Removes a set of tuples from the relation.
-        To empty the relation, delete_all must be set to True.
-        """
+    def _ho_prep_delete(self, *args, delete_all=False):
+        """Prepare a DELETE query. Returns (query, vals)."""
         _ = args and args != ('*',) and self._ho_check_colums(*args)
         if not (self.ho_is_set() or delete_all):
             raise RuntimeError(
                 f'Attempt to delete all rows from {self.__class__.__name__}'
                 ' without delete_all being set to True!')
-
         self._ho_query_type = 'delete'
         _, where_expr = self.__where_args()
         fk_where_str, fk_values = self.__fkey_where('', [])
-
         stmt = ASTDelete(
             table=self._qrn,
             where=where_expr,
@@ -569,7 +577,15 @@ class Relation:
             returning=ASTReturning(list(args)) if args else None,
         )
         query, vals = stmt.to_sql()
-        with self.__execute(query, tuple(vals)) as cursor:
+        return query, tuple(vals)
+
+    #@utils.trace
+    def ho_delete(self, *args, delete_all=False):
+        """Removes a set of tuples from the relation.
+        To empty the relation, delete_all must be set to True.
+        """
+        query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
+        with self.__execute(query, vals) as cursor:
             if args:
                 return [dict(elt) for elt in cursor.fetchall()]
         return None
@@ -608,6 +624,9 @@ class Relation:
                 print(f"  Function: {caller_info['function']}")
                 print(f"  Code: {caller_info['code_context']}")
         return self._ho_model.execute_query(query, values, self._ho_mogrify)
+
+    async def __aexecute(self, query, values):
+        return await self._ho_model.aexecute_query(query, values)
 
     @property
     def ho_id(self):
@@ -1021,6 +1040,18 @@ Fkeys = {"""
         self._ho_mogrify = True
         return self
 
+    def _ho_prep_count(self, *args, distinct=False):
+        """Prepare a COUNT query. Returns (query, values)."""
+        self._ho_query = "select"
+        order_by = self._ho_select_params.get('order_by')
+        limit = self._ho_select_params.get('limit')
+        offset = self._ho_select_params.get('offset')
+        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        query, values = self._ho_prep_select(
+            *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        query = f'select\n  count(*) from ({query}) as ho_count'
+        return query, values
+
     # @utils.trace
     def ho_count(self, *args, distinct:bool=False):
         """Returns the number of tuples matching the intention in the relation.
@@ -1029,15 +1060,7 @@ Fkeys = {"""
             *args: field names to count on (useful with distinct).
             distinct (bool): if True, adds DISTINCT to the inner SELECT. Default: False.
         """
-        self._ho_query = "select"
-        # TODO(1.0): remove _ho_select_params reads once deprecated methods are removed
-        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
-        order_by = self._ho_select_params.get('order_by')
-        limit = self._ho_select_params.get('limit')
-        offset = self._ho_select_params.get('offset')
-        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
-        query, values = self._ho_prep_select(*args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
-        query = f'select\n  count(*) from ({query}) as ho_count'
+        query, values = self._ho_prep_count(*args, distinct=distinct)
         return self.__execute(query, values).fetchone()['count']
 
     def ho_is_empty(self):
@@ -1045,6 +1068,66 @@ Fkeys = {"""
         """
         self.ho_limit(1)
         return self.ho_count() == 0
+
+    # --- Async variants of executor methods ---
+
+    async def ho_ainsert(self, *args) -> dict:
+        """Async variant of ho_insert."""
+        query, vals = self._ho_prep_insert(*args)
+        cursor = await self.__aexecute(query, vals)
+        res = [dict(elt) for elt in await cursor.fetchall()] or [{}]
+        return res[0]
+
+    async def ho_aselect(self, *args,
+        distinct: bool=False, order_by: str=None, limit: int=None, offset: int=None):
+        """Async variant of ho_select. Returns a list of dicts (not a generator)."""
+        query, values, can_dedup, pk_names = self._ho_prep_select_query(
+            *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        cursor = await self.__aexecute(query, values)
+        rows = []
+        seen = set()
+        for elt in await cursor.fetchall():
+            row = dict(elt)
+            if can_dedup:
+                pk_key = tuple(row[pk] for pk in pk_names)
+                if pk_key in seen:
+                    continue
+                seen.add(pk_key)
+            rows.append(row)
+        return rows
+
+    async def ho_aupdate(self, *args, update_all=False, **kwargs):
+        """Async variant of ho_update."""
+        prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
+        if prep is None:
+            return None
+        query, vals, update_args = prep
+        cursor = await self.__aexecute(query, vals)
+        for field_name, value in update_args.items():
+            self._ho_fields[field_name].set(value)
+        if args:
+            return [dict(elt) for elt in await cursor.fetchall()]
+        return None
+
+    async def ho_adelete(self, *args, delete_all=False):
+        """Async variant of ho_delete."""
+        query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
+        cursor = await self.__aexecute(query, vals)
+        if args:
+            return [dict(elt) for elt in await cursor.fetchall()]
+        return None
+
+    async def ho_acount(self, *args, distinct: bool=False) -> int:
+        """Async variant of ho_count."""
+        query, values = self._ho_prep_count(*args, distinct=distinct)
+        cursor = await self.__aexecute(query, values)
+        row = await cursor.fetchone()
+        return row['count']
+
+    async def ho_ais_empty(self) -> bool:
+        """Async variant of ho_is_empty."""
+        self.ho_limit(1)
+        return (await self.ho_acount()) == 0
 
     #@utils.trace
     def __what(self):

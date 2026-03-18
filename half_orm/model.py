@@ -28,7 +28,7 @@ from configparser import ConfigParser
 from os import environ
 
 import psycopg
-from psycopg import ClientCursor
+from psycopg import ClientCursor, AsyncConnection
 from psycopg.rows import dict_row
 
 from half_orm import model_errors
@@ -79,6 +79,7 @@ class Model:
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
         self.__conn = None
+        self.__aconn = None
         self.__connect()
 
     def __load_config(self, config_file):
@@ -241,6 +242,49 @@ class Model:
         """
         if self.__conn is not None and not self.__conn.closed:
             self.__conn.close()
+
+    async def aconnect(self):
+        """Setup an async connection to the database.
+
+        Must be called explicitly before using any ``ho_a*`` method.
+        The sync connection (used for metadata, ``ho_select``, etc.) remains available.
+        """
+        if self.__aconn is not None and not self.__aconn.closed:
+            return
+        self.__aconn = await AsyncConnection.connect(
+            **self._dbinfo, row_factory=dict_row, autocommit=True)
+        from half_orm.null import Null, NullDumper
+        from psycopg.types.json import JsonbDumper
+        self.__aconn.adapters.register_dumper(Null, NullDumper)
+        self.__aconn.adapters.register_dumper(dict, JsonbDumper)
+
+    async def adisconnect(self):
+        """Closes the async connection to the database."""
+        if self.__aconn is not None and not self.__aconn.closed:
+            await self.__aconn.close()
+            self.__aconn = None
+
+    @property
+    def _aconnection(self):
+        """Property. Returns the async psycopg connection attached to the Model object."""
+        if self.__aconn is None:
+            raise RuntimeError(
+                "No async connection. Call 'await model.aconnect()' first.")
+        return self.__aconn
+
+    async def aexecute_query(self, query, values=None):
+        """Executes a raw SQL query using the async connection."""
+        values = self._unwrap_values(values)
+        cursor = self._aconnection.cursor(row_factory=dict_row)
+        try:
+            await cursor.execute(query, values)
+        except psycopg.Error as exc:
+            vals = ''
+            if not self._production_mode:
+                vals = f"values: {values}\n"
+            utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
+            raise exc
+        return cursor
 
     def _reload(self, config_file=None):
         """Reload metadata
