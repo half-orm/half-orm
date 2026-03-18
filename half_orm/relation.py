@@ -723,6 +723,40 @@ class Relation:
         return {key:(field._comp(), field.value) for key, field in
                 self._ho_fields.items() if field.is_set()}
 
+    def ho_where_display(self):
+        """Returns the SQL JOIN and WHERE clauses as a dict, or None if no constraint.
+
+        Returns:
+            dict with keys:
+                'joins'  : list of JOIN SQL strings (one per joined relation)
+                'where'  : WHERE expression SQL string, or None
+                'values' : list of string values (join values first, then where values)
+            or None if the relation has no constraint set.
+        """
+        if not self.ho_is_set():
+            return None
+        saved_qtype = getattr(self, '_ho_query_type', None)
+        self._ho_query_type = 'select'
+        try:
+            self.__get_from()
+            expr = self.__walk_op(self.ho_id)
+        finally:
+            self._ho_query_type = saved_qtype
+        joins = []
+        all_values = []
+        for join in self._ho_ast_joins:
+            j_sql, j_vals = join.to_sql()
+            joins.append(j_sql.strip())
+            all_values.extend(j_vals)
+        where = None
+        if expr is not None:
+            w_sql, w_vals = expr.to_sql()
+            where = w_sql.replace(f'r{self.ho_id}.', '')
+            all_values.extend(w_vals)
+        if not joins and where is None:
+            return None
+        return {'joins': joins, 'where': where, 'values': [str(v) for v in all_values]}
+
     def __repr__(self):
 
         fkeys_usage = """\

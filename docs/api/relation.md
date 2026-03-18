@@ -44,6 +44,11 @@ Execute SQL immediately and return results:
 !!! tip "Conceptual Background"
     This builder/executor pattern is core to halfORM's design. Learn more in [halfORM Fundamentals](../fundamentals.md#method-categories-builders-vs-executors).
 
+### Introspection (no SQL)
+Inspect the query intent without executing anything:
+- `ho_where_display()` → **dict | None** — returns the JOIN/WHERE clauses as built on the object
+- `ho_is_set()` → **bool** — True if at least one field or FK constraint is set
+
 ## Reference
 
 ::: half_orm.relation
