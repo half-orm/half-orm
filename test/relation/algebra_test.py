@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:  utf-8 -*-
 
-from random import randint
+from random import sample
+import string
 import psycopg2
 import sys
 from unittest import TestCase
@@ -11,8 +12,8 @@ from ..init import halftest
 from half_orm import relation_errors, model
 from half_orm.null import NULL
 
-def name(letter, integer):
-    return f"{letter}{chr(ord('a') + integer)}"
+POOL = string.ascii_lowercase[10:]  # 'klmnopqrstuvwxyz' — never used in fixed 60-person data
+TEST_DATE = date(1900, 1, 1)
 
 class Test(TestCase):
     def setUp(self):
@@ -20,19 +21,30 @@ class Test(TestCase):
         self.post = halftest.post_cls()
         self.today = halftest.today
 
-        hexchars = 'abcdef'
+        c1, c2, c3, o1, o2, o3, o4 = sample(POOL, 7)
+
+        def insert(last_name):
+            self.pers(
+                last_name=last_name,
+                first_name=last_name,
+                birth_date=TEST_DATE,
+            ).ho_insert()
+
+        insert(f'{c1}{o1}')        # set_1 only
+        insert(f'{o2}{c2}')        # set_2 only
+        insert(f'{c1}{c2}')        # subset_1_2 = set_1 ∩ set_2
+        insert(f'{o3}{o4}{c3}')    # set_3 only
+
         self.universe = self.pers()
         self.empty_set = self.pers(last_name=NULL)
-        self.c1 = hexchars[randint(0, len(hexchars) - 1)]
-        self.c2 = hexchars[randint(0, len(hexchars) - 1)]
-        self.c3 = hexchars[randint(0, len(hexchars) - 1)]
-        self.set_1 = self.pers(last_name=('like', f'{self.c1}%'))
-        self.comp_set_1 = self.pers(
-            last_name=('not like', f'{self.c1}%'))
-        self.set_2 = self.pers(last_name=('like', f'_{self.c2}%'))
-        self.subset_1_2 = self.pers(
-            last_name=('like', f'{self.c1}{self.c2}%'))
-        self.set_3 = self.pers(last_name=('like', f'__{self.c3}%'))
+        self.set_1 = self.pers(last_name=('like', f'{c1}%'))
+        self.comp_set_1 = self.pers(last_name=('not like', f'{c1}%'))
+        self.set_2 = self.pers(last_name=('like', f'_{c2}%'))
+        self.subset_1_2 = self.pers(last_name=('like', f'{c1}{c2}%'))
+        self.set_3 = self.pers(last_name=('like', f'__{c3}%'))
+
+    def tearDown(self):
+        self.pers(birth_date=TEST_DATE).ho_delete(delete_all=True)
 
     def test_universe(self):
         "The universe contains at least the 60 seeded persons."
