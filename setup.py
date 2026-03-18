@@ -34,7 +34,7 @@ setup(
     license='GPLv3',
     packages=['half_orm'],
     install_requires=[ 
-        'psycopg2-binary',
+        'psycopg[binary]',
         'click',
         "importlib-metadata; python_version<'3.8'"
     ],

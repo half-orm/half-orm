@@ -5,17 +5,19 @@
 The Null class is used to set NULL value to relation fields.
 """
 
-from psycopg2.extensions import register_adapter, AsIs
+from psycopg.adapt import Dumper
 
 __all__ = ['NULL']
 
 class Null:
     """The Null class"""
 
-def adapt_null(_):
-    """NULL adapter"""
-    return AsIs("NULL")
+class NullDumper(Dumper):
+    """Dumper for the Null class — renders as SQL NULL literal."""
+    def dump(self, obj):
+        return b"NULL"
 
-register_adapter(Null, adapt_null)
+    def quote(self, obj):
+        return b"NULL"
 
 NULL = Null()

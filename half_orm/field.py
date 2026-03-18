@@ -5,9 +5,6 @@
 
 import sys
 import typing
-import psycopg2
-import psycopg2.extras
-
 from collections.abc import Iterable
 from half_orm.null import NULL
 from half_orm.sql_adapter import SQL_ADAPTER
@@ -211,8 +208,8 @@ class Field():
         return self.__relation
 
     def _psycopg_adapter(self):
-        """Return the SQL representation of self.__value"""
-        return psycopg2.extensions.adapt(self.__value)
+        """Return the value to be adapted by psycopg."""
+        return self.__value
 
     @property
     def _name(self):
@@ -230,5 +227,3 @@ class Field():
             err_msg = f"{err_msg}\nDo not use '{self.__name}' as a method name."
         raise TypeError(err_msg)
 
-psycopg2.extensions.register_adapter(Field, Field._psycopg_adapter)
-psycopg2.extensions.register_adapter(dict, psycopg2.extras.Json)

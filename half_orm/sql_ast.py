@@ -5,7 +5,7 @@
 This module provides lightweight dataclasses that represent the *structure*
 of an SQL query independently of its textual rendering.  Each node exposes
 a ``to_sql()`` method that returns ``(query_string, values_list)`` ready
-for psycopg2 execution.
+for psycopg execution.
 
 Typical usage (phase 2+) — replace string-concatenation in Relation with::
 
@@ -64,6 +64,12 @@ class FieldExpr(Expr):
     array_any: bool = False
 
     def to_sql(self) -> Tuple[str, list]:
+        # IS NULL / IS NOT NULL: embed literal NULL, no bound parameter
+        if self.comp in ('is', 'is not'):
+            return f"{self.column} {self.comp} NULL", []
+        # IN (tuple) → = ANY(%s) with list value (psycopg 3 compatible)
+        if self.comp == 'in':
+            return f"{self.column} = ANY({self.placeholder})", [self.value]
         if self.array_any:
             return f"{self.placeholder} = ANY({self.column})", [self.value]
         if self.unaccent:

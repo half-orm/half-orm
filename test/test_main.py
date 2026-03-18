@@ -13,7 +13,7 @@ from pathlib import Path
 import tempfile
 import shutil
 
-import psycopg2
+import psycopg
 
 from half_orm import model_errors
 
@@ -131,7 +131,7 @@ class TestIndividualFunctions:
         
         # Mock connexion échouée
         error_msg = "peer authentication failed"
-        mock_model.side_effect = psycopg2.OperationalError(error_msg)
+        mock_model.side_effect = psycopg.OperationalError(error_msg)
         
         check_peer_authentication()
         
@@ -157,7 +157,7 @@ class TestIndividualFunctions:
             if name == 'db1':
                 return MagicMock()
             else:
-                raise psycopg2.OperationalError("Connection failed")
+                raise psycopg.OperationalError("Connection failed")
         
         mock_model.side_effect = mock_model_side_effect
 
@@ -293,7 +293,7 @@ class TestMainFunction:
         from half_orm.__main__ import main
         
         # Mock échec de connexion
-        mock_model.side_effect = psycopg2.OperationalError("Connection failed")
+        mock_model.side_effect = psycopg.OperationalError("Connection failed")
         
         main()
         

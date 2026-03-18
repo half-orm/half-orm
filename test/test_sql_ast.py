@@ -35,14 +35,14 @@ class TestFieldExpr(unittest.TestCase):
     def test_in(self):
         expr = FieldExpr('r1."id"', "in", "%s", (1, 2, 3))
         sql, vals = expr.to_sql()
-        self.assertEqual(sql, 'r1."id" in %s')
+        self.assertEqual(sql, 'r1."id" = ANY(%s)')
         self.assertEqual(vals, [(1, 2, 3)])
 
     def test_is_null(self):
         expr = FieldExpr('r1."deleted"', "is", "%s", None)
         sql, vals = expr.to_sql()
-        self.assertEqual(sql, 'r1."deleted" is %s')
-        self.assertEqual(vals, [None])
+        self.assertEqual(sql, 'r1."deleted" is NULL')
+        self.assertEqual(vals, [])
 
     def test_unaccent(self):
         expr = FieldExpr('r1."city"', "=", "%s::text", "Montréal", unaccent=True)

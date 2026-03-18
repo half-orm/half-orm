@@ -28,11 +28,11 @@ The resulting query returns data about tables, views, materialized views, foreig
 tables, and partitioned tables in the database, along with information about their
 columns and constraints.
 
-Note that this module requires the psycopg2 library to be installed.
+Note that this module requires the psycopg library to be installed.
 """
 
 from collections import OrderedDict
-from psycopg2.extras import RealDictCursor
+from psycopg.rows import dict_row
 
 REL_CLASS_NAMES = {
     'r': 'Table',
@@ -205,11 +205,11 @@ class PgMeta:
         """Initializes a new instance of the `PgMeta` class.
 
         Args:
-            connection (psycopg2.extensions.connection): A connection object to a PostgreSQL database.
+            connection (psycopg.extensions.connection): A connection object to a PostgreSQL database.
             reload (bool, optional): A flag indicating whether to reload the metadata from the database. \
             Defaults to False.
         """
-        self.__dbname = connection.get_dsn_parameters()['dbname']
+        self.__dbname = connection.info.get_parameters()['dbname']
         if not PgMeta.meta.deja_vu(self.__dbname) or reload:
             self.__load_metadata(connection)
 
@@ -239,12 +239,12 @@ class PgMeta:
         """Loads the metadata by querying the PostgreSQL database and registers it in the _Meta singleton.
 
         Args:
-            connection (psycopg2.extensions.connection): A connection object to a PostgreSQL database.
+            connection (psycopg.extensions.connection): A connection object to a PostgreSQL database.
         """
         metadata = {'relations_list': []}
         byname = metadata['byname'] = OrderedDict()
         byid = metadata['byid'] = {}
-        with connection.cursor(cursor_factory=RealDictCursor) as cur:
+        with connection.cursor(row_factory=dict_row) as cur:
             cur.execute(_REQUEST)
             all_ = [elt for elt in cur.fetchall()]
             for dct in all_:

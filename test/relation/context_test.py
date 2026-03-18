@@ -6,7 +6,7 @@ from unittest import TestCase
 from random import randint
 from datetime import date
 
-import psycopg2
+import psycopg
 from half_orm.transaction import Transaction
 
 from ..init import model, halftest, GASTON
@@ -25,7 +25,7 @@ class Test(TestCase):
     def test_context(self):
         "context shout put the model in transaction mode"
         self.assertFalse(Transaction(halftest.model).is_set())
-        with self.assertRaises(psycopg2.errors.UniqueViolation):
+        with self.assertRaises(psycopg.errors.UniqueViolation):
             with Transaction(halftest.model):
                 self.ab.ho_insert()
                 self.assertTrue(Transaction(halftest.model).is_set())

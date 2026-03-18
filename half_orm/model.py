@@ -27,8 +27,9 @@ import typing
 from configparser import ConfigParser
 from os import environ
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg
+from psycopg import ClientCursor
+from psycopg.rows import dict_row
 
 from half_orm import model_errors
 from half_orm import pg_meta
@@ -38,7 +39,7 @@ from half_orm.relation_factory import factory, register_class
 CONF_DIR = os.path.abspath(environ.get('HALFORM_CONF_DIR', '/etc/half_orm'))
 
 
-psycopg2.extras.register_uuid()
+# UUID is natively supported in psycopg 3
 
 register = register_class
 
@@ -139,16 +140,20 @@ class Model:
         if config_file:
             self.__load_config(config_file)
         try:
-            self.__conn = psycopg2.connect(**self._dbinfo, cursor_factory=RealDictCursor)
-        except psycopg2.OperationalError as exc:
+            self.__conn = psycopg.connect(**self._dbinfo, row_factory=dict_row, autocommit=True)
+        except psycopg.OperationalError as exc:
             if self.__config_file_found:
                 config_info = f"Configuration file: '{self.__config_file_path}'"
             else:
                 config_info = (
                     f"No configuration file found: '{self.__config_file_path}' "
                     f"(using peer authentication with dbname '{self.__config_file}')")
-            raise psycopg2.OperationalError(f"{exc}\n{config_info}") from exc
-        self.__conn.autocommit = True
+            raise psycopg.OperationalError(f"{exc}\n{config_info}") from exc
+        # Register custom type dumpers on this connection
+        from half_orm.null import Null, NullDumper
+        from psycopg.types.json import JsonbDumper
+        self.__conn.adapters.register_dumper(Null, NullDumper)
+        self.__conn.adapters.register_dumper(dict, JsonbDumper)
         self.__pg_meta = pg_meta.PgMeta(self.__conn, reload)
         if reload:
             self._classes_[self._dbname] = {}
@@ -221,11 +226,11 @@ class Model:
         try:
             self.execute_query("select 1")
             return True
-        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+        except (psycopg.OperationalError, psycopg.InterfaceError):
             try:
                 self.__connect()
                 self.execute_query("select 1")
-            except (psycopg2.OperationalError, psycopg2.InterfaceError) as exc: #pragma: no cover
+            except (psycopg.OperationalError, psycopg.InterfaceError) as exc: #pragma: no cover
                 # log reconnection attempt failure
                 sys.stderr.write(f'{exc}\n')
                 sys.stderr.flush()
@@ -254,7 +259,7 @@ class Model:
     @property
     def _connection(self):
         """\
-        Property. Returns the psycopg2 connection attached to the Model object.
+        Property. Returns the psycopg connection attached to the Model object.
         """
         return self.__conn
 
@@ -278,26 +283,51 @@ class Model:
         "Proxy to PgMeta._pkey_constraint"
         return self.__pg_meta._pkey_constraint(self.__dbname, fqrn)
 
+    @staticmethod
+    def _unwrap_values(values):
+        """Unwrap Field objects in query parameters to their inner values.
+        Also converts Null sentinel to Python None (which psycopg maps to SQL NULL).
+        """
+        if values is None:
+            return None
+        from half_orm.field import Field
+        from half_orm.null import Null
+        if isinstance(values, (list, tuple)):
+            def _unwrap(v):
+                if isinstance(v, Field):
+                    v = v.value
+                if isinstance(v, Null):
+                    return None
+                # psycopg 3 needs list (not tuple) for ANY() array params
+                if isinstance(v, tuple):
+                    return list(v)
+                return v
+            unwrapped = [_unwrap(v) for v in values]
+            return type(values)(unwrapped)
+        return values
+
     def execute_query(self, query, values=None, mogrify=False):
         """Executes a raw SQL query.
 
         Warning:
-            This method calls the psycopg2
+            This method calls the psycopg
             `cursor.execute <https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute>`_
             function.
-            Please read the psycopg2 documentation on
+            Please read the psycopg documentation on
             `passing parameters to SQL queries <https://www.psycopg.org/docs/usage.html#query-parameters>`_.
         """
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        values = self._unwrap_values(values)
+        cursor = self.__conn.cursor(row_factory=dict_row)
         try:
             if mogrify or self.sql_trace:
-                print(cursor.mogrify(query, values).decode('utf-8'))
+                client_cur = ClientCursor(self.__conn)
+                print(client_cur.mogrify(query, values))
             cursor.execute(query, values)
-        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+        except (psycopg.OperationalError, psycopg.InterfaceError):
             self.ping()
-            cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+            cursor = self.__conn.cursor(row_factory=dict_row)
             cursor.execute(query, values)
-        except psycopg2.Error as exc:
+        except psycopg.Error as exc:
             vals = ''
             if not self._production_mode:
                 # report values only in development mode
@@ -324,12 +354,14 @@ class Model:
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the execute_function method!")
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        cursor = self.__conn.cursor(row_factory=dict_row)
         if kwargs:
-            values = kwargs
+            params = ', '.join([f'{key} => %s' for key in kwargs])
+            values = tuple(kwargs.values())
         else:
+            params = ', '.join(['%s'] * len(args))
             values = args
-        cursor.callproc(fct_name, values)
+        cursor.execute(f"SELECT * FROM {fct_name}({params})", values)
         return cursor.fetchall()
 
     def call_procedure(self, proc_name, *args, **kwargs):
@@ -357,11 +389,11 @@ class Model:
             params = ', '.join(['%s' for _ in range(len(args))])
             values = args
         query = f'call {proc_name}({params})'
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        cursor = self.__conn.cursor(row_factory=dict_row)
         cursor.execute(query, values)
         try:
             return cursor.fetchall()
-        except psycopg2.ProgrammingError:
+        except psycopg.ProgrammingError:
             return None
 
     def has_relation(self, qtn: str) -> bool:

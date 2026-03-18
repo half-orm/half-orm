@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding:  utf-8 -*-
 
-from psycopg2.errors import UndefinedTable
+from psycopg.errors import UndefinedTable
 from half_orm.hotest import HoTestCase
 
 from ..init import halftest

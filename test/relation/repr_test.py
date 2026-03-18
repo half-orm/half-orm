@@ -6,7 +6,7 @@ import sys
 from time import sleep
 from random import randint
 from unittest import TestCase
-import psycopg2
+import psycopg
 from half_orm.hotest import HoTestCase
 import pytest
 

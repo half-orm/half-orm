@@ -5,7 +5,7 @@
 
 import sys
 
-import psycopg2
+import psycopg
 
 class Transaction:
     """
@@ -52,7 +52,7 @@ class Transaction:
             try:
                 conn.commit()
                 conn.autocommit = True
-            except psycopg2.Error:
+            except psycopg.Error:
                 conn.rollback()
         return False
 

@@ -5,13 +5,13 @@ import io
 import contextlib
 
 from unittest import TestCase
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
 from half_orm.transaction import Transaction
 from half_orm.relation import transaction
 
 from ..init import halftest
 
-DUP_ERR_MSG = """psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "person_first_name_key"
+DUP_ERR_MSG = """psycopg.errors.UniqueViolation: duplicate key value violates unique constraint "person_first_name_key"
 DETAIL:  Key (last_name)=(aa) already exists.
 
 Rolling back!

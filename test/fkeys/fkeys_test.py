@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding:  utf-8 -*-
 
-import psycopg2
+import psycopg
 from unittest import TestCase, skip
 
 from ..init import halftest

@@ -4,7 +4,7 @@
 import contextlib
 import io
 import sys
-import psycopg2
+import psycopg
 from random import randint
 from unittest import TestCase
 from datetime import date

@@ -2,7 +2,7 @@
 #-*- coding:  utf-8 -*-
 
 from random import randint
-import psycopg2
+import psycopg
 import sys
 from unittest import TestCase
 from datetime import date

@@ -1,4 +1,4 @@
 click
 gitdb
 GitPython
-psycopg2-binary
+psycopg[binary]

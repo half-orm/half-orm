@@ -1,7 +1,7 @@
 import sys
 from os import listdir, path
 
-import psycopg2
+import psycopg
 
 import half_orm
 from half_orm import model_errors
@@ -28,7 +28,7 @@ def check_peer_authentication():
     try:
         template1 = Model('template1')
         print("✅ Connected to template1 database (default setup)")
-    except psycopg2.Error as exc:
+    except psycopg.Error as exc:
         print(f'⚠️  Unable to connect to template1: {exc}.')
 
 def check_databases_access():
@@ -40,7 +40,7 @@ def check_databases_access():
                 try:
                     model = Model(cnx_file)
                     print(f"✅ {cnx_file}")
-                except (psycopg2.Error, model_errors.MalformedConfigFile) as exc:
+                except (psycopg.Error, model_errors.MalformedConfigFile) as exc:
                     sys.stderr.write(f'❌ {cnx_file}: {exc}\n')
         else:
             print("💡 No database configuration files found.")
@@ -80,7 +80,7 @@ def main():
         try:
             model = Model(database)
             print(model)
-        except (psycopg2.Error, model_errors.MalformedConfigFile) as exc:
+        except (psycopg.Error, model_errors.MalformedConfigFile) as exc:
             sys.stderr.write(f"❌ Error connecting to database '{database}': {exc}\n")
             sys.stderr.write(f"💡 Use 'python -m half_orm --help' for usage information\n")
             sys.exit(1)
@@ -99,7 +99,7 @@ def main():
             model = Model(database)
             relation_class = model.get_relation_class(relation)
             print(relation_class())
-        except (psycopg2.Error, model_errors.MalformedConfigFile, model_errors.UnknownRelation, model_errors.MissingSchemaInName) as exc:
+        except (psycopg.Error, model_errors.MalformedConfigFile, model_errors.UnknownRelation, model_errors.MissingSchemaInName) as exc:
             sys.stderr.write(f"❌ Error accessing relation '{relation}' in database '{database}': {exc}\n")
             sys.stderr.write(f"💡 Use 'python -m half_orm --help' for usage information\n")
             sys.exit(1)

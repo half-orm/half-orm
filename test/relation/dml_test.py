@@ -10,7 +10,7 @@ from unittest import TestCase
 from time import sleep
 from random import randint
 
-import psycopg2
+import psycopg
 
 from half_orm.hotest import HoTestCase
 from half_orm import relation_errors, model
@@ -42,7 +42,7 @@ class Test(HoTestCase):
         pers = self.pers(last_name='ba')
         self.assertEqual(pers.ho_count(), 1)
         pers = pers.ho_get()
-        self.assertRaises(psycopg2.IntegrityError, pers.ho_insert)
+        self.assertRaises(psycopg.IntegrityError, pers.ho_insert)
 
     def test_select(self):
         n = 'abcdef'[randint(0, 5)]

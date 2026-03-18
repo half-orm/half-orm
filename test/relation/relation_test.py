@@ -6,7 +6,7 @@ from unittest import TestCase
 from half_orm.relation import Relation
 from half_orm.relation_errors import IsFrozenError
 
-import psycopg2
+import psycopg
 
 from ..init import halftest
 

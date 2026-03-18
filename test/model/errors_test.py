@@ -5,7 +5,7 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-import psycopg2
+import psycopg
 
 from half_orm import model_errors, model
 from ..init import halftest
@@ -56,21 +56,21 @@ class Test(TestCase):
             halftest.model.get_relation_class('public.coucou')
         self.assertRaises(model_errors.UnknownRelation, unknown_rel)
 
-    @patch('psycopg2.connect', side_effect=psycopg2.OperationalError("connection refused"))
+    @patch('psycopg.connect', side_effect=psycopg.OperationalError("connection refused"))
     def test_connection_error_with_config_file(self, mock_connect):
         "it should include config file path in connection error"
         conf_dir = model.CONF_DIR
-        with self.assertRaises(psycopg2.OperationalError) as ctx:
+        with self.assertRaises(psycopg.OperationalError) as ctx:
             model.Model('halftest')
         error_msg = str(ctx.exception)
         self.assertIn("connection refused", error_msg)
         self.assertIn(f"Configuration file: '{conf_dir}/halftest'", error_msg)
 
-    @patch('psycopg2.connect', side_effect=psycopg2.OperationalError("connection refused"))
+    @patch('psycopg.connect', side_effect=psycopg.OperationalError("connection refused"))
     def test_connection_error_without_config_file(self, mock_connect):
         "it should mention missing config file and peer auth in connection error"
         conf_dir = model.CONF_DIR
-        with self.assertRaises(psycopg2.OperationalError) as ctx:
+        with self.assertRaises(psycopg.OperationalError) as ctx:
             model.Model('nonexistent_db_xyz')
         error_msg = str(ctx.exception)
         self.assertIn("connection refused", error_msg)
