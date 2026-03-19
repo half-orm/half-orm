@@ -1,3 +1,10 @@
+# 0.18.1 (2026-03-19)
+
+* fix: handle nested Field objects as query parameters (a2d48f5)
+* feat(CI): replace psycopg2 by psycopg[binary] (da24543)
+* Add breaking changes to README + CHANGELOG (7c012df)
+* feat(tests): add async tests (9be689f)
+
 # 0.18.0 (2026-03-19)
 
 ## ⚠️ BREAKING CHANGE — psycopg2 → psycopg 3
