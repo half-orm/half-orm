@@ -44,6 +44,39 @@ Execute SQL immediately and return results:
 !!! tip "Conceptual Background"
     This builder/executor pattern is core to halfORM's design. Learn more in [halfORM Fundamentals](../fundamentals.md#method-categories-builders-vs-executors).
 
+### Async Executors (Eager, coroutines)
+Async counterparts of every query executor. Require an async connection opened via
+`await model.aconnect()` before use, and closed with `await model.adisconnect()`.
+Return plain values (not generators) so the underlying cursor can be closed immediately.
+
+- `ho_aselect(*fields)` → **list[dict]**
+- `ho_acount()` → **int**
+- `ho_ais_empty()` → **bool**
+- `ho_ainsert()` → **dict**
+- `ho_aupdate(**kwargs)` → —
+- `ho_adelete()` → —
+
+!!! example "Concurrent queries with asyncio.gather"
+    ```python
+    import asyncio
+    from half_orm.model import Model
+
+    db = Model('my_database')
+    Person = db.get_relation_class('public.person')
+
+    async def main():
+        await db.aconnect()
+        try:
+            admins, users = await asyncio.gather(
+                Person(role='admin').ho_aselect(),
+                Person(role='user').ho_aselect(),
+            )
+        finally:
+            await db.adisconnect()
+
+    asyncio.run(main())
+    ```
+
 ### Introspection (no SQL)
 Inspect the query intent without executing anything:
 - `ho_where_display()` → **dict | None** — returns the JOIN/WHERE clauses as built on the object

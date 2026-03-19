@@ -216,6 +216,52 @@ count = Person().ho_count()
 is_empty = Person(email='nonexistent@example.com').ho_is_empty()
 ```
 
+### Async Support
+
+halfORM supports async execution via psycopg 3's `AsyncConnection`. Open an async
+connection once, use `ho_a*` counterparts of the standard executors, then close it.
+
+```python
+import asyncio
+from half_orm.model import Model
+
+blog = Model('blog_db')
+Post = blog.get_relation_class('blog.post')
+
+async def main():
+    await blog.aconnect()
+    try:
+        # Async variants of every executor
+        new_post = await Post(title='Async!', content='Fast.').ho_ainsert()
+        posts    = await Post(is_published=True).ho_aselect()
+        count    = await Post().ho_acount()
+        empty    = await Post(title='?').ho_ais_empty()
+
+        # Fan-out: run independent queries concurrently
+        drafts, published = await asyncio.gather(
+            Post(is_published=False).ho_aselect(),
+            Post(is_published=True).ho_aselect(),
+        )
+    finally:
+        await blog.adisconnect()
+
+asyncio.run(main())
+```
+
+**Async executor methods** (all `await`-able):
+
+| Async method | Sync equivalent | Returns |
+|---|---|---|
+| `ho_aselect(*fields)` | `ho_select()` | `list[dict]` |
+| `ho_acount()` | `ho_count()` | `int` |
+| `ho_ais_empty()` | `ho_is_empty()` | `bool` |
+| `ho_ainsert()` | `ho_insert()` | `dict` |
+| `ho_aupdate(**kwargs)` | `ho_update()` | — |
+| `ho_adelete()` | `ho_delete()` | — |
+
+> **Note**: `ho_aselect()` returns a `list` (not a generator) so the cursor can be
+> closed before returning to the caller.
+
 ### SQL Trace Mode
 ```python
 # Enable SQL trace to see queries with caller context
