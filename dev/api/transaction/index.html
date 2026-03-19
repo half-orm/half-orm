@@ -1406,7 +1406,7 @@
 <a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="k">try</span><span class="p">:</span>
 <a id="__codelineno-0-53" name="__codelineno-0-53"></a>                <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 <a id="__codelineno-0-54" name="__codelineno-0-54"></a>                <span class="n">conn</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="kc">True</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="k">except</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
 <a id="__codelineno-0-56" name="__codelineno-0-56"></a>                <span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a>
