@@ -2075,7 +2075,8 @@ then in <code>/etc/half_orm</code>. The file format is as follows:</p>
 <span class="normal"><a href="#__codelineno-0-523">523</a></span>
 <span class="normal"><a href="#__codelineno-0-524">524</a></span>
 <span class="normal"><a href="#__codelineno-0-525">525</a></span>
-<span class="normal"><a href="#__codelineno-0-526">526</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-526">526</a></span>
+<span class="normal"><a href="#__codelineno-0-527">527</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">:</span>
 <a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">    Parameters:</span>
 <a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">        config_file (str): the configuration file that contains the informations to connect</span>
@@ -2379,183 +2380,184 @@ then in <code>/etc/half_orm</code>. The file format is as follows:</p>
 <a id="__codelineno-0-347" name="__codelineno-0-347"></a>                    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">value</span>
 <a id="__codelineno-0-348" name="__codelineno-0-348"></a>                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">Null</span><span class="p">):</span>
 <a id="__codelineno-0-349" name="__codelineno-0-349"></a>                    <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-0-350" name="__codelineno-0-350"></a>                <span class="c1"># psycopg 3 needs list (not tuple) for ANY() array params</span>
-<a id="__codelineno-0-351" name="__codelineno-0-351"></a>                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-<a id="__codelineno-0-352" name="__codelineno-0-352"></a>                    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-<a id="__codelineno-0-353" name="__codelineno-0-353"></a>                <span class="k">return</span> <span class="n">v</span>
-<a id="__codelineno-0-354" name="__codelineno-0-354"></a>            <span class="n">unwrapped</span> <span class="o">=</span> <span class="p">[</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
-<a id="__codelineno-0-355" name="__codelineno-0-355"></a>            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)(</span><span class="n">unwrapped</span><span class="p">)</span>
-<a id="__codelineno-0-356" name="__codelineno-0-356"></a>        <span class="k">return</span> <span class="n">values</span>
-<a id="__codelineno-0-357" name="__codelineno-0-357"></a>
-<a id="__codelineno-0-358" name="__codelineno-0-358"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mogrify</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Executes a raw SQL query.</span>
-<a id="__codelineno-0-360" name="__codelineno-0-360"></a>
-<a id="__codelineno-0-361" name="__codelineno-0-361"></a><span class="sd">        Warning:</span>
-<a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">            This method calls the psycopg</span>
-<a id="__codelineno-0-363" name="__codelineno-0-363"></a><span class="sd">            `cursor.execute &lt;https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute&gt;`_</span>
-<a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">            function.</span>
-<a id="__codelineno-0-365" name="__codelineno-0-365"></a><span class="sd">            Please read the psycopg documentation on</span>
-<a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">            `passing parameters to SQL queries &lt;https://www.psycopg.org/docs/usage.html#query-parameters&gt;`_.</span>
-<a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-368" name="__codelineno-0-368"></a>        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-369" name="__codelineno-0-369"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-370" name="__codelineno-0-370"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-371" name="__codelineno-0-371"></a>            <span class="k">if</span> <span class="n">mogrify</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_trace</span><span class="p">:</span>
-<a id="__codelineno-0-372" name="__codelineno-0-372"></a>                <span class="n">client_cur</span> <span class="o">=</span> <span class="n">ClientCursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="p">)</span>
-<a id="__codelineno-0-373" name="__codelineno-0-373"></a>                <span class="nb">print</span><span class="p">(</span><span class="n">client_cur</span><span class="o">.</span><span class="n">mogrify</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
-<a id="__codelineno-0-374" name="__codelineno-0-374"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-375" name="__codelineno-0-375"></a>        <span class="k">except</span> <span class="p">(</span><span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">):</span>
-<a id="__codelineno-0-376" name="__codelineno-0-376"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
-<a id="__codelineno-0-377" name="__codelineno-0-377"></a>            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-378" name="__codelineno-0-378"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-379" name="__codelineno-0-379"></a>        <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-380" name="__codelineno-0-380"></a>            <span class="n">vals</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-<a id="__codelineno-0-381" name="__codelineno-0-381"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_production_mode</span><span class="p">:</span>
-<a id="__codelineno-0-382" name="__codelineno-0-382"></a>                <span class="c1"># report values only in development mode</span>
-<a id="__codelineno-0-383" name="__codelineno-0-383"></a>                <span class="n">vals</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;values: </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-384" name="__codelineno-0-384"></a>            <span class="n">utils</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query execution failed:</span><span class="se">\n</span><span class="s2">query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-385" name="__codelineno-0-385"></a>            <span class="k">raise</span> <span class="n">exc</span>
-<a id="__codelineno-0-386" name="__codelineno-0-386"></a>        <span class="k">return</span> <span class="n">cursor</span>
-<a id="__codelineno-0-387" name="__codelineno-0-387"></a>
-<a id="__codelineno-0-388" name="__codelineno-0-388"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
-<a id="__codelineno-0-389" name="__codelineno-0-389"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL function &lt;https://www.postgresql.org/docs/current/sql-syntax-calling-funcs.html&gt;`_.</span>
-<a id="__codelineno-0-390" name="__codelineno-0-390"></a>
-<a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="sd">        Arguments:</span>
-<a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">            *args: The list of parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="sd">            **kwargs: The list of named parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-394" name="__codelineno-0-394"></a>
-<a id="__codelineno-0-395" name="__codelineno-0-395"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">            List[tuple]: a list of tuples.</span>
-<a id="__codelineno-0-397" name="__codelineno-0-397"></a>
-<a id="__codelineno-0-398" name="__codelineno-0-398"></a><span class="sd">        Raises:</span>
-<a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">            RuntimeError: If you mix ***args** and ****kwargs**.</span>
-<a id="__codelineno-0-400" name="__codelineno-0-400"></a>
-<a id="__codelineno-0-401" name="__codelineno-0-401"></a><span class="sd">        Note:</span>
-<a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">            You can&#39;t mix args and kwargs with the execute_function method!</span>
-<a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-404" name="__codelineno-0-404"></a>        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-405" name="__codelineno-0-405"></a>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the execute_function method!&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-406" name="__codelineno-0-406"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-407" name="__codelineno-0-407"></a>        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-<a id="__codelineno-0-408" name="__codelineno-0-408"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
-<a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<a id="__codelineno-0-410" name="__codelineno-0-410"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-411" name="__codelineno-0-411"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
-<a id="__codelineno-0-412" name="__codelineno-0-412"></a>            <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
-<a id="__codelineno-0-413" name="__codelineno-0-413"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">fct_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-414" name="__codelineno-0-414"></a>        <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-<a id="__codelineno-0-415" name="__codelineno-0-415"></a>
-<a id="__codelineno-0-416" name="__codelineno-0-416"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call_procedure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL procedure &lt;https://www.postgresql.org/docs/current/sql-call.html&gt;`_.</span>
-<a id="__codelineno-0-418" name="__codelineno-0-418"></a>
-<a id="__codelineno-0-419" name="__codelineno-0-419"></a><span class="sd">        Arguments:</span>
-<a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">            *args: The list of parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">            **kwargs: The list of named parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-422" name="__codelineno-0-422"></a>
-<a id="__codelineno-0-423" name="__codelineno-0-423"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">            None | List[tuple]: None or a list of tuples.</span>
-<a id="__codelineno-0-425" name="__codelineno-0-425"></a>
-<a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="sd">        Raises:</span>
-<a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">            RuntimeError: If you mix ***args** and ****kwargs**.</span>
-<a id="__codelineno-0-428" name="__codelineno-0-428"></a>
-<a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">        Note:</span>
-<a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">            You can&#39;t mix args and kwargs with the call_procedure method!</span>
-<a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-432" name="__codelineno-0-432"></a>        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-433" name="__codelineno-0-433"></a>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the call_procedure method!&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-434" name="__codelineno-0-434"></a>        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-<a id="__codelineno-0-435" name="__codelineno-0-435"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
-<a id="__codelineno-0-436" name="__codelineno-0-436"></a>            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<a id="__codelineno-0-437" name="__codelineno-0-437"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-438" name="__codelineno-0-438"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))])</span>
-<a id="__codelineno-0-439" name="__codelineno-0-439"></a>            <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
-<a id="__codelineno-0-440" name="__codelineno-0-440"></a>        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;call </span><span class="si">{</span><span class="n">proc_name</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">)&#39;</span>
-<a id="__codelineno-0-441" name="__codelineno-0-441"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-442" name="__codelineno-0-442"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-443" name="__codelineno-0-443"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-444" name="__codelineno-0-444"></a>            <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-<a id="__codelineno-0-445" name="__codelineno-0-445"></a>        <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
-<a id="__codelineno-0-446" name="__codelineno-0-446"></a>            <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-0-447" name="__codelineno-0-447"></a>
-<a id="__codelineno-0-448" name="__codelineno-0-448"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-449" name="__codelineno-0-449"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if the qtn is a relation in the database</span>
-<a id="__codelineno-0-450" name="__codelineno-0-450"></a>
-<a id="__codelineno-0-451" name="__codelineno-0-451"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="sd">            bool: True if the relation exists in the database, False otherwise.</span>
-<a id="__codelineno-0-453" name="__codelineno-0-453"></a>
-<a id="__codelineno-0-454" name="__codelineno-0-454"></a><span class="sd">        Example:</span>
-<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">            &gt;&gt;&gt; model.has_relation(&#39;public.person&#39;)</span>
-<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">            False</span>
-<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">            &gt;&gt;&gt; model.has_relation(&#39;actor.person&#39;)</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">            True</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">,</span> <span class="o">*</span><span class="n">qtn</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<a id="__codelineno-0-461" name="__codelineno-0-461"></a>
-<a id="__codelineno-0-462" name="__codelineno-0-462"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_import_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<a id="__codelineno-0-463" name="__codelineno-0-463"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Used to return the class from the scope module.</span>
-<a id="__codelineno-0-464" name="__codelineno-0-464"></a>
-<a id="__codelineno-0-465" name="__codelineno-0-465"></a><span class="sd">        This method is used to import a class from a module. The module</span>
-<a id="__codelineno-0-466" name="__codelineno-0-466"></a><span class="sd">        must reside in an accessible python package named `scope`.</span>
-<a id="__codelineno-0-467" name="__codelineno-0-467"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-468" name="__codelineno-0-468"></a>        <span class="n">t_qtn</span> <span class="o">=</span> <span class="n">qtn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-469" name="__codelineno-0-469"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span> <span class="o">=</span> <span class="n">scope</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span>
-<a id="__codelineno-0-470" name="__codelineno-0-470"></a>        <span class="n">module_path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t_qtn</span><span class="p">)</span>
-<a id="__codelineno-0-471" name="__codelineno-0-471"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span><span class="p">:</span>
-<a id="__codelineno-0-472" name="__codelineno-0-472"></a>            <span class="n">module_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_scope</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">module_path</span><span class="si">}</span><span class="s1">&#39;</span>
-<a id="__codelineno-0-473" name="__codelineno-0-473"></a>        <span class="n">_class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">class_name</span><span class="p">(</span><span class="n">qtn</span><span class="p">)</span> <span class="c1"># XXX</span>
-<a id="__codelineno-0-474" name="__codelineno-0-474"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-475" name="__codelineno-0-475"></a>            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span>
-<a id="__codelineno-0-476" name="__codelineno-0-476"></a>                <span class="n">module_path</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">(),</span> <span class="p">[</span><span class="n">_class_name</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-0-477" name="__codelineno-0-477"></a>            <span class="k">return</span> <span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_class_name</span><span class="p">]</span>
-<a id="__codelineno-0-478" name="__codelineno-0-478"></a>        <span class="k">except</span><span class="p">:</span>
-<a id="__codelineno-0-479" name="__codelineno-0-479"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="n">qtn</span><span class="p">)</span>
-<a id="__codelineno-0-480" name="__codelineno-0-480"></a>
-<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_relations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-482" name="__codelineno-0-482"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;List all_ the relations in the database&quot;&quot;&quot;</span>
-<a id="__codelineno-0-483" name="__codelineno-0-483"></a>        <span class="n">rels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">relations_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
-<a id="__codelineno-0-484" name="__codelineno-0-484"></a>        <span class="k">return</span> <span class="n">rels</span>
-<a id="__codelineno-0-485" name="__codelineno-0-485"></a>
-<a id="__codelineno-0-486" name="__codelineno-0-486"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">desc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of the relations of the model.</span>
-<a id="__codelineno-0-488" name="__codelineno-0-488"></a>
-<a id="__codelineno-0-489" name="__codelineno-0-489"></a><span class="sd">        Each element in the list contains:</span>
-<a id="__codelineno-0-490" name="__codelineno-0-490"></a>
-<a id="__codelineno-0-491" name="__codelineno-0-491"></a><span class="sd">        * the relation type: &#39;r&#39; relation, &#39;v&#39; view, &#39;m&#39; materialized view, &#39;p&#39; partition;</span>
-<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">        * a tuple identifying the relation: (db name&gt;, &lt;schema name&gt;, &lt;relation name&gt;);</span>
-<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">        * a list of tuples indentifying the inherited relations.</span>
-<a id="__codelineno-0-494" name="__codelineno-0-494"></a>
-<a id="__codelineno-0-495" name="__codelineno-0-495"></a><span class="sd">        Example:</span>
-<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">            &gt;&gt;&gt; from half_orm.model import Model</span>
-<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">            &gt;&gt;&gt; halftest = Model(&#39;halftest&#39;)</span>
-<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">            &gt;&gt;&gt; halftest.desc()</span>
-<a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="sd">            [(&#39;r&#39;, (&#39;halftest&#39;, &#39;actor&#39;, &#39;person&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;comment&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;event&#39;), [(&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;)]), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;), []), (&#39;v&#39;, (&#39;halftest&#39;, &#39;blog.view&#39;, &#39;post_comment&#39;), [])]</span>
-<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-501" name="__codelineno-0-501"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
-<a id="__codelineno-0-502" name="__codelineno-0-502"></a>
-<a id="__codelineno-0-503" name="__codelineno-0-503"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-504" name="__codelineno-0-504"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
-<a id="__codelineno-0-505" name="__codelineno-0-505"></a>
-<a id="__codelineno-0-506" name="__codelineno-0-506"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-507" name="__codelineno-0-507"></a>        <span class="s2">&quot;Returns the all the classes of the model&quot;</span>
-<a id="__codelineno-0-508" name="__codelineno-0-508"></a>        <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relations</span><span class="p">():</span>
-<a id="__codelineno-0-509" name="__codelineno-0-509"></a>            <span class="n">package_name</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-0-510" name="__codelineno-0-510"></a>            <span class="n">module_name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
-<a id="__codelineno-0-511" name="__codelineno-0-511"></a>            <span class="k">if</span> <span class="n">module_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;half_orm_meta&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-512" name="__codelineno-0-512"></a>                <span class="k">continue</span>
-<a id="__codelineno-0-513" name="__codelineno-0-513"></a>            <span class="n">class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">camel_case</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<a id="__codelineno-0-514" name="__codelineno-0-514"></a>            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">package_name</span><span class="p">)</span>
-<a id="__codelineno-0-515" name="__codelineno-0-515"></a>            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">),</span> <span class="n">relation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-0-516" name="__codelineno-0-516"></a>
-<a id="__codelineno-0-517" name="__codelineno-0-517"></a>    <span class="nd">@property</span>
-<a id="__codelineno-0-518" name="__codelineno-0-518"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sql_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-519" name="__codelineno-0-519"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sql_trace</span>
-<a id="__codelineno-0-520" name="__codelineno-0-520"></a>    <span class="nd">@sql_trace</span><span class="o">.</span><span class="n">setter</span>
-<a id="__codelineno-0-521" name="__codelineno-0-521"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sql_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-522" name="__codelineno-0-522"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the value of self.__sql_trace</span>
-<a id="__codelineno-0-523" name="__codelineno-0-523"></a>
-<a id="__codelineno-0-524" name="__codelineno-0-524"></a><span class="sd">        If True, all sql queries are displayed on stdout.</span>
-<a id="__codelineno-0-525" name="__codelineno-0-525"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-526" name="__codelineno-0-526"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__sql_trace</span> <span class="o">=</span> <span class="n">value</span>
+<a id="__codelineno-0-350" name="__codelineno-0-350"></a>                <span class="c1"># Recurse into lists/tuples (e.g. Field objects inside ANY() arrays)</span>
+<a id="__codelineno-0-351" name="__codelineno-0-351"></a>                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+<a id="__codelineno-0-352" name="__codelineno-0-352"></a>                    <span class="n">unwrapped</span> <span class="o">=</span> <span class="p">[</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+<a id="__codelineno-0-353" name="__codelineno-0-353"></a>                    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">unwrapped</span><span class="p">)</span>
+<a id="__codelineno-0-354" name="__codelineno-0-354"></a>                <span class="k">return</span> <span class="n">v</span>
+<a id="__codelineno-0-355" name="__codelineno-0-355"></a>            <span class="n">unwrapped</span> <span class="o">=</span> <span class="p">[</span><span class="n">_unwrap</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
+<a id="__codelineno-0-356" name="__codelineno-0-356"></a>            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)(</span><span class="n">unwrapped</span><span class="p">)</span>
+<a id="__codelineno-0-357" name="__codelineno-0-357"></a>        <span class="k">return</span> <span class="n">values</span>
+<a id="__codelineno-0-358" name="__codelineno-0-358"></a>
+<a id="__codelineno-0-359" name="__codelineno-0-359"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mogrify</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<a id="__codelineno-0-360" name="__codelineno-0-360"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Executes a raw SQL query.</span>
+<a id="__codelineno-0-361" name="__codelineno-0-361"></a>
+<a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">        Warning:</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a><span class="sd">            This method calls the psycopg</span>
+<a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">            `cursor.execute &lt;https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute&gt;`_</span>
+<a id="__codelineno-0-365" name="__codelineno-0-365"></a><span class="sd">            function.</span>
+<a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">            Please read the psycopg documentation on</span>
+<a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="sd">            `passing parameters to SQL queries &lt;https://www.psycopg.org/docs/usage.html#query-parameters&gt;`_.</span>
+<a id="__codelineno-0-368" name="__codelineno-0-368"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-369" name="__codelineno-0-369"></a>        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-371" name="__codelineno-0-371"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-372" name="__codelineno-0-372"></a>            <span class="k">if</span> <span class="n">mogrify</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_trace</span><span class="p">:</span>
+<a id="__codelineno-0-373" name="__codelineno-0-373"></a>                <span class="n">client_cur</span> <span class="o">=</span> <span class="n">ClientCursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="p">)</span>
+<a id="__codelineno-0-374" name="__codelineno-0-374"></a>                <span class="nb">print</span><span class="p">(</span><span class="n">client_cur</span><span class="o">.</span><span class="n">mogrify</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+<a id="__codelineno-0-375" name="__codelineno-0-375"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-376" name="__codelineno-0-376"></a>        <span class="k">except</span> <span class="p">(</span><span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">):</span>
+<a id="__codelineno-0-377" name="__codelineno-0-377"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+<a id="__codelineno-0-378" name="__codelineno-0-378"></a>            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-379" name="__codelineno-0-379"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-380" name="__codelineno-0-380"></a>        <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-381" name="__codelineno-0-381"></a>            <span class="n">vals</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<a id="__codelineno-0-382" name="__codelineno-0-382"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_production_mode</span><span class="p">:</span>
+<a id="__codelineno-0-383" name="__codelineno-0-383"></a>                <span class="c1"># report values only in development mode</span>
+<a id="__codelineno-0-384" name="__codelineno-0-384"></a>                <span class="n">vals</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;values: </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-385" name="__codelineno-0-385"></a>            <span class="n">utils</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query execution failed:</span><span class="se">\n</span><span class="s2">query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-386" name="__codelineno-0-386"></a>            <span class="k">raise</span> <span class="n">exc</span>
+<a id="__codelineno-0-387" name="__codelineno-0-387"></a>        <span class="k">return</span> <span class="n">cursor</span>
+<a id="__codelineno-0-388" name="__codelineno-0-388"></a>
+<a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+<a id="__codelineno-0-390" name="__codelineno-0-390"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL function &lt;https://www.postgresql.org/docs/current/sql-syntax-calling-funcs.html&gt;`_.</span>
+<a id="__codelineno-0-391" name="__codelineno-0-391"></a>
+<a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">        Arguments:</span>
+<a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="sd">            *args: The list of parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-394" name="__codelineno-0-394"></a><span class="sd">            **kwargs: The list of named parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-395" name="__codelineno-0-395"></a>
+<a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-397" name="__codelineno-0-397"></a><span class="sd">            List[tuple]: a list of tuples.</span>
+<a id="__codelineno-0-398" name="__codelineno-0-398"></a>
+<a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">        Raises:</span>
+<a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="sd">            RuntimeError: If you mix ***args** and ****kwargs**.</span>
+<a id="__codelineno-0-401" name="__codelineno-0-401"></a>
+<a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">        Note:</span>
+<a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">            You can&#39;t mix args and kwargs with the execute_function method!</span>
+<a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-405" name="__codelineno-0-405"></a>        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-406" name="__codelineno-0-406"></a>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the execute_function method!&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-407" name="__codelineno-0-407"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-408" name="__codelineno-0-408"></a>        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+<a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
+<a id="__codelineno-0-410" name="__codelineno-0-410"></a>            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-0-411" name="__codelineno-0-411"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-412" name="__codelineno-0-412"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+<a id="__codelineno-0-413" name="__codelineno-0-413"></a>            <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
+<a id="__codelineno-0-414" name="__codelineno-0-414"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">fct_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-415" name="__codelineno-0-415"></a>        <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<a id="__codelineno-0-416" name="__codelineno-0-416"></a>
+<a id="__codelineno-0-417" name="__codelineno-0-417"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call_procedure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-418" name="__codelineno-0-418"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL procedure &lt;https://www.postgresql.org/docs/current/sql-call.html&gt;`_.</span>
+<a id="__codelineno-0-419" name="__codelineno-0-419"></a>
+<a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">        Arguments:</span>
+<a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">            *args: The list of parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-422" name="__codelineno-0-422"></a><span class="sd">            **kwargs: The list of named parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-423" name="__codelineno-0-423"></a>
+<a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-425" name="__codelineno-0-425"></a><span class="sd">            None | List[tuple]: None or a list of tuples.</span>
+<a id="__codelineno-0-426" name="__codelineno-0-426"></a>
+<a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">        Raises:</span>
+<a id="__codelineno-0-428" name="__codelineno-0-428"></a><span class="sd">            RuntimeError: If you mix ***args** and ****kwargs**.</span>
+<a id="__codelineno-0-429" name="__codelineno-0-429"></a>
+<a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">        Note:</span>
+<a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">            You can&#39;t mix args and kwargs with the call_procedure method!</span>
+<a id="__codelineno-0-432" name="__codelineno-0-432"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-433" name="__codelineno-0-433"></a>        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-434" name="__codelineno-0-434"></a>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the call_procedure method!&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-435" name="__codelineno-0-435"></a>        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+<a id="__codelineno-0-436" name="__codelineno-0-436"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
+<a id="__codelineno-0-437" name="__codelineno-0-437"></a>            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-0-438" name="__codelineno-0-438"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-439" name="__codelineno-0-439"></a>            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))])</span>
+<a id="__codelineno-0-440" name="__codelineno-0-440"></a>            <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
+<a id="__codelineno-0-441" name="__codelineno-0-441"></a>        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;call </span><span class="si">{</span><span class="n">proc_name</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">)&#39;</span>
+<a id="__codelineno-0-442" name="__codelineno-0-442"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-443" name="__codelineno-0-443"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-444" name="__codelineno-0-444"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-445" name="__codelineno-0-445"></a>            <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<a id="__codelineno-0-446" name="__codelineno-0-446"></a>        <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
+<a id="__codelineno-0-447" name="__codelineno-0-447"></a>            <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-0-448" name="__codelineno-0-448"></a>
+<a id="__codelineno-0-449" name="__codelineno-0-449"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-450" name="__codelineno-0-450"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if the qtn is a relation in the database</span>
+<a id="__codelineno-0-451" name="__codelineno-0-451"></a>
+<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-453" name="__codelineno-0-453"></a><span class="sd">            bool: True if the relation exists in the database, False otherwise.</span>
+<a id="__codelineno-0-454" name="__codelineno-0-454"></a>
+<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">        Example:</span>
+<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">            &gt;&gt;&gt; model.has_relation(&#39;public.person&#39;)</span>
+<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">            False</span>
+<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">            &gt;&gt;&gt; model.has_relation(&#39;actor.person&#39;)</span>
+<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">            True</span>
+<a id="__codelineno-0-460" name="__codelineno-0-460"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-461" name="__codelineno-0-461"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">,</span> <span class="o">*</span><span class="n">qtn</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<a id="__codelineno-0-462" name="__codelineno-0-462"></a>
+<a id="__codelineno-0-463" name="__codelineno-0-463"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_import_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-0-464" name="__codelineno-0-464"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Used to return the class from the scope module.</span>
+<a id="__codelineno-0-465" name="__codelineno-0-465"></a>
+<a id="__codelineno-0-466" name="__codelineno-0-466"></a><span class="sd">        This method is used to import a class from a module. The module</span>
+<a id="__codelineno-0-467" name="__codelineno-0-467"></a><span class="sd">        must reside in an accessible python package named `scope`.</span>
+<a id="__codelineno-0-468" name="__codelineno-0-468"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-469" name="__codelineno-0-469"></a>        <span class="n">t_qtn</span> <span class="o">=</span> <span class="n">qtn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-470" name="__codelineno-0-470"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span> <span class="o">=</span> <span class="n">scope</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span>
+<a id="__codelineno-0-471" name="__codelineno-0-471"></a>        <span class="n">module_path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t_qtn</span><span class="p">)</span>
+<a id="__codelineno-0-472" name="__codelineno-0-472"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scope</span><span class="p">:</span>
+<a id="__codelineno-0-473" name="__codelineno-0-473"></a>            <span class="n">module_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_scope</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">module_path</span><span class="si">}</span><span class="s1">&#39;</span>
+<a id="__codelineno-0-474" name="__codelineno-0-474"></a>        <span class="n">_class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">class_name</span><span class="p">(</span><span class="n">qtn</span><span class="p">)</span> <span class="c1"># XXX</span>
+<a id="__codelineno-0-475" name="__codelineno-0-475"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-476" name="__codelineno-0-476"></a>            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span>
+<a id="__codelineno-0-477" name="__codelineno-0-477"></a>                <span class="n">module_path</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">(),</span> <span class="p">[</span><span class="n">_class_name</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-0-478" name="__codelineno-0-478"></a>            <span class="k">return</span> <span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_class_name</span><span class="p">]</span>
+<a id="__codelineno-0-479" name="__codelineno-0-479"></a>        <span class="k">except</span><span class="p">:</span>
+<a id="__codelineno-0-480" name="__codelineno-0-480"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="n">qtn</span><span class="p">)</span>
+<a id="__codelineno-0-481" name="__codelineno-0-481"></a>
+<a id="__codelineno-0-482" name="__codelineno-0-482"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_relations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-483" name="__codelineno-0-483"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;List all_ the relations in the database&quot;&quot;&quot;</span>
+<a id="__codelineno-0-484" name="__codelineno-0-484"></a>        <span class="n">rels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">relations_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
+<a id="__codelineno-0-485" name="__codelineno-0-485"></a>        <span class="k">return</span> <span class="n">rels</span>
+<a id="__codelineno-0-486" name="__codelineno-0-486"></a>
+<a id="__codelineno-0-487" name="__codelineno-0-487"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">desc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-488" name="__codelineno-0-488"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of the relations of the model.</span>
+<a id="__codelineno-0-489" name="__codelineno-0-489"></a>
+<a id="__codelineno-0-490" name="__codelineno-0-490"></a><span class="sd">        Each element in the list contains:</span>
+<a id="__codelineno-0-491" name="__codelineno-0-491"></a>
+<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">        * the relation type: &#39;r&#39; relation, &#39;v&#39; view, &#39;m&#39; materialized view, &#39;p&#39; partition;</span>
+<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">        * a tuple identifying the relation: (db name&gt;, &lt;schema name&gt;, &lt;relation name&gt;);</span>
+<a id="__codelineno-0-494" name="__codelineno-0-494"></a><span class="sd">        * a list of tuples indentifying the inherited relations.</span>
+<a id="__codelineno-0-495" name="__codelineno-0-495"></a>
+<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">        Example:</span>
+<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">            &gt;&gt;&gt; from half_orm.model import Model</span>
+<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">            &gt;&gt;&gt; halftest = Model(&#39;halftest&#39;)</span>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="sd">            &gt;&gt;&gt; halftest.desc()</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="sd">            [(&#39;r&#39;, (&#39;halftest&#39;, &#39;actor&#39;, &#39;person&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;comment&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;event&#39;), [(&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;)]), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;), []), (&#39;v&#39;, (&#39;halftest&#39;, &#39;blog.view&#39;, &#39;post_comment&#39;), [])]</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
+<a id="__codelineno-0-503" name="__codelineno-0-503"></a>
+<a id="__codelineno-0-504" name="__codelineno-0-504"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-505" name="__codelineno-0-505"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
+<a id="__codelineno-0-506" name="__codelineno-0-506"></a>
+<a id="__codelineno-0-507" name="__codelineno-0-507"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a>        <span class="s2">&quot;Returns the all the classes of the model&quot;</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a>        <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relations</span><span class="p">():</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a>            <span class="n">package_name</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>            <span class="n">module_name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a>            <span class="k">if</span> <span class="n">module_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;half_orm_meta&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a>                <span class="k">continue</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>            <span class="n">class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">camel_case</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a>            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">package_name</span><span class="p">)</span>
+<a id="__codelineno-0-516" name="__codelineno-0-516"></a>            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">),</span> <span class="n">relation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-0-517" name="__codelineno-0-517"></a>
+<a id="__codelineno-0-518" name="__codelineno-0-518"></a>    <span class="nd">@property</span>
+<a id="__codelineno-0-519" name="__codelineno-0-519"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sql_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-520" name="__codelineno-0-520"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sql_trace</span>
+<a id="__codelineno-0-521" name="__codelineno-0-521"></a>    <span class="nd">@sql_trace</span><span class="o">.</span><span class="n">setter</span>
+<a id="__codelineno-0-522" name="__codelineno-0-522"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sql_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-523" name="__codelineno-0-523"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the value of self.__sql_trace</span>
+<a id="__codelineno-0-524" name="__codelineno-0-524"></a>
+<a id="__codelineno-0-525" name="__codelineno-0-525"></a><span class="sd">        If True, all sql queries are displayed on stdout.</span>
+<a id="__codelineno-0-526" name="__codelineno-0-526"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-527" name="__codelineno-0-527"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__sql_trace</span> <span class="o">=</span> <span class="n">value</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -3170,8 +3172,7 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-416">416</a></span>
-<span class="normal"><a href="#__codelineno-0-417">417</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-417">417</a></span>
 <span class="normal"><a href="#__codelineno-0-418">418</a></span>
 <span class="normal"><a href="#__codelineno-0-419">419</a></span>
 <span class="normal"><a href="#__codelineno-0-420">420</a></span>
@@ -3200,37 +3201,38 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
 <span class="normal"><a href="#__codelineno-0-443">443</a></span>
 <span class="normal"><a href="#__codelineno-0-444">444</a></span>
 <span class="normal"><a href="#__codelineno-0-445">445</a></span>
-<span class="normal"><a href="#__codelineno-0-446">446</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-416" name="__codelineno-0-416"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_procedure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL procedure &lt;https://www.postgresql.org/docs/current/sql-call.html&gt;`_.</span>
-<a id="__codelineno-0-418" name="__codelineno-0-418"></a>
-<a id="__codelineno-0-419" name="__codelineno-0-419"></a><span class="sd">    Arguments:</span>
-<a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">        *args: The list of parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">        **kwargs: The list of named parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-422" name="__codelineno-0-422"></a>
-<a id="__codelineno-0-423" name="__codelineno-0-423"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">        None | List[tuple]: None or a list of tuples.</span>
-<a id="__codelineno-0-425" name="__codelineno-0-425"></a>
-<a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="sd">    Raises:</span>
-<a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">        RuntimeError: If you mix ***args** and ****kwargs**.</span>
-<a id="__codelineno-0-428" name="__codelineno-0-428"></a>
-<a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">    Note:</span>
-<a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">        You can&#39;t mix args and kwargs with the call_procedure method!</span>
-<a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-432" name="__codelineno-0-432"></a>    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-433" name="__codelineno-0-433"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the call_procedure method!&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-434" name="__codelineno-0-434"></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-<a id="__codelineno-0-435" name="__codelineno-0-435"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
-<a id="__codelineno-0-436" name="__codelineno-0-436"></a>        <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<a id="__codelineno-0-437" name="__codelineno-0-437"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-438" name="__codelineno-0-438"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))])</span>
-<a id="__codelineno-0-439" name="__codelineno-0-439"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
-<a id="__codelineno-0-440" name="__codelineno-0-440"></a>    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;call </span><span class="si">{</span><span class="n">proc_name</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">)&#39;</span>
-<a id="__codelineno-0-441" name="__codelineno-0-441"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-442" name="__codelineno-0-442"></a>    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-443" name="__codelineno-0-443"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-444" name="__codelineno-0-444"></a>        <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-<a id="__codelineno-0-445" name="__codelineno-0-445"></a>    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
-<a id="__codelineno-0-446" name="__codelineno-0-446"></a>        <span class="k">return</span> <span class="kc">None</span>
+<span class="normal"><a href="#__codelineno-0-446">446</a></span>
+<span class="normal"><a href="#__codelineno-0-447">447</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_procedure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-418" name="__codelineno-0-418"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL procedure &lt;https://www.postgresql.org/docs/current/sql-call.html&gt;`_.</span>
+<a id="__codelineno-0-419" name="__codelineno-0-419"></a>
+<a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">    Arguments:</span>
+<a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="sd">        *args: The list of parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-422" name="__codelineno-0-422"></a><span class="sd">        **kwargs: The list of named parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-423" name="__codelineno-0-423"></a>
+<a id="__codelineno-0-424" name="__codelineno-0-424"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-425" name="__codelineno-0-425"></a><span class="sd">        None | List[tuple]: None or a list of tuples.</span>
+<a id="__codelineno-0-426" name="__codelineno-0-426"></a>
+<a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-0-428" name="__codelineno-0-428"></a><span class="sd">        RuntimeError: If you mix ***args** and ****kwargs**.</span>
+<a id="__codelineno-0-429" name="__codelineno-0-429"></a>
+<a id="__codelineno-0-430" name="__codelineno-0-430"></a><span class="sd">    Note:</span>
+<a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">        You can&#39;t mix args and kwargs with the call_procedure method!</span>
+<a id="__codelineno-0-432" name="__codelineno-0-432"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-433" name="__codelineno-0-433"></a>    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-434" name="__codelineno-0-434"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the call_procedure method!&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-435" name="__codelineno-0-435"></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+<a id="__codelineno-0-436" name="__codelineno-0-436"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
+<a id="__codelineno-0-437" name="__codelineno-0-437"></a>        <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-0-438" name="__codelineno-0-438"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-439" name="__codelineno-0-439"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))])</span>
+<a id="__codelineno-0-440" name="__codelineno-0-440"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
+<a id="__codelineno-0-441" name="__codelineno-0-441"></a>    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;call </span><span class="si">{</span><span class="n">proc_name</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">)&#39;</span>
+<a id="__codelineno-0-442" name="__codelineno-0-442"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-443" name="__codelineno-0-443"></a>    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-444" name="__codelineno-0-444"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-445" name="__codelineno-0-445"></a>        <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<a id="__codelineno-0-446" name="__codelineno-0-446"></a>    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">ProgrammingError</span><span class="p">:</span>
+<a id="__codelineno-0-447" name="__codelineno-0-447"></a>        <span class="k">return</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3253,8 +3255,7 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-506">506</a></span>
-<span class="normal"><a href="#__codelineno-0-507">507</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-507">507</a></span>
 <span class="normal"><a href="#__codelineno-0-508">508</a></span>
 <span class="normal"><a href="#__codelineno-0-509">509</a></span>
 <span class="normal"><a href="#__codelineno-0-510">510</a></span>
@@ -3262,16 +3263,17 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
 <span class="normal"><a href="#__codelineno-0-512">512</a></span>
 <span class="normal"><a href="#__codelineno-0-513">513</a></span>
 <span class="normal"><a href="#__codelineno-0-514">514</a></span>
-<span class="normal"><a href="#__codelineno-0-515">515</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-506" name="__codelineno-0-506"></a><span class="k">def</span><span class="w"> </span><span class="nf">classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-507" name="__codelineno-0-507"></a>    <span class="s2">&quot;Returns the all the classes of the model&quot;</span>
-<a id="__codelineno-0-508" name="__codelineno-0-508"></a>    <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relations</span><span class="p">():</span>
-<a id="__codelineno-0-509" name="__codelineno-0-509"></a>        <span class="n">package_name</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-0-510" name="__codelineno-0-510"></a>        <span class="n">module_name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
-<a id="__codelineno-0-511" name="__codelineno-0-511"></a>        <span class="k">if</span> <span class="n">module_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;half_orm_meta&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-512" name="__codelineno-0-512"></a>            <span class="k">continue</span>
-<a id="__codelineno-0-513" name="__codelineno-0-513"></a>        <span class="n">class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">camel_case</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<a id="__codelineno-0-514" name="__codelineno-0-514"></a>        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">package_name</span><span class="p">)</span>
-<a id="__codelineno-0-515" name="__codelineno-0-515"></a>        <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">),</span> <span class="n">relation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="normal"><a href="#__codelineno-0-515">515</a></span>
+<span class="normal"><a href="#__codelineno-0-516">516</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-507" name="__codelineno-0-507"></a><span class="k">def</span><span class="w"> </span><span class="nf">classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a>    <span class="s2">&quot;Returns the all the classes of the model&quot;</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a>    <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relations</span><span class="p">():</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a>        <span class="n">package_name</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>        <span class="n">module_name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a>        <span class="k">if</span> <span class="n">module_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;half_orm_meta&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a>            <span class="k">continue</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>        <span class="n">class_name</span> <span class="o">=</span> <span class="n">pg_meta</span><span class="o">.</span><span class="n">camel_case</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a>        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">package_name</span><span class="p">)</span>
+<a id="__codelineno-0-516" name="__codelineno-0-516"></a>        <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">),</span> <span class="n">relation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3314,8 +3316,7 @@ halftest.desc()
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-486">486</a></span>
-<span class="normal"><a href="#__codelineno-0-487">487</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-487">487</a></span>
 <span class="normal"><a href="#__codelineno-0-488">488</a></span>
 <span class="normal"><a href="#__codelineno-0-489">489</a></span>
 <span class="normal"><a href="#__codelineno-0-490">490</a></span>
@@ -3329,22 +3330,23 @@ halftest.desc()
 <span class="normal"><a href="#__codelineno-0-498">498</a></span>
 <span class="normal"><a href="#__codelineno-0-499">499</a></span>
 <span class="normal"><a href="#__codelineno-0-500">500</a></span>
-<span class="normal"><a href="#__codelineno-0-501">501</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-486" name="__codelineno-0-486"></a><span class="k">def</span><span class="w"> </span><span class="nf">desc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the list of the relations of the model.</span>
-<a id="__codelineno-0-488" name="__codelineno-0-488"></a>
-<a id="__codelineno-0-489" name="__codelineno-0-489"></a><span class="sd">    Each element in the list contains:</span>
-<a id="__codelineno-0-490" name="__codelineno-0-490"></a>
-<a id="__codelineno-0-491" name="__codelineno-0-491"></a><span class="sd">    * the relation type: &#39;r&#39; relation, &#39;v&#39; view, &#39;m&#39; materialized view, &#39;p&#39; partition;</span>
-<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">    * a tuple identifying the relation: (db name&gt;, &lt;schema name&gt;, &lt;relation name&gt;);</span>
-<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">    * a list of tuples indentifying the inherited relations.</span>
-<a id="__codelineno-0-494" name="__codelineno-0-494"></a>
-<a id="__codelineno-0-495" name="__codelineno-0-495"></a><span class="sd">    Example:</span>
-<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">        &gt;&gt;&gt; from half_orm.model import Model</span>
-<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">        &gt;&gt;&gt; halftest = Model(&#39;halftest&#39;)</span>
-<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">        &gt;&gt;&gt; halftest.desc()</span>
-<a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="sd">        [(&#39;r&#39;, (&#39;halftest&#39;, &#39;actor&#39;, &#39;person&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;comment&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;event&#39;), [(&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;)]), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;), []), (&#39;v&#39;, (&#39;halftest&#39;, &#39;blog.view&#39;, &#39;post_comment&#39;), [])]</span>
-<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-501" name="__codelineno-0-501"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-501">501</a></span>
+<span class="normal"><a href="#__codelineno-0-502">502</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="k">def</span><span class="w"> </span><span class="nf">desc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-488" name="__codelineno-0-488"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the list of the relations of the model.</span>
+<a id="__codelineno-0-489" name="__codelineno-0-489"></a>
+<a id="__codelineno-0-490" name="__codelineno-0-490"></a><span class="sd">    Each element in the list contains:</span>
+<a id="__codelineno-0-491" name="__codelineno-0-491"></a>
+<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">    * the relation type: &#39;r&#39; relation, &#39;v&#39; view, &#39;m&#39; materialized view, &#39;p&#39; partition;</span>
+<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">    * a tuple identifying the relation: (db name&gt;, &lt;schema name&gt;, &lt;relation name&gt;);</span>
+<a id="__codelineno-0-494" name="__codelineno-0-494"></a><span class="sd">    * a list of tuples indentifying the inherited relations.</span>
+<a id="__codelineno-0-495" name="__codelineno-0-495"></a>
+<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">    Example:</span>
+<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">        &gt;&gt;&gt; from half_orm.model import Model</span>
+<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">        &gt;&gt;&gt; halftest = Model(&#39;halftest&#39;)</span>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="sd">        &gt;&gt;&gt; halftest.desc()</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="sd">        [(&#39;r&#39;, (&#39;halftest&#39;, &#39;actor&#39;, &#39;person&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;comment&#39;), []), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;event&#39;), [(&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;)]), (&#39;r&#39;, (&#39;halftest&#39;, &#39;blog&#39;, &#39;post&#39;), []), (&#39;v&#39;, (&#39;halftest&#39;, &#39;blog.view&#39;, &#39;post_comment&#39;), [])]</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3494,8 +3496,7 @@ halftest.desc()
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-388">388</a></span>
-<span class="normal"><a href="#__codelineno-0-389">389</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-389">389</a></span>
 <span class="normal"><a href="#__codelineno-0-390">390</a></span>
 <span class="normal"><a href="#__codelineno-0-391">391</a></span>
 <span class="normal"><a href="#__codelineno-0-392">392</a></span>
@@ -3520,33 +3521,34 @@ halftest.desc()
 <span class="normal"><a href="#__codelineno-0-411">411</a></span>
 <span class="normal"><a href="#__codelineno-0-412">412</a></span>
 <span class="normal"><a href="#__codelineno-0-413">413</a></span>
-<span class="normal"><a href="#__codelineno-0-414">414</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-388" name="__codelineno-0-388"></a><span class="k">def</span><span class="w"> </span><span class="nf">execute_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
-<a id="__codelineno-0-389" name="__codelineno-0-389"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL function &lt;https://www.postgresql.org/docs/current/sql-syntax-calling-funcs.html&gt;`_.</span>
-<a id="__codelineno-0-390" name="__codelineno-0-390"></a>
-<a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="sd">    Arguments:</span>
-<a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">        *args: The list of parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="sd">        **kwargs: The list of named parameters to be passed to the postgresql function.</span>
-<a id="__codelineno-0-394" name="__codelineno-0-394"></a>
-<a id="__codelineno-0-395" name="__codelineno-0-395"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">        List[tuple]: a list of tuples.</span>
-<a id="__codelineno-0-397" name="__codelineno-0-397"></a>
-<a id="__codelineno-0-398" name="__codelineno-0-398"></a><span class="sd">    Raises:</span>
-<a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">        RuntimeError: If you mix ***args** and ****kwargs**.</span>
-<a id="__codelineno-0-400" name="__codelineno-0-400"></a>
-<a id="__codelineno-0-401" name="__codelineno-0-401"></a><span class="sd">    Note:</span>
-<a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">        You can&#39;t mix args and kwargs with the execute_function method!</span>
-<a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-404" name="__codelineno-0-404"></a>    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-0-405" name="__codelineno-0-405"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the execute_function method!&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-406" name="__codelineno-0-406"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-407" name="__codelineno-0-407"></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-<a id="__codelineno-0-408" name="__codelineno-0-408"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
-<a id="__codelineno-0-409" name="__codelineno-0-409"></a>        <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<a id="__codelineno-0-410" name="__codelineno-0-410"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-411" name="__codelineno-0-411"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
-<a id="__codelineno-0-412" name="__codelineno-0-412"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
-<a id="__codelineno-0-413" name="__codelineno-0-413"></a>    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">fct_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-414" name="__codelineno-0-414"></a>    <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="normal"><a href="#__codelineno-0-414">414</a></span>
+<span class="normal"><a href="#__codelineno-0-415">415</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-389" name="__codelineno-0-389"></a><span class="k">def</span><span class="w"> </span><span class="nf">execute_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+<a id="__codelineno-0-390" name="__codelineno-0-390"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;`Executes a PostgreSQL function &lt;https://www.postgresql.org/docs/current/sql-syntax-calling-funcs.html&gt;`_.</span>
+<a id="__codelineno-0-391" name="__codelineno-0-391"></a>
+<a id="__codelineno-0-392" name="__codelineno-0-392"></a><span class="sd">    Arguments:</span>
+<a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="sd">        *args: The list of parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-394" name="__codelineno-0-394"></a><span class="sd">        **kwargs: The list of named parameters to be passed to the postgresql function.</span>
+<a id="__codelineno-0-395" name="__codelineno-0-395"></a>
+<a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-397" name="__codelineno-0-397"></a><span class="sd">        List[tuple]: a list of tuples.</span>
+<a id="__codelineno-0-398" name="__codelineno-0-398"></a>
+<a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="sd">        RuntimeError: If you mix ***args** and ****kwargs**.</span>
+<a id="__codelineno-0-401" name="__codelineno-0-401"></a>
+<a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">    Note:</span>
+<a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">        You can&#39;t mix args and kwargs with the execute_function method!</span>
+<a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-405" name="__codelineno-0-405"></a>    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-0-406" name="__codelineno-0-406"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix args and kwargs with the execute_function method!&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-407" name="__codelineno-0-407"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-408" name="__codelineno-0-408"></a>    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+<a id="__codelineno-0-409" name="__codelineno-0-409"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1"> =&gt; %s&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
+<a id="__codelineno-0-410" name="__codelineno-0-410"></a>        <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-0-411" name="__codelineno-0-411"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-412" name="__codelineno-0-412"></a>        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+<a id="__codelineno-0-413" name="__codelineno-0-413"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">args</span>
+<a id="__codelineno-0-414" name="__codelineno-0-414"></a>    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">fct_name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-415" name="__codelineno-0-415"></a>    <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3578,8 +3580,7 @@ Please read the psycopg documentation on
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-358">358</a></span>
-<span class="normal"><a href="#__codelineno-0-359">359</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-359">359</a></span>
 <span class="normal"><a href="#__codelineno-0-360">360</a></span>
 <span class="normal"><a href="#__codelineno-0-361">361</a></span>
 <span class="normal"><a href="#__codelineno-0-362">362</a></span>
@@ -3606,35 +3607,36 @@ Please read the psycopg documentation on
 <span class="normal"><a href="#__codelineno-0-383">383</a></span>
 <span class="normal"><a href="#__codelineno-0-384">384</a></span>
 <span class="normal"><a href="#__codelineno-0-385">385</a></span>
-<span class="normal"><a href="#__codelineno-0-386">386</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-358" name="__codelineno-0-358"></a><span class="k">def</span><span class="w"> </span><span class="nf">execute_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mogrify</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Executes a raw SQL query.</span>
-<a id="__codelineno-0-360" name="__codelineno-0-360"></a>
-<a id="__codelineno-0-361" name="__codelineno-0-361"></a><span class="sd">    Warning:</span>
-<a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">        This method calls the psycopg</span>
-<a id="__codelineno-0-363" name="__codelineno-0-363"></a><span class="sd">        `cursor.execute &lt;https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute&gt;`_</span>
-<a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">        function.</span>
-<a id="__codelineno-0-365" name="__codelineno-0-365"></a><span class="sd">        Please read the psycopg documentation on</span>
-<a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">        `passing parameters to SQL queries &lt;https://www.psycopg.org/docs/usage.html#query-parameters&gt;`_.</span>
-<a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-370" name="__codelineno-0-370"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-371" name="__codelineno-0-371"></a>        <span class="k">if</span> <span class="n">mogrify</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_trace</span><span class="p">:</span>
-<a id="__codelineno-0-372" name="__codelineno-0-372"></a>            <span class="n">client_cur</span> <span class="o">=</span> <span class="n">ClientCursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="p">)</span>
-<a id="__codelineno-0-373" name="__codelineno-0-373"></a>            <span class="nb">print</span><span class="p">(</span><span class="n">client_cur</span><span class="o">.</span><span class="n">mogrify</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
-<a id="__codelineno-0-374" name="__codelineno-0-374"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-375" name="__codelineno-0-375"></a>    <span class="k">except</span> <span class="p">(</span><span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">):</span>
-<a id="__codelineno-0-376" name="__codelineno-0-376"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
-<a id="__codelineno-0-377" name="__codelineno-0-377"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
-<a id="__codelineno-0-378" name="__codelineno-0-378"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-<a id="__codelineno-0-379" name="__codelineno-0-379"></a>    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<a id="__codelineno-0-380" name="__codelineno-0-380"></a>        <span class="n">vals</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-<a id="__codelineno-0-381" name="__codelineno-0-381"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_production_mode</span><span class="p">:</span>
-<a id="__codelineno-0-382" name="__codelineno-0-382"></a>            <span class="c1"># report values only in development mode</span>
-<a id="__codelineno-0-383" name="__codelineno-0-383"></a>            <span class="n">vals</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;values: </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-384" name="__codelineno-0-384"></a>        <span class="n">utils</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query execution failed:</span><span class="se">\n</span><span class="s2">query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-385" name="__codelineno-0-385"></a>        <span class="k">raise</span> <span class="n">exc</span>
-<a id="__codelineno-0-386" name="__codelineno-0-386"></a>    <span class="k">return</span> <span class="n">cursor</span>
+<span class="normal"><a href="#__codelineno-0-386">386</a></span>
+<span class="normal"><a href="#__codelineno-0-387">387</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="k">def</span><span class="w"> </span><span class="nf">execute_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mogrify</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<a id="__codelineno-0-360" name="__codelineno-0-360"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Executes a raw SQL query.</span>
+<a id="__codelineno-0-361" name="__codelineno-0-361"></a>
+<a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">    Warning:</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a><span class="sd">        This method calls the psycopg</span>
+<a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">        `cursor.execute &lt;https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute&gt;`_</span>
+<a id="__codelineno-0-365" name="__codelineno-0-365"></a><span class="sd">        function.</span>
+<a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">        Please read the psycopg documentation on</span>
+<a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="sd">        `passing parameters to SQL queries &lt;https://www.psycopg.org/docs/usage.html#query-parameters&gt;`_.</span>
+<a id="__codelineno-0-368" name="__codelineno-0-368"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwrap_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>    <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-371" name="__codelineno-0-371"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-372" name="__codelineno-0-372"></a>        <span class="k">if</span> <span class="n">mogrify</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_trace</span><span class="p">:</span>
+<a id="__codelineno-0-373" name="__codelineno-0-373"></a>            <span class="n">client_cur</span> <span class="o">=</span> <span class="n">ClientCursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="p">)</span>
+<a id="__codelineno-0-374" name="__codelineno-0-374"></a>            <span class="nb">print</span><span class="p">(</span><span class="n">client_cur</span><span class="o">.</span><span class="n">mogrify</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+<a id="__codelineno-0-375" name="__codelineno-0-375"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-376" name="__codelineno-0-376"></a>    <span class="k">except</span> <span class="p">(</span><span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">InterfaceError</span><span class="p">):</span>
+<a id="__codelineno-0-377" name="__codelineno-0-377"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+<a id="__codelineno-0-378" name="__codelineno-0-378"></a>        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">row_factory</span><span class="o">=</span><span class="n">dict_row</span><span class="p">)</span>
+<a id="__codelineno-0-379" name="__codelineno-0-379"></a>        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<a id="__codelineno-0-380" name="__codelineno-0-380"></a>    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-0-381" name="__codelineno-0-381"></a>        <span class="n">vals</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<a id="__codelineno-0-382" name="__codelineno-0-382"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_production_mode</span><span class="p">:</span>
+<a id="__codelineno-0-383" name="__codelineno-0-383"></a>            <span class="c1"># report values only in development mode</span>
+<a id="__codelineno-0-384" name="__codelineno-0-384"></a>            <span class="n">vals</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;values: </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-385" name="__codelineno-0-385"></a>        <span class="n">utils</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query execution failed:</span><span class="se">\n</span><span class="s2">query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-386" name="__codelineno-0-386"></a>        <span class="k">raise</span> <span class="n">exc</span>
+<a id="__codelineno-0-387" name="__codelineno-0-387"></a>    <span class="k">return</span> <span class="n">cursor</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3898,8 +3900,7 @@ True</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>half_orm/model.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-448">448</a></span>
-<span class="normal"><a href="#__codelineno-0-449">449</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-449">449</a></span>
 <span class="normal"><a href="#__codelineno-0-450">450</a></span>
 <span class="normal"><a href="#__codelineno-0-451">451</a></span>
 <span class="normal"><a href="#__codelineno-0-452">452</a></span>
@@ -3910,19 +3911,20 @@ True</p>
 <span class="normal"><a href="#__codelineno-0-457">457</a></span>
 <span class="normal"><a href="#__codelineno-0-458">458</a></span>
 <span class="normal"><a href="#__codelineno-0-459">459</a></span>
-<span class="normal"><a href="#__codelineno-0-460">460</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-448" name="__codelineno-0-448"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-449" name="__codelineno-0-449"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Checks if the qtn is a relation in the database</span>
-<a id="__codelineno-0-450" name="__codelineno-0-450"></a>
-<a id="__codelineno-0-451" name="__codelineno-0-451"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="sd">        bool: True if the relation exists in the database, False otherwise.</span>
-<a id="__codelineno-0-453" name="__codelineno-0-453"></a>
-<a id="__codelineno-0-454" name="__codelineno-0-454"></a><span class="sd">    Example:</span>
-<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">        &gt;&gt;&gt; model.has_relation(&#39;public.person&#39;)</span>
-<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">        False</span>
-<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">        &gt;&gt;&gt; model.has_relation(&#39;actor.person&#39;)</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">        True</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">,</span> <span class="o">*</span><span class="n">qtn</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="normal"><a href="#__codelineno-0-460">460</a></span>
+<span class="normal"><a href="#__codelineno-0-461">461</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-449" name="__codelineno-0-449"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qtn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-450" name="__codelineno-0-450"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Checks if the qtn is a relation in the database</span>
+<a id="__codelineno-0-451" name="__codelineno-0-451"></a>
+<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-453" name="__codelineno-0-453"></a><span class="sd">        bool: True if the relation exists in the database, False otherwise.</span>
+<a id="__codelineno-0-454" name="__codelineno-0-454"></a>
+<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">    Example:</span>
+<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">        &gt;&gt;&gt; model.has_relation(&#39;public.person&#39;)</span>
+<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">        False</span>
+<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">        &gt;&gt;&gt; model.has_relation(&#39;actor.person&#39;)</span>
+<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">        True</span>
+<a id="__codelineno-0-460" name="__codelineno-0-460"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-461" name="__codelineno-0-461"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pg_meta</span><span class="o">.</span><span class="n">has_relation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbname</span><span class="p">,</span> <span class="o">*</span><span class="n">qtn</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
