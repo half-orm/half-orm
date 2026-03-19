@@ -5,9 +5,9 @@ from unittest import TestCase
 from datetime import date
 
 from half_orm.field import Field
-from half_orm.null import NULL
+from half_orm.null import NULL, FieldDumper, NullDumper
 
-from ..init import halftest
+from ..init import halftest, model
 
 class Test(TestCase):
     def setUp(self):
@@ -129,3 +129,38 @@ class Test(TestCase):
 
     def test_py_type(self):
         self.assertEqual(str(self.comment.tags.py_type), 'typing.List[str]')
+
+    def test_field_dumper_psycopg3_compat(self):
+        """FieldDumper must not use self._tx (removed in psycopg 3.2+).
+
+        Regression test: before the fix, FieldDumper.dump() and .upgrade()
+        raised AttributeError: 'FieldDumper' object has no attribute '_tx'
+        because psycopg 3.2 changed Dumper.__init__ to store self.connection
+        instead of self._tx (a Transformer).
+        """
+        from psycopg.pq import Format
+
+        conn = model._connection
+
+        # --- dump() with a non-null Field value ---
+        src = self.pers(last_name='aa').ho_get()
+        field = src.last_name          # Field with value='aa'
+        dumper = FieldDumper(type(field), conn)
+        result = dumper.dump(field)    # raised AttributeError before fix
+        self.assertIsNotNone(result)
+
+        # --- upgrade() with a non-null Field must return self ---
+        upgraded = dumper.upgrade(field, Format.TEXT)
+        self.assertIs(upgraded, dumper)
+
+        # --- dump() with a NULL Field value ---
+        # Use a fresh relation instance: last_name is an attribute,
+        # so src.last_name is the same object every time on the same instance.
+        null_src = self.pers(last_name='ba').ho_get()
+        null_field = null_src.last_name
+        null_field.set(NULL)
+        self.assertIsNone(dumper.dump(null_field))
+
+        # --- upgrade() with a NULL Field must return a NullDumper ---
+        upgraded = dumper.upgrade(null_field, Format.TEXT)
+        self.assertIsInstance(upgraded, NullDumper)

@@ -34,11 +34,13 @@ class FieldDumper(Dumper):
     def upgrade(self, obj, format):
         v = obj.value
         if isinstance(v, Null) or v is None:
-            return NullDumper(type(obj), self._tx)
+            return NullDumper(type(obj), self.connection)
         return self
 
     def dump(self, obj):
         v = obj.value
         if isinstance(v, Null) or v is None:
-            return b"NULL"
-        return self._tx.get_dumper(v, self.format).dump(v)
+            return None
+        from psycopg.adapt import Transformer, PyFormat
+        tx = Transformer(self.connection)
+        return tx.get_dumper(v, PyFormat.AUTO).dump(v)
