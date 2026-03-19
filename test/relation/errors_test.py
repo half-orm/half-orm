@@ -81,3 +81,13 @@ class Test(TestCase):
         with self.assertRaises(RuntimeError) as exc:
             self.pers.ho_delete()
         self.assertEqual(str(exc.exception), DELETE_ALL_ERR_MSG)
+
+    def test_write_on_view_raises(self):
+        "ho_insert, ho_update, ho_delete must raise ReadOnlyRelationError on a view."
+        view = halftest.blog_view_cls()
+        with self.assertRaises(relation_errors.ReadOnlyRelationError):
+            view.ho_insert()
+        with self.assertRaises(relation_errors.ReadOnlyRelationError):
+            view.ho_update(update_all=True)
+        with self.assertRaises(relation_errors.ReadOnlyRelationError):
+            view.ho_delete(delete_all=True)

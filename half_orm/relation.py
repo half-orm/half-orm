@@ -319,8 +319,17 @@ class Relation:
             raise relation_errors.UnknownAttributeError(', '.join([elt for elt in args if elt in diff]))
 
     #@utils.trace
+    _HO_WRITABLE_KINDS = {'Table', 'Partioned table'}
+
+    def _ho_check_writable(self):
+        """Raise ReadOnlyRelationError if the relation does not support writes."""
+        if self._ho_kind not in self._HO_WRITABLE_KINDS:
+            from half_orm.relation_errors import ReadOnlyRelationError
+            raise ReadOnlyRelationError(self)
+
     def _ho_prep_insert(self, *args):
         """Prepare an INSERT query. Returns (query, vals)."""
+        self._ho_check_writable()
         _ = args and args != ('*',) and self._ho_check_colums(*args)
         self._ho_query_type = 'insert'
         fields_names, values, fk_fields, fk_query, fk_values = self.__what()
@@ -515,6 +524,7 @@ class Relation:
     #@utils.trace
     def _ho_prep_update(self, *args, update_all=False, **kwargs):
         """Prepare an UPDATE query. Returns (query, vals, update_args) or None if nothing to update."""
+        self._ho_check_writable()
         if not (self.ho_is_set() or update_all):
             raise RuntimeError(
                 f'Attempt to update all rows of {self.__class__.__name__}'
@@ -561,6 +571,7 @@ class Relation:
 
     def _ho_prep_delete(self, *args, delete_all=False):
         """Prepare a DELETE query. Returns (query, vals)."""
+        self._ho_check_writable()
         _ = args and args != ('*',) and self._ho_check_colums(*args)
         if not (self.ho_is_set() or delete_all):
             raise RuntimeError(

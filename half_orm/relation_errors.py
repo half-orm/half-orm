@@ -31,6 +31,13 @@ class NotASingletonError(Exception):
     def __init__(self, msg):
         Exception.__init__(self, f'Not a singleton. {msg}')
 
+class ReadOnlyRelationError(Exception):
+    """Raised when a write operation is attempted on a read-only relation (view, materialized view)."""
+    def __init__(self, relation):
+        super().__init__(
+            f"'{relation.__class__.__name__}' is a {relation._ho_kind} and does not support "
+            "write operations (ho_insert, ho_update, ho_delete).")
+
 class WrongFkeyError(Exception):
     "Raised when Fkeys contains a wrong name"
     def __init__(self, cls, value):
