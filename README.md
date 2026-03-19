@@ -8,6 +8,19 @@
 [![Coverage](https://coveralls.io/repos/github/half-orm/half-orm/badge.svg?branch=main)](https://coveralls.io/github/half-orm/half-orm?branch=main)
 [![Downloads](https://static.pepy.tech/badge/half_orm)](https://pepy.tech/project/half_orm)
 
+> ## ⚠️ BREAKING CHANGE in v0.18 — psycopg2 → psycopg 3
+>
+> halfORM 0.18 **drops psycopg2** and requires **[psycopg 3](https://www.psycopg.org/psycopg3/)**.
+>
+> ```bash
+> pip uninstall psycopg2-binary
+> pip install "psycopg[binary]"
+> ```
+>
+> If you use custom psycopg2 adapters in your own code, rewrite them with the
+> psycopg 3 `Dumper`/`Loader` API.
+> See the [full migration notes in CHANGELOG.md](CHANGELOG.md#0180-2026-03-19).
+
 **The PostgreSQL-native ORM that stays out of your way**
 
 > halfORM lets you keep your database schema in SQL where it belongs, while giving you the comfort of Python for data manipulation. No migrations, no schema conflicts, no ORM fighting — just PostgreSQL and Python working together.

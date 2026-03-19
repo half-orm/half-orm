@@ -1,5 +1,48 @@
 # 0.18.0 (2026-03-19)
 
+## ⚠️ BREAKING CHANGE — psycopg2 → psycopg 3
+
+halfORM 0.18 **drops psycopg2** and requires **psycopg 3** (`psycopg[binary]`).
+
+### Migration guide
+
+```bash
+pip uninstall psycopg2-binary
+pip install "psycopg[binary]"
+```
+
+If you register custom psycopg2 adapters in your own code (e.g.
+`psycopg2.extensions.register_adapter`), you must rewrite them using the
+psycopg 3 `Dumper` / `Loader` API. See the
+[psycopg 3 adaptation docs](https://www.psycopg.org/psycopg3/docs/basic/adapt.html).
+
+Notable psycopg 3 differences that may affect your code:
+
+| psycopg2 | psycopg 3 |
+|---|---|
+| `psycopg2.connect(…, cursor_factory=RealDictCursor)` | `psycopg.connect(…, row_factory=dict_row)` |
+| `conn.get_dsn_parameters()['dbname']` | `conn.info.get_parameters()['dbname']` |
+| `IN %s` with a tuple | `= ANY(%s)` with a list |
+| `cursor.mogrify()` on any cursor | `ClientCursor(conn).mogrify()` |
+| `psycopg2.extras.Json` for dicts | `conn.adapters.register_dumper(dict, JsonbDumper)` |
+
+### New in 0.18 — async support
+
+Six async executor methods are now available (`ho_ainsert`, `ho_aselect`,
+`ho_aupdate`, `ho_adelete`, `ho_acount`, `ho_ais_empty`). They require an
+explicit async connection:
+
+```python
+await model.aconnect()   # open async connection
+# … await rel.ho_aselect() …
+await model.adisconnect()
+```
+
+See the [Async Support section in the README](README.md#async-support) for a
+full example.
+
+---
+
 * feat(doc): exemples for async usage (8822ecb)
 * feat(async): add ho_a* async methods and factorize query preparation (fcaed69)
 * refactor: migrate from psycopg2 to psycopg 3 (78da47e)
