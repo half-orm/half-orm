@@ -151,9 +151,11 @@ class Model:
                     f"(using peer authentication with dbname '{self.__config_file}')")
             raise psycopg.OperationalError(f"{exc}\n{config_info}") from exc
         # Register custom type dumpers on this connection
-        from half_orm.null import Null, NullDumper
+        from half_orm.null import Null, NullDumper, FieldDumper
+        from half_orm.field import Field
         from psycopg.types.json import JsonbDumper
         self.__conn.adapters.register_dumper(Null, NullDumper)
+        self.__conn.adapters.register_dumper(Field, FieldDumper)
         self.__conn.adapters.register_dumper(dict, JsonbDumper)
         self.__pg_meta = pg_meta.PgMeta(self.__conn, reload)
         if reload:
@@ -253,9 +255,11 @@ class Model:
             return
         self.__aconn = await AsyncConnection.connect(
             **self._dbinfo, row_factory=dict_row, autocommit=True)
-        from half_orm.null import Null, NullDumper
+        from half_orm.null import Null, NullDumper, FieldDumper
+        from half_orm.field import Field
         from psycopg.types.json import JsonbDumper
         self.__aconn.adapters.register_dumper(Null, NullDumper)
+        self.__aconn.adapters.register_dumper(Field, FieldDumper)
         self.__aconn.adapters.register_dumper(dict, JsonbDumper)
 
     async def adisconnect(self):
@@ -338,7 +342,8 @@ class Model:
         from half_orm.null import Null
         if isinstance(values, (list, tuple)):
             def _unwrap(v):
-                if isinstance(v, Field):
+                # Recursively unwrap nested Field objects (e.g. Relation(col=other.col))
+                while isinstance(v, Field):
                     v = v.value
                 if isinstance(v, Null):
                     return None

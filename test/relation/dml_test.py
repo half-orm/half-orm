@@ -93,3 +93,11 @@ class Test(HoTestCase):
         pers = self.pers(last_name=None, first_name=None, birth_date=None)
         res = pers.ho_update(update_all=True)
         self.assertIsNone(res)
+
+    def test_field_object_as_value(self):
+        "passing a Field object directly as a value should use Field.value (not raise ProgrammingError)."
+        # Reproduce: Relation(col=other_relation.col) where col is a Field, not a scalar.
+        src = self.pers(last_name='ba').ho_get()   # Field.value is now 'ba'
+        # src.last_name is a Field; pass it directly as the filter value
+        result = self.pers(last_name=src.last_name).ho_count()
+        self.assertEqual(result, 1)

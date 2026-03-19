@@ -21,3 +21,24 @@ class NullDumper(Dumper):
         return b"NULL"
 
 NULL = Null()
+
+
+class FieldDumper(Dumper):
+    """Psycopg 3 Dumper for Field objects.
+
+    Delegates serialization to the appropriate dumper for ``Field.value``.
+    This handles the case where a Field object is passed directly as a query
+    parameter (e.g. ``Relation(col=other_relation.col)``).
+    """
+
+    def upgrade(self, obj, format):
+        v = obj.value
+        if isinstance(v, Null) or v is None:
+            return NullDumper(type(obj), self._tx)
+        return self
+
+    def dump(self, obj):
+        v = obj.value
+        if isinstance(v, Null) or v is None:
+            return b"NULL"
+        return self._tx.get_dumper(v, self.format).dump(v)
