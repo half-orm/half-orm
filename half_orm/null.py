@@ -43,4 +43,4 @@ class FieldDumper(Dumper):
             return None
         from psycopg.adapt import Transformer, PyFormat
         tx = Transformer(self.connection)
-        return tx.get_dumper(v, PyFormat.AUTO).dump(v)
+        return tx.get_dumper(v, PyFormat.TEXT).dump(v)

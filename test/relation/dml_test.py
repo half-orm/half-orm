@@ -101,3 +101,15 @@ class Test(HoTestCase):
         # src.last_name is a Field; pass it directly as the filter value
         result = self.pers(last_name=src.last_name).ho_count()
         self.assertEqual(result, 1)
+
+    def test_field_object_inside_list_as_value(self):
+        "Field objects inside a list (ANY() param) must be unwrapped before reaching psycopg."
+        # Reproduce: _unwrap_values() did not recurse into list elements,
+        # so [Field(uuid)] was sent to psycopg as-is, causing either
+        # FieldDumper to dump the UUID in binary format (invalid UTF-8 bytes)
+        # or a ProgrammingError.
+        src_a = self.pers(last_name='aa').ho_get()
+        src_b = self.pers(last_name='ba').ho_get()
+        # Pass Field objects inside a list → triggers the ANY() code path
+        result = self.pers(last_name=[src_a.last_name, src_b.last_name]).ho_count()
+        self.assertEqual(result, 2)

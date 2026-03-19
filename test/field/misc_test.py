@@ -164,3 +164,17 @@ class Test(TestCase):
         # --- upgrade() with a NULL Field must return a NullDumper ---
         upgraded = dumper.upgrade(null_field, Format.TEXT)
         self.assertIsInstance(upgraded, NullDumper)
+
+        # --- dump() with a UUID Field value must produce valid UTF-8 text ---
+        # Regression: PyFormat.AUTO caused psycopg to choose binary format for
+        # UUIDs (16 raw bytes, not valid UTF-8), crashing PostgreSQL with
+        # "invalid byte sequence for encoding UTF8".  PyFormat.TEXT is required.
+        import uuid
+        uuid_src = self.pers(last_name='aa').ho_get()
+        uuid_field = uuid_src.birth_date   # date field — any non-string type works
+        # Manually inject a UUID value to simulate the real-world case
+        uuid_field._Field__value = uuid.UUID('35c418a5-2faa-4970-94e3-d0eedbc2542b')
+        result = dumper.dump(uuid_field)
+        self.assertIsInstance(result, (bytes, memoryview))
+        # Must be valid UTF-8 (not raw binary bytes)
+        bytes(result).decode('utf-8')

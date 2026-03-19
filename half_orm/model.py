@@ -347,9 +347,10 @@ class Model:
                     v = v.value
                 if isinstance(v, Null):
                     return None
-                # psycopg 3 needs list (not tuple) for ANY() array params
-                if isinstance(v, tuple):
-                    return list(v)
+                # Recurse into lists/tuples (e.g. Field objects inside ANY() arrays)
+                if isinstance(v, (list, tuple)):
+                    unwrapped = [_unwrap(item) for item in v]
+                    return list(unwrapped)
                 return v
             unwrapped = [_unwrap(v) for v in values]
             return type(values)(unwrapped)
