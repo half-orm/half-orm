@@ -1,3 +1,7 @@
+# 0.18.2 (2026-03-19)
+
+* fix(null): update FieldDumper for psycopg 3.2+ API compatibility (7480557)
+
 # 0.18.1 (2026-03-19)
 
 * fix: handle nested Field objects as query parameters (a2d48f5)
