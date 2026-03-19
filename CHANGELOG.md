@@ -1,3 +1,7 @@
+# 0.18.3 (2026-03-19)
+
+* fix: unwrap Field objects inside lists and force TEXT format in FieldDumper (81dc8cc)
+
 # 0.18.2 (2026-03-19)
 
 * fix(null): update FieldDumper for psycopg 3.2+ API compatibility (7480557)
