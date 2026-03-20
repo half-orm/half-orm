@@ -1,3 +1,8 @@
+# 0.18.4 (2026-03-20)
+
+* feat: per-thread psycopg connections via threading.local() (be44f70)
+* feat: raise ReadOnlyRelationError on DML operations against views (c185a57)
+
 # 0.18.3 (2026-03-19)
 
 * fix: unwrap Field objects inside lists and force TEXT format in FieldDumper (81dc8cc)
