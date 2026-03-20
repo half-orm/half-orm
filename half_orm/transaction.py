@@ -4,6 +4,7 @@
 """This module provides the Transaction class."""
 
 import sys
+import threading
 
 import psycopg
 
@@ -11,19 +12,20 @@ class Transaction:
     """
     """
 
-    __transactions = {}
+    __tls = threading.local()
+
     def __call__(self, model):
+        if not hasattr(self.__class__.__tls, 'transactions'):
+            self.__class__.__tls.transactions = {}
+        transactions = self.__class__.__tls.transactions
         self.__id = id(model)
         self.__transaction = None
-        if self.__id not in self.__class__.__transactions:
-            self.__class__.__transactions[self.__id] = {}
-            self.__transaction = self.__class__.__transactions[self.__id]
-            self.__transaction['level'] = 0
-            self.__transaction['model'] = model
-            self.__transaction['sp_counter'] = 0
-            self.__transaction['sp_stack'] = []
-        else:
-            self.__transaction = self.__transactions[self.__id]
+        if self.__id not in transactions:
+            transactions[self.__id] = {
+                'level': 0, 'model': model,
+                'sp_counter': 0, 'sp_stack': [],
+            }
+        self.__transaction = transactions[self.__id]
 
     __init__ = __call__
 
