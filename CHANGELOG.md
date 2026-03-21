@@ -1,4 +1,24 @@
-# 0.17.7
+# 0.17.8 (2026-21-03)
+
+* feat: per-thread psycopg2 connections via threading.local() (HEAD -> 0.17) (d0fbdf0)
+* test(algebra): insert isolated test persons with POOL letters and TEST_DATE for deterministic set algebra (b3063bd)
+* feat(relation): add ho_where_display method (ast) (048c210)
+* feat(transaction): add savepoint support for nested transactions (6f450da)
+* feat(relation): auto-expose foreign keys as fk_/rfk_ attributes (7c8e114)
+* feat(relation): add unique not null constraint to check singleton. (2ee7850)
+* refactor(sql): replace string concatenation with AST-based query construction (da21e7c)
+* feat(relation): add ho_assert_is_singleton method. (e196765)
+* feat(relation): remove 1=1 from generated SQL when there is no constraint on the Relation object (a3a18a5)
+* feat(relation)!: rewrite @singleton to check PK intention without DB query (aafb891)
+* feat(relation): auto-deduplicate ho_select results when JOINs produce duplicate PKs (71ad935)
+* refactor(relation): deprecate mutating select methods in favor of ho_select parameters (4da51cc)
+* feat(test): add docstring to algebra tests. (0133285)
+* feat(relation): explicitly set Relation as an unhashable type. (8cea766)
+* fix(relation): remove duplicate JOIN conditions in generated SQL. (35b530f)
+* update(docs): remove the references to ho_get (6006b57)
+* feat(utils): add replacement message to _ho_deprecated (885accc)
+
+# 0.17.7 (2026-10-03)
 
 ## BREAKING CHANGE
 
