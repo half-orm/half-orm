@@ -23,6 +23,7 @@ Note:
 import importlib
 import os
 import sys
+import threading
 import typing
 from configparser import ConfigParser
 from os import environ
@@ -77,7 +78,7 @@ class Model:
         self._production_mode = True
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
-        self.__conn = None
+        self.__thread_local = threading.local()
         self.__connect()
 
     def __load_config(self, config_file):
@@ -139,7 +140,7 @@ class Model:
         if config_file:
             self.__load_config(config_file)
         try:
-            self.__conn = psycopg2.connect(**self._dbinfo, cursor_factory=RealDictCursor)
+            conn = psycopg2.connect(**self._dbinfo, cursor_factory=RealDictCursor)
         except psycopg2.OperationalError as exc:
             if self.__config_file_found:
                 config_info = f"Configuration file: '{self.__config_file_path}'"
@@ -148,8 +149,9 @@ class Model:
                     f"No configuration file found: '{self.__config_file_path}' "
                     f"(using peer authentication with dbname '{self.__config_file}')")
             raise psycopg2.OperationalError(f"{exc}\n{config_info}") from exc
-        self.__conn.autocommit = True
-        self.__pg_meta = pg_meta.PgMeta(self.__conn, reload)
+        conn.autocommit = True
+        self.__pg_meta = pg_meta.PgMeta(conn, reload)
+        self.__thread_local.conn = conn
         if reload:
             self._classes_[self._dbname] = {}
         if self.__dbname not in self.__class__.__deja_vu:
@@ -232,10 +234,11 @@ class Model:
             return False
 
     def disconnect(self):
-        """Closes the connection to the database.
-        """
-        if self.__conn is not None and not self.__conn.closed:
-            self.__conn.close()
+        """Closes the current thread's connection to the database."""
+        conn = getattr(self.__thread_local, 'conn', None)
+        if conn is not None and not conn.closed:
+            conn.close()
+        self.__thread_local.conn = None
 
     def _reload(self, config_file=None):
         """Reload metadata
@@ -254,9 +257,22 @@ class Model:
     @property
     def _connection(self):
         """\
-        Property. Returns the psycopg2 connection attached to the Model object.
+        Property. Returns the psycopg2 connection for the current thread.
+
+        - First access from a new thread: opens a connection lazily.
+        - Connection dropped unexpectedly (conn.closed): reconnects automatically.
+        - After an explicit disconnect(): raises InterfaceError until reconnect()
+          is called.
         """
-        return self.__conn
+        if not hasattr(self.__thread_local, 'conn'):
+            self.__connect()
+        elif getattr(self.__thread_local, 'conn', None) is not None and self.__thread_local.conn.closed:
+            self.__connect()
+        conn = self.__thread_local.conn
+        if conn is None:
+            raise psycopg2.InterfaceError(
+                "Connection closed. Call model.reconnect() to re-establish.")
+        return conn
 
     def _fields_metadata(self, sfqrn):
         "Proxy to PgMeta.fields_meta"
@@ -288,14 +304,14 @@ class Model:
             Please read the psycopg2 documentation on
             `passing parameters to SQL queries <https://www.psycopg.org/docs/usage.html#query-parameters>`_.
         """
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        cursor = self._connection.cursor(cursor_factory=RealDictCursor)
         try:
             if mogrify or self.sql_trace:
                 print(cursor.mogrify(query, values).decode('utf-8'))
             cursor.execute(query, values)
         except (psycopg2.OperationalError, psycopg2.InterfaceError):
             self.ping()
-            cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+            cursor = self._connection.cursor(cursor_factory=RealDictCursor)
             cursor.execute(query, values)
         except psycopg2.Error as exc:
             vals = ''
@@ -324,7 +340,7 @@ class Model:
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the execute_function method!")
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        cursor = self._connection.cursor(cursor_factory=RealDictCursor)
         if kwargs:
             values = kwargs
         else:
@@ -357,7 +373,7 @@ class Model:
             params = ', '.join(['%s' for _ in range(len(args))])
             values = args
         query = f'call {proc_name}({params})'
-        cursor = self.__conn.cursor(cursor_factory=RealDictCursor)
+        cursor = self._connection.cursor(cursor_factory=RealDictCursor)
         cursor.execute(query, values)
         try:
             return cursor.fetchall()
