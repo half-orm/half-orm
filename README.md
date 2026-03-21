@@ -20,6 +20,8 @@
 > If you use custom psycopg2 adapters in your own code, rewrite them with the
 > psycopg 3 `Dumper`/`Loader` API.
 > See the [full migration notes in CHANGELOG.md](CHANGELOG.md#0180-2026-03-19).
+>
+> **psycopg2 users:** the **0.17.x** branch is maintained for psycopg2 and receives bug fixes.
 
 **The PostgreSQL-native ORM that stays out of your way**
 
