@@ -5,9 +5,9 @@ name: Test on different versions of Python
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "0.17" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "0.17" ]
 
 permissions:
   contents: read
