@@ -6,6 +6,39 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  # Manual trigger — three ways to invoke:
+  #
+  # 1. GitHub UI: Actions → Documentation → Run workflow
+  #
+  # 2. GitHub CLI:
+  #      gh workflow run docs.yml                                         # rebuild dev (main)
+  #      gh workflow run docs.yml -f version=0.18                        # rebuild 0.18 (main)
+  #      gh workflow run docs.yml --ref 0.17 -f version=0.17             # rebuild 0.17 (maintenance branch)
+  #      gh workflow run docs.yml -f cleanup=true                        # cleanup only (from main)
+  #      gh workflow run docs.yml --ref 0.17 -f version=0.17 -f cleanup=true
+  #
+  # 3. REST API:
+  #      # From main:
+  #      curl -X POST \
+  #        -H "Authorization: Bearer $GITHUB_TOKEN" \
+  #        https://api.github.com/repos/half-orm/half-orm/actions/workflows/docs.yml/dispatches \
+  #        -d '{"ref":"main","inputs":{"version":"0.18","cleanup":"true"}}'
+  #      # From maintenance branch:
+  #      curl -X POST \
+  #        -H "Authorization: Bearer $GITHUB_TOKEN" \
+  #        https://api.github.com/repos/half-orm/half-orm/actions/workflows/docs.yml/dispatches \
+  #        -d '{"ref":"0.17","inputs":{"version":"0.17","cleanup":"true"}}'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rebuild (e.g. "0.18", "dev"). Leave empty to skip rebuild.'
+        required: false
+        default: 'dev'
+      cleanup:
+        description: 'Delete versions not in the kept list (0.17, 0.18, dev)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -43,7 +76,12 @@ jobs:
       - name: Get version info
         id: version
         run: |
-          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            V="${{ github.event.inputs.version }}"
+            echo "version=${V}" >> $GITHUB_OUTPUT
+            echo "alias=" >> $GITHUB_OUTPUT
+            echo "title=${V} (rebuild)" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
             VERSION_NUMBER="${VERSION#v}"
             MINOR="${VERSION_NUMBER%.*}"
@@ -70,8 +108,30 @@ jobs:
             echo "title=" >> $GITHUB_OUTPUT
           fi
           
+      - name: Cleanup stale versions
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.cleanup == 'true'
+        run: |
+          # Exhaustive list of minor versions to keep in the doc menu.
+          # Update this list when a new minor is released or a branch is EOL.
+          KEPT_VERSIONS="0.17 0.18 dev"
+
+          EXISTING=$(mike list | grep -oP '^\S+' || true)
+          for v in $EXISTING; do
+            # Strip alias annotations like [latest] or [default] — already stripped by grep
+            keep=false
+            for k in $KEPT_VERSIONS latest; do
+              [[ "$v" == "$k" ]] && keep=true && break
+            done
+            if [[ "$keep" == "false" ]]; then
+              echo "Deleting stale version: $v"
+              mike delete --push "$v"
+            fi
+          done
+          echo "=== Versions after cleanup ==="
+          mike list
+
       - name: Build and deploy documentation
-        if: steps.version.outputs.version != '' && github.event_name == 'push'
+        if: steps.version.outputs.version != '' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
           # Deploy the version
           if [[ -n "${{ steps.version.outputs.alias }}" ]]; then
