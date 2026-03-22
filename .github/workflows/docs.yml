@@ -11,10 +11,10 @@ on:
   # 1. GitHub UI: Actions → Documentation → Run workflow
   #
   # 2. GitHub CLI:
-  #      gh workflow run docs.yml                                         # rebuild dev (main)
-  #      gh workflow run docs.yml -f version=0.18                        # rebuild 0.18 (main)
-  #      gh workflow run docs.yml --ref 0.17 -f version=0.17             # rebuild 0.17 (maintenance branch)
-  #      gh workflow run docs.yml -f cleanup=true                        # cleanup only (from main)
+  #      gh workflow run docs.yml                                                        # rebuild dev (main)
+  #      gh workflow run docs.yml -f version=0.18 -f alias=latest                       # rebuild 0.18 as latest
+  #      gh workflow run docs.yml --ref 0.17 -f version=0.17                            # rebuild 0.17 (maintenance branch)
+  #      gh workflow run docs.yml -f cleanup=true -f version=''                         # cleanup only
   #      gh workflow run docs.yml --ref 0.17 -f version=0.17 -f cleanup=true
   #
   # 3. REST API:
@@ -34,6 +34,10 @@ on:
         description: 'Version to rebuild (e.g. "0.18", "dev"). Leave empty to skip rebuild.'
         required: false
         default: 'dev'
+      alias:
+        description: 'Alias to set on the rebuilt version (e.g. "latest"). Leave empty for none.'
+        required: false
+        default: ''
       cleanup:
         description: 'Delete versions not in the kept list (0.17, 0.18, dev)'
         type: boolean
@@ -78,8 +82,9 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             V="${{ github.event.inputs.version }}"
+            A="${{ github.event.inputs.alias }}"
             echo "version=${V}" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
+            echo "alias=${A}" >> $GITHUB_OUTPUT
             echo "title=${V} (rebuild)" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
