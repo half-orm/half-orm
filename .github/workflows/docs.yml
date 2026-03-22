@@ -115,12 +115,9 @@ jobs:
           # Update this list when a new minor is released or a branch is EOL.
           KEPT_VERSIONS="0.17 0.18 dev"
 
-          EXISTING=$(mike list --json | python3 -c "
-import sys, json
-for entry in json.load(sys.stdin):
-    print(entry['version'])
-" || true)
+          EXISTING=$(mike list | grep -oP '^\S+' || true)
           for v in $EXISTING; do
+            # Strip alias annotations like [latest] or [default] — already stripped by grep
             keep=false
             for k in $KEPT_VERSIONS latest; do
               [[ "$v" == "$k" ]] && keep=true && break
