@@ -46,7 +46,8 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
             VERSION_NUMBER="${VERSION#v}"
-            echo "version=${VERSION_NUMBER}" >> $GITHUB_OUTPUT
+            MINOR="${VERSION_NUMBER%.*}"
+            echo "version=${MINOR}" >> $GITHUB_OUTPUT
             echo "alias=latest" >> $GITHUB_OUTPUT
             echo "title=${VERSION_NUMBER} (latest)" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/heads/main ]]; then

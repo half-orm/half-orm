@@ -1,9 +1,5 @@
 # halfORM Documentation
 
-!!! info "Documentation Version"
-    This documentation covers halfORM **0.16.x** (latest development release).
-    For older versions, see the [GitHub releases](https://github.com/half-orm/half-orm/releases).
-
 [![PyPI version](https://img.shields.io/pypi/v/half_orm)](https://pypi.org/project/half-orm/)
 [![Python versions](https://img.shields.io/badge/Python-%20≥%203.7-blue)](https://www.python.org)
 [![PostgreSQL versions](https://img.shields.io/badge/PostgreSQL-%20≥%209.6-blue)](https://www.postgresql.org)
