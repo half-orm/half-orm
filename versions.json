@@ -3,10 +3,5 @@
     "version": "dev",
     "title": "Development",
     "aliases": []
-  },
-  {
-    "version": "0.16.x-dev",
-    "title": "0.16.x (development)",
-    "aliases": []
   }
 ]
