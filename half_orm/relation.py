@@ -1020,6 +1020,14 @@ Fkeys = {"""
         self._ho_mogrify = True
         return self
 
+    def _ho_prep_count(self, *args, distinct=False):
+        """Prepare a COUNT query. Returns (query, values)."""
+        self._ho_query = "select"
+        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        query, values = self._ho_prep_select(*args, distinct=distinct)
+        query = f'select\n  count(*) from ({query}) as ho_count'
+        return query, values
+
     # @utils.trace
     def ho_count(self, *args, distinct:bool=False):
         """Returns the number of tuples matching the intention in the relation.
