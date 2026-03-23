@@ -483,7 +483,6 @@ class Relation:
             1772
         """
         self._ho_check_colums(*args)
-        self.ho_limit(2)
         _count = self.ho_count()
         if _count != 1:
             raise relation_errors.ExpectedOneError(self, _count)
@@ -1043,7 +1042,6 @@ Fkeys = {"""
     def ho_is_empty(self):
         """Returns True if the relation is empty, False otherwise.
         """
-        self.ho_limit(1)
         return self.ho_count() == 0
 
     #@utils.trace
