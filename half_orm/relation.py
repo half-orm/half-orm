@@ -502,7 +502,6 @@ class Relation:
             1772
         """
         self._ho_check_colums(*args)
-        self.ho_limit(2)
         _count = self.ho_count()
         if _count != 1:
             raise relation_errors.ExpectedOneError(self, _count)
@@ -1054,12 +1053,8 @@ Fkeys = {"""
     def _ho_prep_count(self, *args, distinct=False):
         """Prepare a COUNT query. Returns (query, values)."""
         self._ho_query = "select"
-        order_by = self._ho_select_params.get('order_by')
-        limit = self._ho_select_params.get('limit')
-        offset = self._ho_select_params.get('offset')
         distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
-        query, values = self._ho_prep_select(
-            *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        query, values = self._ho_prep_select(*args, distinct=distinct)
         query = f'select\n  count(*) from ({query}) as ho_count'
         return query, values
 
@@ -1077,7 +1072,6 @@ Fkeys = {"""
     def ho_is_empty(self):
         """Returns True if the relation is empty, False otherwise.
         """
-        self.ho_limit(1)
         return self.ho_count() == 0
 
     # --- Async variants of executor methods ---
@@ -1137,7 +1131,6 @@ Fkeys = {"""
 
     async def ho_ais_empty(self) -> bool:
         """Async variant of ho_is_empty."""
-        self.ho_limit(1)
         return (await self.ho_acount()) == 0
 
     #@utils.trace
