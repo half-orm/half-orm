@@ -10,10 +10,15 @@
     "aliases": []
   },
   {
-    "version": "0.17",
-    "title": "0.17 (rebuild)",
+    "version": "0.17.8",
+    "title": "0.17.8 (latest)",
     "aliases": [
       "latest"
     ]
+  },
+  {
+    "version": "0.17",
+    "title": "0.17 (rebuild)",
+    "aliases": []
   }
 ]
