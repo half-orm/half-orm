@@ -836,7 +836,8 @@ Fkeys = {"""
                 for key, value in self.Fkeys.items():
                     fkey_to_attr[value] = key
             for fkey in self._ho_fkeys:
-                ret.append(f"    '{fkey_to_attr[fkey]}': '{fkey}',")
+                if fkey in fkey_to_attr: # skip joins
+                    ret.append(f"    '{fkey_to_attr[fkey]}': '{fkey}',")
             ret.append('}')
         return '\n'.join(ret)
 

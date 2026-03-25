@@ -33,15 +33,13 @@ FOREIGN KEYS:
 - _reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date: ("first_name", "last_name", "birth_date")
  ↳ "halftest":"blog"."post"(author_first_name, author_last_name, author_birth_date)
 
-Foreign keys are already accessible as fk_<name> (direct) or rfk_<name> (reverse) attributes.
-To rename them, add a Fkeys class attribute: the aliased fk_/rfk_ attribute is then replaced
-by the alias. Aliases must be unique and different from any column name. Empty string keys
-are ignored.
+Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
 
 Fkeys = {
-    '': '_reverse_fkey_halftest_blog_comment_author_id',
-    '': '_reverse_fkey_halftest_blog_event_author_first_name_author_last_name_author_birth_date',
-    '': '_reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date',
+    'rfk_halftest_blog_comment_author_id': '_reverse_fkey_halftest_blog_comment_author_id',
+    'rfk_halftest_blog_event_author_first_name_author_last_name_author_birth_date': '_reverse_fkey_halftest_blog_event_author_first_name_author_last_name_author_birth_date',
+    'rfk_halftest_blog_post_author_first_name_author_last_name_author_birth_date': '_reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date',
 }"""
 
 FROZEN_ERROR = """ERROR! The class <class 'halftest.actor.person.Person'> is forzen.

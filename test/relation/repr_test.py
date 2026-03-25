@@ -36,6 +36,9 @@ FOREIGN KEYS:
 - author: ("author_first_name", "author_last_name", "author_birth_date")
  ↳ "halftest":"actor"."person"(first_name, last_name, birth_date)
 
+Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
+
 Fkeys = {
     'comment_rfk': '_reverse_fkey_halftest_blog_comment_post_id',
     'author_fk': 'author',
@@ -63,6 +66,9 @@ FOREIGN KEYS:
  ↳ "halftest":"blog"."event"(author_first_name, author_last_name, author_birth_date)
 - _reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date: ("first_name", "last_name", "birth_date")
  ↳ "halftest":"blog"."post"(author_first_name, author_last_name, author_birth_date)
+
+Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
 
 Fkeys = {
     'comment_rfk': '_reverse_fkey_halftest_blog_comment_author_id',
@@ -117,11 +123,17 @@ FOREIGN KEYS:
      - _reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date: ("first_name", "last_name", "birth_date")
       ↳ "halftest":"blog"."post"(author_first_name, author_last_name, author_birth_date)
      
+     Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+     Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
+     
      Fkeys = {
          'comment_rfk': '_reverse_fkey_halftest_blog_comment_author_id',
          'event_rfk': '_reverse_fkey_halftest_blog_event_author_first_name_author_last_name_author_birth_date',
          'post_rfk': '_reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date',
      }
+
+Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
 
 Fkeys = {
     'comment_rfk': '_reverse_fkey_halftest_blog_comment_post_id',
