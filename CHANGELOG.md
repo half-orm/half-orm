@@ -1,3 +1,17 @@
+# 0.18.5 (2026-03-25)
+
+* feat(makefile): add tests before build and publish. Allow publish only on releases. (8383972)
+* fix(relation): remove false fkey from repr (join) + tests. (a8dd99e)
+* feat(relation): repr now includes fkeys attributes names in Fkeys (80e41b2)
+* refactor(relation): remove ho_limit internal calls from count methods (docs-workflow) (ec4ef46)
+* fix(ci/docs): add alias input to workflow_dispatch for setting latest (5838613)
+* fix(ci/docs): replace multiline python with one-liner in cleanup step (ebd5622)
+* Revert "fix(ci/docs): parse mike list --json to extract version identifiers" (1a6e79b)
+* fix(ci/docs): parse mike list --json to extract version identifiers (7078a78)
+* ci(docs): add workflow_dispatch trigger with version rebuild and cleanup (416fc7b)
+* docs: fix version reference and consolidate mike versions by minor (4134bc8)
+* docs(readme): mention 0.17.x branch maintained for psycopg2 users (6188085)
+
 # 0.18.4 (2026-03-20)
 
 * feat: per-thread psycopg connections via threading.local() (be44f70)
