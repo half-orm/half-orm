@@ -2,154 +2,154 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://half-orm.github.io/0.18/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/fundamentals/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/quick-start/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/errors/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/field/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/fkey/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/model/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/relation/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/api/transaction/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/architecture/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/architecture/factory/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/architecture/metadata/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/architecture/overview/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/architecture/query-processing/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/blog/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/ecommerce/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/gitlab/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/web-apps/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/examples/instant-rest-api/instant-rest-api/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/extensions/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/configuration/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/error-handling/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/migration/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/performance/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/testing/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/development/development-workflow/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/development/documentation-workflow/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/guides/development/extension-development/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/first-steps/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/foreign-keys/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/installation/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/models-relations/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/queries/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
     <url>
          <loc>https://half-orm.github.io/0.18/tutorial/transactions/</loc>
-         <lastmod>2026-03-22</lastmod>
+         <lastmod>2026-03-25</lastmod>
     </url>
 </urlset>
