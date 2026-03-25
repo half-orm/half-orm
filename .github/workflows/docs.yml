@@ -134,6 +134,10 @@ jobs:
           echo "=== Versions after cleanup ==="
           mike list
 
+      - name: Fetch latest gh-pages
+        run: |
+          git fetch origin gh-pages:gh-pages
+
       - name: Build and deploy documentation
         if: steps.version.outputs.version != '' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
