@@ -789,10 +789,8 @@ class Relation:
     def __repr__(self):
 
         fkeys_usage = """\
-Foreign keys are already accessible as fk_<name> (direct) or rfk_<name> (reverse) attributes.
-To rename them, add a Fkeys class attribute: the aliased fk_/rfk_ attribute is then replaced
-by the alias. Aliases must be unique and different from any column name. Empty string keys
-are ignored.
+Foreign keys (direct and reverse) are accessible with the keys of the Fkeys dictionary below.
+Copy/paste the Fkeys dictionary and replace the key with the alias you want to use instead.
 
 Fkeys = {"""
 
@@ -826,14 +824,19 @@ Fkeys = {"""
             for fkey in self._ho_fkeys.values():
                 ret.append(repr(fkey))
             ret.append('')
-            if not hasattr(self, 'Fkeys'):
-                ret.append(fkeys_usage)
-                for fkey in self._ho_fkeys:
-                    ret.append(f"    '': '{fkey}',")
-            else:
-                ret.append("Fkeys = {")
+            fkey_to_attr = {}
+            for attr_name in self._ho_fkeys_attr:
+                fkey_obj = getattr(self, attr_name, None)
+                for fkeyname, fkey in self._ho_fkeys.items():
+                    if fkey is fkey_obj:
+                        fkey_to_attr[fkeyname] = attr_name
+                        break
+            ret.append(fkeys_usage)
+            if hasattr(self, 'Fkeys'):
                 for key, value in self.Fkeys.items():
-                    ret.append(f"    '{key}': '{value}',")
+                    fkey_to_attr[value] = key
+            for fkey in self._ho_fkeys:
+                ret.append(f"    '{fkey_to_attr[fkey]}': '{fkey}',")
             ret.append('}')
         return '\n'.join(ret)
 
