@@ -364,7 +364,7 @@ class Relation:
         """
         query, vals = self._ho_prep_insert(*args)
         with self.__execute(query, vals) as cursor:
-            res = [dict(elt) for elt in cursor.fetchall()] or [{}]
+            res = cursor.fetchall() or [{}]
             return res[0]
 
     def _ho_result_is_relation(self, *args) -> bool:
@@ -429,7 +429,7 @@ class Relation:
         try:
             with self.__execute(query, values) as cursor:
                 for elt in cursor:
-                    row = dict(elt)
+                    row = elt
                     if can_dedup:
                         pk_key = tuple(row[pk] for pk in pk_names)
                         if pk_key in seen:
@@ -564,7 +564,7 @@ class Relation:
             for field_name, value in update_args.items():
                 self._ho_fields[field_name].set(value)
             if args:
-                return [dict(elt) for elt in cursor.fetchall()]
+                return cursor.fetchall()
         return None
 
     def _ho_prep_delete(self, *args, delete_all=False):
@@ -596,7 +596,7 @@ class Relation:
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         with self.__execute(query, vals) as cursor:
             if args:
-                return [dict(elt) for elt in cursor.fetchall()]
+                return cursor.fetchall()
         return None
 
     def ho_unfreeze(self):
@@ -1076,7 +1076,7 @@ Fkeys = {"""
         """Async variant of ho_insert."""
         query, vals = self._ho_prep_insert(*args)
         cursor = await self.__aexecute(query, vals)
-        res = [dict(elt) for elt in await cursor.fetchall()] or [{}]
+        res = await cursor.fetchall() or [{}]
         return res[0]
 
     async def ho_aselect(self, *args,
@@ -1088,7 +1088,7 @@ Fkeys = {"""
         rows = []
         seen = set()
         for elt in await cursor.fetchall():
-            row = dict(elt)
+            row = elt
             if can_dedup:
                 pk_key = tuple(row[pk] for pk in pk_names)
                 if pk_key in seen:
@@ -1107,7 +1107,7 @@ Fkeys = {"""
         for field_name, value in update_args.items():
             self._ho_fields[field_name].set(value)
         if args:
-            return [dict(elt) for elt in await cursor.fetchall()]
+            return await cursor.fetchall()
         return None
 
     async def ho_adelete(self, *args, delete_all=False):
@@ -1115,7 +1115,7 @@ Fkeys = {"""
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         cursor = await self.__aexecute(query, vals)
         if args:
-            return [dict(elt) for elt in await cursor.fetchall()]
+            return await cursor.fetchall()
         return None
 
     async def ho_acount(self, *args, distinct: bool=False) -> int:
@@ -1242,7 +1242,7 @@ Fkeys = {"""
         distinct = 'distinct' if self._ho_select_params.get('distinct') else ''
         query, values = self._ho_prep_select(distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         for elt in self.__execute(query, values):
-            yield dict(elt)
+            yield elt
 
     def __next__(self):
         return next(self.ho_select())
