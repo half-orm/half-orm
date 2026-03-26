@@ -93,14 +93,11 @@ class Test(TestCase):
             "Fkey.set excepts an argument of type Relation")
 
     def test_can_t_reference_same_relation_error(self):
-        "it should raise an exception if we set with the same Relation object"
+        "it should raise a cycle error when set() would close a loop"
         fkey_rel = self.pers().post_rfk
-        fkey_rel.set(fkey_rel())
         with self.assertRaises(RuntimeError) as exc:
-            fkey_rel()
-        self.assertEqual(
-            exc.exception.args[0],
-            "Can't set Fkey on the same object")
+            fkey_rel.set(fkey_rel())
+        self.assertIn("FKey cycle detected", exc.exception.args[0])
 
     def test_remote_property(self):
         self.assertEqual(self.pers().post_rfk.remote, {'fqtn': ('blog', 'post'), 'reverse': True})
