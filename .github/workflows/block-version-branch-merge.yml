@@ -1,0 +1,20 @@
+# Block specific version branches from merging to main
+
+name: Block Version Branch Merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  prevent_merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for version branch merges
+        if: startsWith(github.ref, 'refs/heads/') && !contains(github.ref, 'main')
+        run: |
+          if [[ ! "$GITHUB_REF" =~ ^[0-9]+\.[0-9]+ ]]; then
+            echo "Blocking merging from version branch: $GITHUB_REF"
+            exit 1
+          fi
