@@ -6,6 +6,22 @@
 from half_orm.pg_meta import normalize_fqrn, normalize_qrn
 from half_orm import utils
 
+def _would_create_cycle(from_rel, to_rel):
+    """Return True if adding from_rel → to_rel would create a cycle in _ho_join_to."""
+    target_id = id(from_rel)
+    visited = set()
+    stack = [to_rel]
+    while stack:
+        rel = stack.pop()
+        if id(rel) == target_id:
+            return True
+        if id(rel) in visited:
+            continue
+        visited.add(id(rel))
+        stack.extend(rel._ho_join_to.values())
+    return False
+
+
 class FKey:
     """Foreign key class
 
@@ -63,8 +79,11 @@ class FKey:
 
         if not issubclass(__to.__class__, Relation):
             raise RuntimeError("Fkey.set excepts an argument of type Relation")
-        self.__to_relation = __to
         from_ = self.__relation
+        if _would_create_cycle(from_, __to):
+            raise RuntimeError(
+                f"FKey cycle detected: {from_._qrn} → {__to._qrn} closes a loop in the join chain.")
+        self.__to_relation = __to
         self.__fk_from = from_
         self.__fk_to = __to
         self.__is_set = __to.ho_is_set()

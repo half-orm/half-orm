@@ -283,7 +283,6 @@ class Relation:
             err += f'''\tUse the "{utils.Color.bold(self.__class__.__name__ + '.Fkeys')}"''' + \
                 ''' class attribute instead.\n'''
             raise DeprecationWarning(err)
-        self._ho_fk_loop = set()
         self._ho_fields = {}
         self._ho_fields_by_fieldnum = {}
         self._ho_pkey = {}
@@ -816,14 +815,7 @@ Fkeys = {"""
         constrained by at least one of its foreign keys or self is the
         result of a combination of Relations (using set operators).
         """
-        joined_to = False
-        for _, jt_ in self._ho_join_to.items():
-            jt_id = id(jt_)
-            if jt_id in self._ho_fk_loop:
-                raise RuntimeError("Can't set Fkey on the same object")
-            self._ho_fk_loop.add(jt_id)
-            joined_to |= jt_.ho_is_set()
-        self._ho_fk_loop = set()
+        joined_to = any(jt_.ho_is_set() for jt_ in self._ho_join_to.values())
         return (joined_to or bool(self._ho_set_operators.operator) or bool(self._ho_neg) or
                 bool({field for field in self._ho_fields.values() if field.is_set()}))
 
