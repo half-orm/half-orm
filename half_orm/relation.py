@@ -402,7 +402,8 @@ class Relation:
         return query, values, can_dedup, pk_names
 
     def ho_select(self, *args,
-        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None):
+        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None,
+        json_agg=None):
         """Gets the set of values correponding to the constraint attached to the object.
         This method is a generator.
 
@@ -413,6 +414,10 @@ class Relation:
             order_by (str): SQL ORDER BY clause (e.g. 'last_name, first_name'). Default: None.
             limit (int): maximum number of rows to return. Default: None (no limit).
             offset (int): number of rows to skip before returning results. Default: None.
+            json_agg (dict): aggregate already-set fkeys as JSON arrays.
+                Each entry maps a fkey attribute to its spec:
+                a list ``[*fields]`` (alias = fkey attr name) or a dict
+                ``{'fields': [...], 'alias': 'name'}`` (alias optional).
 
         Yields:
             the result of the query as a dictionary.
@@ -422,6 +427,12 @@ class Relation:
             >>>     print(person)
             {'id': 1772}
         """
+        if json_agg is not None:
+            query, values = self._ho_prep_json_agg_select(
+                *args, json_agg=json_agg, order_by=order_by, limit=limit, offset=offset)
+            with self.__execute(query, values) as cursor:
+                yield from cursor
+            return
         query, values, can_dedup, pk_names = self._ho_prep_select_query(
             *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         seen = set()
@@ -988,6 +999,97 @@ Fkeys = {"""
             joins=unique_joins,
             where=where_expr,
             distinct=bool(distinct),
+            order_by=order_by,
+            limit=limit,
+            offset=offset,
+        )
+        return stmt.to_sql()
+
+    def _ho_prep_json_agg_select(self, *args, json_agg,
+        order_by=None, limit=None, offset=None):
+        """Prepare a SELECT with LEFT JOIN + json_agg aggregation.
+
+        Parameters
+        ----------
+        json_agg : dict
+            Each entry maps a fkey attribute to its aggregation spec.
+            The spec can be:
+
+            * a **list** ``[*fields]``: the fkey attribute name is used as
+              the output column name.
+            * a **dict** ``{'fields': [...], 'alias': 'name'}``: *alias* is
+              optional (defaults to the fkey attribute name); *fields* is an
+              optional subset of columns (empty = all fields via row_to_json).
+        """
+        from half_orm.fkey import FKey
+
+        self._ho_ast_joins = []
+        self._ho_query_type = 'select'
+
+        what, where_expr = self.__where_args(*args)
+        columns = [what]
+        if not self._ho_pkey:
+            raise RuntimeError(
+                f"ho_select(json_agg=...) requires the main relation to have a primary key "
+                f"({self._qrn} has none).")
+
+        for fkey_attr, spec in json_agg.items():
+            if isinstance(spec, dict):
+                alias = spec.get('alias', fkey_attr)
+                fields = spec.get('fields', [])
+            else:
+                alias = fkey_attr
+                fields = list(spec)
+
+            fkey = self.__dict__.get(fkey_attr)
+            if not isinstance(fkey, FKey):
+                raise RuntimeError(
+                    f"self.{fkey_attr} is not a FKey"
+                    + (f" (got {type(fkey).__name__})" if fkey is not None else " (not found)"))
+
+            fk_rel = self._ho_join_to.get(fkey)
+            if fk_rel is None:
+                raise RuntimeError(
+                    f"self.{fkey_attr} has not been set. Call self.{fkey_attr}.set(...) first.")
+
+            # WHERE conditions on fk_rel go into the ON clause (LEFT JOIN safety)
+            fk_rel._ho_query_type = 'select'
+            fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
+
+            self._ho_ast_joins.append(ASTJoin(
+                table=fk_rel._ho_sql_id(),
+                on=fkey._join_query(self),
+                where=fk_where_expr,
+                join_type='left join',
+            ))
+
+            # Build the json_agg column expression
+            rel_id = f'r{fk_rel.ho_id}'
+            fk_pk_fields = list(fk_rel._ho_pkey.keys())
+            filter_clause = (
+                f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
+                if fk_pk_fields else ''
+            )
+
+            if fields:
+                obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
+                agg_expr = f'json_build_object({obj_pairs})'
+            else:
+                agg_expr = f'row_to_json({rel_id})'
+
+            columns.append(
+                f"coalesce(json_agg({agg_expr}){filter_clause}, '[]'::json) as \"{alias}\""
+            )
+
+        group_by = [f'r{self.ho_id}."{pk}"' for pk in self._ho_pkey]
+
+        stmt = ASTSelect(
+            columns=columns,
+            from_table=self._ho_sql_id(),
+            only=bool(self._ho_only),
+            joins=self._ho_ast_joins,
+            where=where_expr,
+            group_by=group_by,
             order_by=order_by,
             limit=limit,
             offset=offset,

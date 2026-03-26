@@ -181,13 +181,16 @@ class Join:
         The ON condition, e.g. ``(r42."id" = r1."person_id")``.
     where : Expr | None
         Additional WHERE conditions contributed by the joined relation.
+    join_type : str
+        SQL join keyword: ``"join"`` (default) or ``"left join"``.
     """
     table: str
     on: str
     where: Optional[Expr] = None
+    join_type: str = 'join'
 
     def to_sql(self) -> Tuple[str, list]:
-        sql = f"\n  join {self.table} on\n   {self.on}"
+        sql = f"\n  {self.join_type} {self.table} on\n   {self.on}"
         vals: list = []
         if self.where is not None:
             w_sql, w_vals = self.where.to_sql()
@@ -246,6 +249,7 @@ class Select:
     order_by: Optional[str] = None
     limit: Optional[int] = None
     offset: Optional[int] = None
+    group_by: Optional[List[str]] = None
 
     def to_sql(self) -> Tuple[str, list]:
         vals: list = []
@@ -275,6 +279,10 @@ class Select:
             if w_sql:
                 sql += f"\nwhere\n    {w_sql}"
                 vals.extend(w_vals)
+
+        # GROUP BY
+        if self.group_by:
+            sql += f"\ngroup by {', '.join(self.group_by)}"
 
         # Trailing clauses
         if self.order_by:
