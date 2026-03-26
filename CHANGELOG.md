@@ -1,6 +1,21 @@
+# 0.17.9 (2026-25-03)
+
+* feat(fkey): detect fkey cycles (2fee2e9)
+* fix(relation): remove false fkey from repr (join) + tests. (19131c9)
+* feat(relation): repr now includes fkeys attributes names in Fkeys (726b2e2)
+* refactor(relation): remove ho_limit internal calls from count methods (c0fdf36)
+* refactor(relation): remove ho_limit internal calls from count methods (a4ce8e2)
+* fix(ci/docs): add alias input to workflow_dispatch for setting latest (cd488ad)
+* fix(ci/docs): replace multiline python with one-liner in cleanup step (84e8d74)
+* Revert "fix(ci/docs): parse mike list --json to extract version identifiers" (3d3eda5)
+* fix(ci/docs): parse mike list --json to extract version identifiers (494fcb2)
+* ci(docs): add workflow_dispatch trigger with version rebuild and cleanup (8d47055)
+* docs: fix version reference and consolidate mike versions by minor (8f513c8)
+* Allow CI to run on branch 0.17 (a500db9)
+
 # 0.17.8 (2026-21-03)
 
-* feat: per-thread psycopg2 connections via threading.local() (HEAD -> 0.17) (d0fbdf0)
+* feat: per-thread psycopg2 connections via threading.local() (d0fbdf0)
 * test(algebra): insert isolated test persons with POOL letters and TEST_DATE for deterministic set algebra (b3063bd)
 * feat(relation): add ho_where_display method (ast) (048c210)
 * feat(transaction): add savepoint support for nested transactions (6f450da)
@@ -25,7 +40,7 @@
 Relation method ho_get is now private (_ho_get) and has been marked deprecated. It was
 an anti-pattern. Use @singleton decorator instead.
 
-* deprecate(relation): deprecate ho_get in favor of @singleton decorator (HEAD -> main) (f6ecff4)
+* deprecate(relation): deprecate ho_get in favor of @singleton decorator (f6ecff4)
 * feat(relation): redefine equality as (A - B) | (B - A) == ∅ (3307892)
 * fix(ci): remove python3.7 from tests on gitlab + add python3.14 (bf42640)
 * fix(ci): ignore coveralls errors. (0d03f19)
@@ -129,7 +144,7 @@ an anti-pattern. Use @singleton decorator instead.
 
 # 0.16.0-rc (2025-07-05)
 
-* docs: upgrade docs/index.md to 0.16 release. (HEAD -> main) (0e6230d)
+* docs: upgrade docs/index.md to 0.16 release. (0e6230d)
 * fix: force dev as default version for mike deployment (tag: v0.16.0-rc1) (fb7b8a5)
 * fix: utils.warning test. (4d3acfc)
 * fix: correct mike deployment command for dev version (0bf32c9)
@@ -205,7 +220,7 @@ If you were using the `hop` command, please clone https://github.com/collorg/hal
 
 # 0.13.8 -- hop 0.1.0 alpha 22 (2025-01-15)
 
-* Update licence date. (HEAD -> main)
+* Update licence date.
 * [hop] Fix: add missing kwargs in arguments transmitted to the parent table. (ddbe18f)
 * Bump virtualenv from 20.25.1 to 20.26.6 (e09fc9e)
 * [github/CI] Use ubuntu-22 (Python 3.7 not present on ubuntu-24). (38212e8)
@@ -267,7 +282,7 @@ If you were using the `hop` command, please clone https://github.com/collorg/hal
 
 Relation methods select, insert, upgrade, delete deprecated in 0.8.0 have now been removed. Use ho_select, ho_insert, ho_upgrade and ho_delete instead.
 
-* [hop] sort imports in ho_dataclasses.py (HEAD -> main) (801385b)
+* [hop] sort imports in ho_dataclasses.py (801385b)
 * [hop] Add Fkeys to dataclasses. (10ba318)
 * [hop][relation] Refactor. Add DC_Relation to improve developper experience. (a9e2dda)
 * [CI] Keep psycopg2 2.9.9 to preserve Python 3.7 compatibility. (f9c0380)
@@ -515,7 +530,7 @@ Relation.field.set(value)
 
 # 0.9.2 -- hop 0.1.0a4 (2023-06-09)
 
-* [hop] Fix: wrong order in CHANGELOG. (HEAD -> main) (c763300)
+* [hop] Fix: wrong order in CHANGELOG. (c763300)
 * Change the representation of a Relation object. (c2a18cb)
 * [hop][WIP] Add gen-api command. (d2b180e)
 * Add Makefile for test and build. (04ba7c2)
@@ -670,7 +685,7 @@ The hop command is a work in progress. It will replace the half_orm_packager pac
 * (test) join. Add test_join_with_joined_object_with_FKEYS. (17948a8)
 * (BREAKING CHANGE)(relation) Relation FKEYS module variable support is now removed (use Fkeys class attribute instead). (6ea7bd2)
 * (BREAKING CHANGE)(relation) Relation.insert now returns a dict. (dffd6e3)
-* [ci] Add Python 3.11. (origin/master, origin/HEAD, master) (72efc57)
+* [ci] Add Python 3.11. (72efc57)
 
 ## Breaking changes
 
