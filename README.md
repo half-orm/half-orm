@@ -76,8 +76,8 @@ Author(id=alice['id']).ho_assert_is_singleton().ho_delete()
 
 ## Documentation
 
-- [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/half-an-hour/)
-- [API Reference](https://half-orm.github.io/half-orm/api/relation/)
+- [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/dev/half-an-hour/)
+- [API Reference](https://half-orm.github.io/half-orm/dev/api/relation/)
 
 ## License
 

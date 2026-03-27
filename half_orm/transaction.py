@@ -9,7 +9,43 @@ import threading
 import psycopg
 
 class Transaction:
-    """
+    """Context manager for atomic database operations.
+
+    Wraps one or more SQL operations in a single transaction: commits on
+    success, rolls back on exception. Transactions are per-thread and
+    per-model instance.
+
+    Nested ``with Transaction(model)`` blocks use PostgreSQL savepoints
+    automatically: an exception in an inner block rolls back only that inner
+    block, leaving the outer transaction intact.
+
+    Args:
+        model (Model): the :class:`~half_orm.model.Model` instance whose
+            connection should be used.
+
+    Example:
+        Atomic insert of two related rows::
+
+            from half_orm.transaction import Transaction
+
+            with Transaction(blog):
+                alice = Author(
+                    first_name='Alice', last_name='Martin',
+                    email='alice@example.com',
+                ).ho_insert()
+                Post(
+                    title='First post', content='Hello world',
+                    author_id=alice['id'],
+                ).ho_insert()
+            # both rows are committed, or neither is
+
+        Nested transactions use savepoints::
+
+            with Transaction(blog):
+                alice = Author(...).ho_insert()
+                with Transaction(blog):          # savepoint
+                    Post(...).ho_insert()
+                    # exception here rolls back only the post, not Alice
     """
 
     __tls = threading.local()

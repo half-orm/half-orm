@@ -70,9 +70,29 @@ class FKey:
         return [list(elt.values()) for elt in self.__to_relation.ho_select(*self.__fk_names)]
 
     def set(self, __to):
-        """Sets the relation associated to the foreign key.
+        """Bind this foreign key to a relation, adding a JOIN condition.
 
-        TODO: check that the __to is indeed atteinable from self
+        After calling ``.set(other_rel)``, queries on the owning relation
+        automatically include a JOIN against ``other_rel`` filtered by
+        ``other_rel``'s constraints.
+
+        Args:
+            __to (Relation): the relation to join against.
+
+        Returns:
+            self — for chaining.
+
+        Raises:
+            RuntimeError: if ``__to`` is not a :class:`~half_orm.relation.Relation` instance.
+            RuntimeError: if setting this FK would create a cycle in the join graph.
+
+        Example:
+            ::
+
+                # "is a post whose author's last name starts with 'Mar'"
+                post = Post()
+                post.author_fk.set(Author(last_name=('like', 'Mar%')))
+                print(post.ho_count())
         """
         # pylint: disable=import-outside-toplevel
         from half_orm.relation import Relation

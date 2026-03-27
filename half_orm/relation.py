@@ -153,17 +153,17 @@ class DC_Relation: # pragma: no cover
         ...
 
     def ho_assert_is_singleton(self):
-        """
-        A singleton is defined when all fields of a unique identifier are set
-        with the '=' comparator. A unique identifier is either the primary key
-        or any unique NOT NULL constraint. No database query is performed: the
-        check is purely on the intention (the constraints set on the relation
-        object).
+        """Assert that this predicate identifies exactly one row, without querying the database.
+
+        A predicate is a *singleton* when every field of a unique identifier
+        (primary key or any ``UNIQUE NOT NULL`` constraint) is set with the
+        ``=`` comparator. The check is purely structural — no SQL is executed.
 
         Returns:
-            self
+            self — for chaining before a write operation.
+
         Raises:
-            NotASingletonError if self is not a singleton
+            NotASingletonError: if no unique identifier is fully set.
         """
         ...
 
@@ -349,18 +349,26 @@ class Relation:
         return query, tuple(vals)
 
     def ho_insert(self, *args) -> '[dict]':
-        """Insert a new tuple into the Relation.
+        """Insert the row described by this predicate.
+
+        Args:
+            *args: column names to include in the returned dict. If omitted,
+                all columns are returned (equivalent to ``RETURNING *``).
 
         Returns:
-            [dict]: A singleton containing the data inserted.
+            dict: the inserted row.
+
+        Raises:
+            ReadOnlyRelationError: if the relation is a view or other
+                non-writable kind.
 
         Example:
-            >>> gaston = Person(last_name='La', first_name='Ga', birth_date='1970-01-01').ho_insert()
-            >>> print(gaston)
-            {'id': 1772, 'first_name': 'Ga', 'last_name': 'La', 'birth_date': datetime.date(1970, 1, 1)}
-
-        Note:
-            It is not possible to insert more than one row with the insert method
+            >>> alice = Author(
+            ...     first_name='Alice', last_name='Martin',
+            ...     email='alice@example.com',
+            ... ).ho_insert()
+            >>> alice['id']
+            1
         """
         query, vals = self._ho_prep_insert(*args)
         with self.__execute(query, vals) as cursor:
@@ -404,28 +412,46 @@ class Relation:
     def ho_select(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None,
         json_agg=None):
-        """Gets the set of values correponding to the constraint attached to the object.
-        This method is a generator.
+        """Enumerate the extension of this predicate.
 
-        Arguments:
-            *args: the fields names of the returned attributes. If omitted,
-                all the fields are returned.
-            distinct (bool): if True, adds DISTINCT to the SQL SELECT. Default: False.
-            order_by (str): SQL ORDER BY clause (e.g. 'last_name, first_name'). Default: None.
-            limit (int): maximum number of rows to return. Default: None (no limit).
-            offset (int): number of rows to skip before returning results. Default: None.
-            json_agg (dict): aggregate already-set fkeys as JSON arrays.
-                Each entry maps a fkey attribute to its spec:
-                a list ``[*fields]`` (alias = fkey attr name) or a dict
-                ``{'fields': [...], 'alias': 'name'}`` (alias optional).
+        This method is a generator. Without arguments it is equivalent to
+        iterating directly on the relation object (``for row in rel:``).
+
+        Args:
+            *args: column names to project. If omitted, all columns are
+                returned.
+            distinct (bool): add ``DISTINCT`` to the SELECT. Default: ``False``.
+            order_by (str): SQL ``ORDER BY`` clause, e.g.
+                ``'last_name, first_name desc'``. Default: ``None``.
+            limit (int): maximum number of rows to return. Default: ``None``.
+            offset (int): number of rows to skip. Default: ``None``.
+            json_agg (dict): aggregate already-set fkeys as JSON arrays via
+                a ``LEFT JOIN`` + ``json_agg`` + ``GROUP BY`` on the primary key.
+
+                Each entry maps a fkey attribute name to its spec:
+
+                - ``[field, ...]`` — list of column names; alias = fkey attr name.
+                - ``{'fields': [...], 'alias': 'name'}`` — explicit alias.
+                - ``[]`` — empty list returns all columns via ``row_to_json``.
+
+                The fkey must have been set via ``.fk_attr.set(rel)`` before
+                calling ``ho_select``.
 
         Yields:
-            the result of the query as a dictionary.
+            dict: one row of the extension.
 
         Example:
-            >>> for person in Person(last_name=('like', 'La%')).ho_select('id', order_by='id', limit=10):
-            >>>     print(person)
-            {'id': 1772}
+            Project and sort::
+
+                for row in Author(last_name='Martin').ho_select('id', 'email', order_by='id'):
+                    print(row)   # {'id': 1, 'email': 'alice@example.com'}
+
+            Aggregate related rows as JSON::
+
+                alice = Author(last_name='Martin')
+                alice.post_rfk.set(Post())
+                for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
+                    print(row['post_rfk'])  # [{'id': 1, 'title': '...'}, ...]
         """
         if json_agg is not None:
             query, values = self._ho_prep_json_agg_select(
@@ -457,17 +483,32 @@ class Relation:
                 )
 
     def ho_assert_is_singleton(self):
-        """
-        A singleton is defined when all fields of a unique identifier are set
-        with the '=' comparator. A unique identifier is either the primary key
-        or any unique NOT NULL constraint. No database query is performed: the
-        check is purely on the intention (the constraints set on the relation
-        object).
+        """Assert that this predicate identifies exactly one row, without querying the database.
+
+        A predicate is a *singleton* when every field of a unique identifier
+        (primary key or any ``UNIQUE NOT NULL`` constraint) is set with the
+        ``=`` comparator. The check is purely structural — no SQL is executed.
 
         Returns:
-            self
+            self — for chaining before a write operation.
+
         Raises:
-            NotASingletonError if self is not a singleton
+            NotASingletonError: if no unique identifier is fully set.
+
+        Example:
+            ::
+
+                # OK — id is the primary key
+                Author(id=42).ho_assert_is_singleton()
+
+                # OK — email has a UNIQUE NOT NULL constraint
+                Author(email='alice@example.com').ho_assert_is_singleton()
+
+                # Raises — last_name is not a unique identifier
+                Author(last_name='Martin').ho_assert_is_singleton()
+
+                # Typical usage: guard a single-row write
+                Author(id=42).ho_assert_is_singleton().ho_update(email='new@example.com')
         """
         def _fully_set(fields):
             return all(f.is_set() and f._comp() == '=' for f in fields.values())
@@ -562,10 +603,33 @@ class Relation:
         return query, tuple(vals), update_args
 
     def ho_update(self, *args, update_all=False, **kwargs):
-        """
-        kwargs represents the values to be updated {[field name:value]}
-        The object self must be set unless update_all is True.
-        The constraints of self are updated with kwargs.
+        """Update every row that satisfies the predicate.
+
+        Args:
+            *args: column names to return from the updated rows. Pass
+                ``'*'`` to return all columns. If omitted, nothing is returned.
+            update_all (bool): must be ``True`` when ``self`` has no
+                constraint set, to confirm the intent to update all rows.
+                Default: ``False``.
+            **kwargs: ``{column_name: new_value}`` pairs to apply.
+                ``None`` values are silently ignored.
+
+        Returns:
+            list[dict] | None: the updated rows if ``*args`` was provided,
+            otherwise ``None``.
+
+        Raises:
+            RuntimeError: if no constraint is set and ``update_all`` is
+                ``False``.
+
+        Example:
+            ::
+
+                # Update a single row — guarded by singleton check
+                Author(id=1).ho_assert_is_singleton().ho_update(email='new@example.com')
+
+                # Update an entire subset at once
+                Post(author_id=99).ho_update(content='[archived]')
         """
         prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
         if prep is None:
@@ -601,8 +665,31 @@ class Relation:
 
     #@utils.trace
     def ho_delete(self, *args, delete_all=False):
-        """Removes a set of tuples from the relation.
-        To empty the relation, delete_all must be set to True.
+        """Remove every row that satisfies the predicate.
+
+        Args:
+            *args: column names to return from the deleted rows. Pass
+                ``'*'`` to return all columns.
+            delete_all (bool): must be ``True`` when no primary key field
+                is set, as a safety guard against accidental mass deletions.
+                Default: ``False``.
+
+        Returns:
+            list[dict] | None: the deleted rows if ``*args`` was provided,
+            otherwise ``None``.
+
+        Raises:
+            RuntimeError: if the predicate is not set and ``delete_all``
+                is ``False``.
+
+        Example:
+            ::
+
+                # Delete one identified row
+                Author(id=99).ho_assert_is_singleton().ho_delete()
+
+                # Delete all posts for a given author
+                Post(author_id=1).ho_delete(delete_all=True)
         """
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         with self.__execute(query, vals) as cursor:
@@ -1148,7 +1235,17 @@ Fkeys = {"""
         return self
 
     def ho_mogrify(self):
-        """Prints the select query."""
+        """Print the SQL SELECT that would be executed and return ``self``.
+
+        Activates SQL tracing for the next query on this object. The query
+        is printed to stderr when the next executor is called. Useful for
+        debugging predicate composition.
+
+        Returns:
+            self — for chaining::
+
+                Author(last_name='Martin').ho_mogrify().ho_count()
+        """
         self._ho_mogrify = True
         return self
 
@@ -1162,17 +1259,36 @@ Fkeys = {"""
 
     # @utils.trace
     def ho_count(self, *args, distinct:bool=False):
-        """Returns the number of tuples matching the intention in the relation.
+        """Return the number of rows that satisfy the predicate.
 
-        Arguments:
-            *args: field names to count on (useful with distinct).
-            distinct (bool): if True, adds DISTINCT to the inner SELECT. Default: False.
+        Args:
+            *args: column names for the inner SELECT (useful with
+                ``distinct=True``).
+            distinct (bool): if ``True``, count only distinct tuples.
+                Default: ``False``.
+
+        Returns:
+            int: the cardinality of the extension.
+
+        Example:
+            ::
+
+                Author().ho_count()                    # total number of authors
+                Author(last_name='Martin').ho_count()  # subset cardinality
         """
         query, values = self._ho_prep_count(*args, distinct=distinct)
         return self.__execute(query, values).fetchone()['count']
 
     def ho_is_empty(self):
-        """Returns True if the relation is empty, False otherwise.
+        """Return ``True`` if the extension is empty, ``False`` otherwise.
+
+        Returns:
+            bool
+
+        Example:
+            ::
+
+                Author(last_name='Unknown').ho_is_empty()  # True if no such author
         """
         return self.ho_count() == 0
 
@@ -1408,7 +1524,28 @@ Fkeys = {"""
         return self.ho_is_empty()
 
 def singleton(fct):
-    """Decorator. Enforces the intention to define a singleton.
+    """Decorator that enforces a singleton predicate before calling the method.
+
+    Calls :meth:`~half_orm.relation.Relation.ho_assert_is_singleton` on
+    ``self`` before executing the decorated method. Raises
+    :exc:`~half_orm.relation_errors.NotASingletonError` if the predicate
+    does not identify exactly one row. No database query is performed.
+
+    Use this on any method that must operate on a single, identified row.
+
+    Example:
+        ::
+
+            @register
+            class Author(blog.get_relation_class('blog.author')):
+                Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
+
+                @singleton
+                def publish(self, title: str, content: str):
+                    return self.post_rfk(title=title, content=content).ho_insert()
+
+            Author(id=1).publish('My post', 'Content here')   # OK
+            Author(last_name='Martin').publish('…', '…')      # raises NotASingletonError
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):
@@ -1421,21 +1558,26 @@ def singleton(fct):
     return wrapper
 
 def transaction(fct):
-    """Decorator. Enforces every SQL insert, update or delete operation called within a
-    Relation method to be executed in a transaction.
-    
-    Usage:
-        from relation import transaction
-        class Person(model.get_relation_class(actor.person)):
-            [...]
-            @transaction
-            def insert_many(self, **data):
-                for d_pers in **data:
-                    self(**d_pers).ho_insert()
-            [...]
-        
-        Pers().insert_many([{...}, {...}])
+    """Decorator that wraps a Relation method in a database transaction.
 
+    Every INSERT / UPDATE / DELETE executed inside the decorated method runs
+    inside a single atomic unit. Commits on normal return, rolls back and
+    re-raises on any exception.
+
+    Nested ``@transaction`` calls use PostgreSQL savepoints: a failure in an
+    inner method rolls back only that inner scope.
+
+    Example:
+        ::
+
+            from half_orm.relation import transaction
+
+            @register
+            class Author(blog.get_relation_class('blog.author')):
+                @transaction
+                def publish_many(self, posts):
+                    for title, content in posts:
+                        self.post_rfk(title=title, content=content).ho_insert()
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):
