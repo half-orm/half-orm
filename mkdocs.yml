@@ -47,6 +47,8 @@ plugins:
       handlers:
         python:
           options:
+            extensions:
+              - griffe_sphinx
             docstring_style: google
             show_source: true
             show_root_heading: true

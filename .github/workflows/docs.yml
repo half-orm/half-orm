@@ -70,7 +70,8 @@ jobs:
             mkdocs-material \
             mkdocstrings-python \
             mkdocs-git-revision-date-localized-plugin \
-            mike
+            mike \
+            griffe-sphinx
             
       - name: Configure Git
         run: |
