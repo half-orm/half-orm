@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=protected-access
 
-"""This module provides the FKey class."""
+"""Foreign key navigation and JOIN composition for halfORM relations.
+
+:class:`FKey` instances are created automatically by the relation factory for
+every foreign key declared in the database schema — both direct FKs and reverse
+FKs. They are exposed as attributes on relation instances and used in two ways:
+
+* **Call** the attribute to navigate to the related relation (``post.author_fk()``).
+* **``.set(rel)``** to add a JOIN condition on the owning relation.
+"""
 
 from half_orm.pg_meta import normalize_fqrn, normalize_qrn
 from half_orm import utils
@@ -23,12 +31,26 @@ def _would_create_cycle(from_rel, to_rel):
 
 
 class FKey:
-    """Foreign key class
+    """A foreign key attribute on a :class:`~half_orm.relation.Relation`.
 
-    A foreign key is set by assigning to it a Relation object of the
-    corresponding type (see FKey.set method).
-    It is then used to construct the join query for Relation.ho_select
-    method.
+    FK attributes are exposed automatically on every relation class — both
+    direct FKs (``table_fk``) and reverse FKs (``_reverse_fkey_...``).
+    Give them friendly names via the ``Fkeys`` class attribute::
+
+        @register
+        class Post(blog.get_relation_class('blog.post')):
+            Fkeys = {
+                'author_fk':   'post_author_id_fkey',
+                'comment_rfk': '_reverse_fkey_blog_comment_post_id',
+            }
+
+    Use a FK attribute in two ways:
+
+    * **Call it** (``post.author_fk()``) to navigate: returns the related
+      relation restricted to rows linked to the current predicate.
+    * **``.set(rel)``** to add a JOIN condition on the owning relation.
+
+    Print any relation instance to discover FK names.
     """
 
     def __init__(self,
@@ -54,8 +76,28 @@ class FKey:
         return self.__relation._ho_model._import_class(fqtn)
 
     def __call__(self, __cast__=None, **kwargs):
-        """Returns the relation referenced by the fkey.
-        Uses the __cast__ if it is set.
+        """Navigate to the related relation, restricted to linked rows.
+
+        Returns a new predicate on the related table whose extension is
+        limited to rows that are linked to the current predicate's
+        extension via this foreign key. Additional ``kwargs`` are passed
+        as extra constraints on the returned relation.
+
+        Args:
+            **kwargs: optional constraints forwarded to the related
+                relation's constructor.
+
+        Returns:
+            Relation: a new predicate on the related table.
+
+        Example:
+            ::
+
+                post   = Post(id=1)
+                author = post.author_fk()        # author of post 1
+
+                # with extra constraint
+                posts  = Author(last_name='Martin').post_rfk(content=('is not', NULL))
         """
         f_relation = self.__get_rel(__cast__ or normalize_qrn(self.__fk_fqrn))(**kwargs)
         rev_fkey_name = f'_reverse_{f_relation.ho_id}'
