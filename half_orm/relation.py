@@ -84,24 +84,24 @@ class DC_Relation: # pragma: no cover
     def __init__(self, **kwargs): ...
 
     def ho_insert(self, *args) -> Dict:
-        """Insert the row described by this predicate. Returns the inserted row as a dict."""
+        """Insert the row described by this predicate. Returns the inserted row as a dict. *Executes SQL.*"""
         ...
     def ho_select(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset:int=None,
         json_agg=None):
-        """Enumerate the extension of this predicate. Generator yielding one dict per row."""
+        """Enumerate the extension of this predicate. Generator yielding one dict per row. *Executes SQL.*"""
         ...
     def ho_update(self, *args, update_all=False, **kwargs) -> Optional[Dict]:
-        """Update every row that satisfies the predicate."""
+        """Update every row that satisfies the predicate. *Executes SQL.*"""
         ...
     def ho_delete(self, *args, delete_all=False):
-        """Remove every row that satisfies the predicate."""
+        """Remove every row that satisfies the predicate. *Executes SQL.*"""
         ...
     def ho_assert_is_singleton(self):
         """Assert that this predicate identifies exactly one row, without querying the database."""
         ...
     def _ho_get(self, *args) -> 'Relation':
-        """Fetch the single row matching this predicate from the database."""
+        """Fetch the single row matching this predicate from the database. *Executes SQL.*"""
         ...
     def ho_is_set(self) -> bool:
         """Return True if at least one field or FK constraint is set."""
@@ -125,29 +125,29 @@ class DC_Relation: # pragma: no cover
         """Set OFFSET for the next SELECT (deprecated: use ho_select(offset=...))."""
         ...
     def ho_count(self, *args, distinct:bool=False) -> int:
-        """Return the number of rows that satisfy the predicate."""
+        """Return the number of rows that satisfy the predicate. *Executes SQL.*"""
         ...
     def ho_is_empty(self) -> bool:
-        """Return True if the extension is empty, False otherwise."""
+        """Return True if the extension is empty, False otherwise. *Executes SQL.*"""
         ...
     async def ho_ainsert(self, *args) -> dict:
-        """Async variant of ho_insert."""
+        """Async variant of ho_insert. *Executes SQL.*"""
         ...
     async def ho_aselect(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset:int=None):
-        """Async variant of ho_select. Returns a list of dicts."""
+        """Async variant of ho_select. Returns a list of dicts. *Executes SQL.*"""
         ...
     async def ho_aupdate(self, *args, update_all=False, **kwargs):
-        """Async variant of ho_update."""
+        """Async variant of ho_update. *Executes SQL.*"""
         ...
     async def ho_adelete(self, *args, delete_all=False):
-        """Async variant of ho_delete."""
+        """Async variant of ho_delete. *Executes SQL.*"""
         ...
     async def ho_acount(self, *args, distinct:bool=False) -> int:
-        """Async variant of ho_count."""
+        """Async variant of ho_count. *Executes SQL.*"""
         ...
     async def ho_ais_empty(self) -> bool:
-        """Async variant of ho_is_empty."""
+        """Async variant of ho_is_empty. *Executes SQL.*"""
         ...
 
 class Relation:
@@ -262,7 +262,7 @@ class Relation:
         return query, tuple(vals)
 
     def ho_insert(self, *args) -> '[dict]':
-        """Insert the row described by this predicate.
+        """Insert the row described by this predicate. *Executes SQL.*
 
         Args:
             *args: column names to include in the returned dict. If omitted,
@@ -326,7 +326,7 @@ class Relation:
     def ho_select(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None,
         json_agg=None):
-        """Enumerate the extension of this predicate.
+        """Enumerate the extension of this predicate. *Executes SQL.*
 
         This method is a generator. Without arguments it is equivalent to
         iterating directly on the relation object (``for row in rel:``).
@@ -517,7 +517,7 @@ class Relation:
         return query, tuple(vals), update_args
 
     def ho_update(self, *args, update_all=False, **kwargs):
-        """Update every row that satisfies the predicate.
+        """Update every row that satisfies the predicate. *Executes SQL.*
 
         Args:
             *args: column names to return from the updated rows. Pass
@@ -579,7 +579,7 @@ class Relation:
 
     #@utils.trace
     def ho_delete(self, *args, delete_all=False):
-        """Remove every row that satisfies the predicate.
+        """Remove every row that satisfies the predicate. *Executes SQL.*
 
         Args:
             *args: column names to return from the deleted rows. Pass
@@ -1173,7 +1173,7 @@ Fkeys = {"""
 
     # @utils.trace
     def ho_count(self, *args, distinct:bool=False):
-        """Return the number of rows that satisfy the predicate.
+        """Return the number of rows that satisfy the predicate. *Executes SQL.*
 
         Args:
             *args: column names for the inner SELECT (useful with
@@ -1194,7 +1194,7 @@ Fkeys = {"""
         return self.__execute(query, values).fetchone()['count']
 
     def ho_is_empty(self):
-        """Return ``True`` if the extension is empty, ``False`` otherwise.
+        """Return ``True`` if the extension is empty, ``False`` otherwise. *Executes SQL.*
 
         Returns:
             bool
@@ -1209,7 +1209,7 @@ Fkeys = {"""
     # --- Async variants of executor methods ---
 
     async def ho_ainsert(self, *args) -> dict:
-        """Async variant of ho_insert."""
+        """Async variant of ho_insert. *Executes SQL.*"""
         query, vals = self._ho_prep_insert(*args)
         cursor = await self.__aexecute(query, vals)
         res = await cursor.fetchall() or [{}]
@@ -1217,7 +1217,7 @@ Fkeys = {"""
 
     async def ho_aselect(self, *args,
         distinct: bool=False, order_by: str=None, limit: int=None, offset: int=None):
-        """Async variant of ho_select. Returns a list of dicts (not a generator)."""
+        """Async variant of ho_select. Returns a list of dicts (not a generator). *Executes SQL.*"""
         query, values, can_dedup, pk_names = self._ho_prep_select_query(
             *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         cursor = await self.__aexecute(query, values)
@@ -1234,7 +1234,7 @@ Fkeys = {"""
         return rows
 
     async def ho_aupdate(self, *args, update_all=False, **kwargs):
-        """Async variant of ho_update."""
+        """Async variant of ho_update. *Executes SQL.*"""
         prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
         if prep is None:
             return None
@@ -1247,7 +1247,7 @@ Fkeys = {"""
         return None
 
     async def ho_adelete(self, *args, delete_all=False):
-        """Async variant of ho_delete."""
+        """Async variant of ho_delete. *Executes SQL.*"""
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         cursor = await self.__aexecute(query, vals)
         if args:
@@ -1255,14 +1255,14 @@ Fkeys = {"""
         return None
 
     async def ho_acount(self, *args, distinct: bool=False) -> int:
-        """Async variant of ho_count."""
+        """Async variant of ho_count. *Executes SQL.*"""
         query, values = self._ho_prep_count(*args, distinct=distinct)
         cursor = await self.__aexecute(query, values)
         row = await cursor.fetchone()
         return row['count']
 
     async def ho_ais_empty(self) -> bool:
-        """Async variant of ho_is_empty."""
+        """Async variant of ho_is_empty. *Executes SQL.*"""
         return (await self.ho_acount()) == 0
 
     #@utils.trace

@@ -4,8 +4,8 @@ A `Relation` object is a **predicate** — it describes the logical condition
 that rows must satisfy to belong to the relation. Its *extension* is the set
 of rows currently satisfying that predicate in the database.
 
-Instantiating with keyword arguments specialises the predicate. No SQL is
-executed until you call an executor method.
+Instantiating with keyword arguments specialises the predicate. **No SQL is
+executed** until you call an executor method.
 
 ```python
 Author()                          # tautology — the whole table
@@ -13,13 +13,19 @@ Author(last_name='Martin')        # subset: "is an author named Martin"
 Author(last_name='Martin', id=42) # at most one row
 ```
 
+**Executors** (`ho_select`, `ho_insert`, `ho_update`, `ho_delete`, `ho_count`,
+`ho_is_empty`) execute SQL immediately and return results.
+**Introspection** methods (`ho_assert_is_singleton`, `ho_is_set`,
+`ho_where_display`, `ho_mogrify`) inspect or assert on the predicate without
+touching the database.
+
 See [Learn halfORM in half an hour](../half-an-hour.md) for a full walkthrough.
 
 ---
 
 ## Executors
 
-These methods execute SQL and return results immediately.
+These methods execute SQL immediately and return results.
 
 ::: half_orm.relation.Relation.ho_insert
     options:
@@ -52,12 +58,6 @@ These methods execute SQL and return results immediately.
       heading_level: 3
 
 ::: half_orm.relation.Relation.ho_delete
-    options:
-      show_root_heading: true
-      show_source: false
-      heading_level: 3
-
-::: half_orm.relation.Relation.ho_assert_is_singleton
     options:
       show_root_heading: true
       show_source: false
@@ -110,6 +110,14 @@ cursor can be closed before returning to the caller.
 ---
 
 ## Introspection
+
+These methods inspect or assert on the predicate **without executing SQL**.
+
+::: half_orm.relation.Relation.ho_assert_is_singleton
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_is_set
     options:
