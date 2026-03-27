@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-"""This module provides the class Model.
+"""Connection to a PostgreSQL database and factory for Relation classes.
 
-The class Model is responsible for the connection to the PostgreSQL database.
-
-Once connected, you can use the
-`get_relation_class <#half_orm.model.Model.get_relation_class>`_
-method to generate a class to access any relation (table/view) in your database.
+:class:`Model` reads connection parameters from a configuration file,
+connects to the database, and exposes
+:meth:`~half_orm.model.Model.get_relation_class` to generate Python classes
+that map to tables and views.
 
 Example:
-    >>> from half_orm.model import Model
-    >>> model = Model('my_config_file')
-    >>> class MyTable(model.get_relation_class('my_schema.my_table')):
-    ...     # Your business code goes here
+    ::
 
-Note:
-    The default schema is ``public`` in PostgreSQL, so to reference a table
-    ``my_table`` in this schema you'll have to use ``pubic.my_table``.
+        from half_orm.model import Model
+
+        blog = Model('blog')
+        Author = blog.get_relation_class('blog.author')
 """
 
 import importlib
@@ -45,36 +42,32 @@ CONF_DIR = os.path.abspath(environ.get('HALFORM_CONF_DIR', '/etc/half_orm'))
 register = register_class
 
 class Model:
-    """
-    Parameters:
-        config_file (str): the configuration file that contains the informations to connect
-            to the database.
-        scope (Optional[str]): used to agregate several modules in a package.
-            See `hop <https://github.com/half-orm/half-orm/blob/main/doc/hop.md>`_.
+    """Connection to a PostgreSQL database.
 
-    Note:
-        The **config_file** is searched in the `HALFORM_CONF_DIR` variable if specified,
-        then in `/etc/half_orm`. The file format is as follows:
+    Args:
+        config_file (str): name of the connection file searched in
+            ``HALFORM_CONF_DIR`` (env var, defaults to ``/etc/half_orm``).
+            File format::
 
-            | [database]
-            | name = <postgres db name>
-            | user = <postgres user>
-            | password = <postgres password>
-            | host = <host name | localhost>
-            | port = <port | 5432>
+                [database]
+                name     = <db name>      # mandatory
+                user     = <user>
+                password = <password>
+                host     = <host>
+                port     = <port>
 
-        *name* is the only mandatory entry if you are using an
-        `ident login with a local account <https://www.postgresql.org/docs/current/auth-ident.html>`_.
+            ``name`` is the only mandatory key when using peer authentication.
+        scope (str | None): package name used to resolve registered subclasses.
+
+    Raises:
+        MissingConfigFile: if the configuration file is not found.
+        MalformedConfigFile: if ``name`` is missing from the file.
+        psycopg.OperationalError: if the database connection fails.
     """
     __deja_vu = {}
     _classes_ = {}
     __sql_trace = False
     def __init__(self, config_file: None, scope: str=None):
-        """Model constructor
-
-        Use @config_file in your scripts. The @dbname parameter is
-        reserved to the __factory metaclass.
-        """
         self._dbinfo = {}
         self._production_mode = True
         self.__load_config(config_file)
@@ -168,38 +161,28 @@ class Model:
     reconnect = __connect
 
     def get_relation_class(self, relation_name: str, fields_aliases: typing.Dict=None): # -> Relation
-        """This method is a factory that generates a class that inherits the `Relation <#half_orm.relation.Relation>`_ class.
+        """Generate a :class:`~half_orm.relation.Relation` subclass for a table or view.
 
         Args:
-            relation_name (string): the full name (`<schema>.<relation>`) of the targeted relation in the database.
-
-        Raises:
-            ValueError: if the schema is missing in relation_name
-            UnknownRelationError: if the relation is not found in the database
+            relation_name (str): fully qualified name ``'schema.relation'``.
+            fields_aliases (dict | None): optional mapping of field aliases.
 
         Returns:
-            a class that inherits the `Relation <#half_orm.relation.Relation>`_ class:
-                the class corresponding to the relation in the database.
+            type: a class inheriting :class:`~half_orm.relation.Relation`.
 
-        Examples:
-            A class inheriting the `Relation <#half_orm.relation.Relation>`_ class is returned:
-                >>> Person = model.get_relation_class('actor.person')
-                >>> Person
-                <class 'half_orm.relation.Table_HalftestActorPerson'>
-                >>> Person.__bases__
-                (<class 'half_orm.relation.Relation'>,)
+        Raises:
+            MissingSchemaInName: if the schema part is missing from ``relation_name``.
+            UnknownRelation: if the relation does not exist in the database.
 
-            A prefered way to create a class:
-                >>> class Person(model.get_relation_class('actor.person)):
-                >>>     # Your code goes here
+        Example:
+            ::
 
-            A `MissingSchemaInName <#half_orm.model_errors.MissingSchemaInName>`_ is raised when the schema name is missing:
-                >>> model.get_relation_class('person')
-                [...]MissingSchemaInName: do you mean 'public.person'?
+                Author = blog.get_relation_class('blog.author')
 
-            An `UnknownRelation <#half_orm.model_errors.UnknownRelation>`_ is raised if the relation is not found in the model:
-                >>> model.get_relation_class('public.person')
-                [...]UnknownRelation: 'public.person' does not exist in the database halftest.
+                # Preferred: subclass and register
+                @register
+                class Author(blog.get_relation_class('blog.author')):
+                    Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
         """
         try:
             schema, table = relation_name.replace('"', '').rsplit('.', 1)
@@ -222,11 +205,10 @@ class Model:
         return self._dbinfo['dbname']
 
     def ping(self):
-        """Checks if the connection is still established.
-        Attempts a new connection otherwise.
+        """Check if the connection is alive, reconnecting if needed.
 
         Returns:
-            bool: True if the connection is established, False otherwise.
+            bool: ``True`` if the connection is established.
         """
         try:
             self.execute_query("select 1")
@@ -375,14 +357,20 @@ class Model:
         return values
 
     def execute_query(self, query, values=None, mogrify=False):
-        """Executes a raw SQL query.
+        """Execute a raw SQL query. *Executes SQL.*
+
+        Args:
+            query (str): SQL query with ``%s`` placeholders.
+            values (tuple | None): query parameters.
+            mogrify (bool): if ``True``, print the interpolated query before
+                executing. Default: ``False``.
+
+        Returns:
+            cursor: psycopg cursor positioned on the result set.
 
         Warning:
-            This method calls the psycopg
-            `cursor.execute <https://www.psycopg.org/docs/cursor.html?highlight=execute#cursor.execute>`_
-            function.
-            Please read the psycopg documentation on
-            `passing parameters to SQL queries <https://www.psycopg.org/docs/usage.html#query-parameters>`_.
+            Always use ``%s`` placeholders — never interpolate user input
+            directly into the query string.
         """
         values = self._unwrap_values(values)
         cursor = self._connection.cursor(row_factory=dict_row)
@@ -405,20 +393,18 @@ class Model:
         return cursor
 
     def execute_function(self, fct_name, *args, **kwargs) -> typing.List[tuple]:
-        """`Executes a PostgreSQL function <https://www.postgresql.org/docs/current/sql-syntax-calling-funcs.html>`_.
+        """Call a PostgreSQL function and return its result set. *Executes SQL.*
 
-        Arguments:
-            *args: The list of parameters to be passed to the postgresql function.
-            **kwargs: The list of named parameters to be passed to the postgresql function.
+        Args:
+            fct_name (str): fully qualified function name (``'schema.function'``).
+            *args: positional parameters.
+            **kwargs: named parameters (``name => value`` syntax).
 
         Returns:
-            List[tuple]: a list of tuples.
+            list[dict]: rows returned by the function.
 
         Raises:
-            RuntimeError: If you mix ***args** and ****kwargs**.
-
-        Note:
-            You can't mix args and kwargs with the execute_function method!
+            RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the execute_function method!")
@@ -433,20 +419,19 @@ class Model:
         return cursor.fetchall()
 
     def call_procedure(self, proc_name, *args, **kwargs):
-        """`Executes a PostgreSQL procedure <https://www.postgresql.org/docs/current/sql-call.html>`_.
+        """Call a PostgreSQL procedure. *Executes SQL.*
 
-        Arguments:
-            *args: The list of parameters to be passed to the postgresql function.
-            **kwargs: The list of named parameters to be passed to the postgresql function.
+        Args:
+            proc_name (str): fully qualified procedure name.
+            *args: positional parameters.
+            **kwargs: named parameters.
 
         Returns:
-            None | List[tuple]: None or a list of tuples.
+            list[dict] | None: rows if the procedure returns a result set,
+            otherwise ``None``.
 
         Raises:
-            RuntimeError: If you mix ***args** and ****kwargs**.
-
-        Note:
-            You can't mix args and kwargs with the call_procedure method!
+            RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the call_procedure method!")
@@ -465,16 +450,13 @@ class Model:
             return None
 
     def has_relation(self, qtn: str) -> bool:
-        """Checks if the qtn is a relation in the database
+        """Return ``True`` if the relation exists in the database.
+
+        Args:
+            qtn (str): qualified table name, e.g. ``'public.person'``.
 
         Returns:
-            bool: True if the relation exists in the database, False otherwise.
-
-        Example:
-            >>> model.has_relation('public.person')
-            False
-            >>> model.has_relation('actor.person')
-            True
+            bool
         """
         return self.__pg_meta.has_relation(self.__dbname, *qtn.rsplit('.', 1))
 
@@ -535,11 +517,9 @@ class Model:
 
     @property
     def sql_trace(self) -> bool:
+        """bool: if ``True``, every SQL query is printed to stdout before execution."""
         return self.__sql_trace
+
     @sql_trace.setter
     def sql_trace(self, value: bool) -> None:
-        """Sets the value of self.__sql_trace
-
-        If True, all sql queries are displayed on stdout.
-        """
         self.__sql_trace = value

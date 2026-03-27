@@ -9,6 +9,33 @@ from half_orm import utils
 from half_orm.relation import Relation
 
 def register_class(relation_class):
+    """Register a :class:`~half_orm.relation.Relation` subclass with its Model.
+
+    After registration, FK navigation and factory calls return instances of
+    the custom subclass instead of the generated base class, making
+    ``Fkeys`` aliases and custom methods available throughout.
+
+    Args:
+        relation_class: a class that subclasses the result of
+            :meth:`~half_orm.model.Model.get_relation_class`.
+
+    Returns:
+        relation_class — the decorated class, unchanged.
+
+    Raises:
+        ValueError: if ``relation_class`` is not a valid relation subclass.
+
+    Example:
+        ::
+
+            from half_orm.model import Model, register
+
+            blog = Model('blog')
+
+            @register
+            class Author(blog.get_relation_class('blog.author')):
+                Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
+    """
     try:
         rel_id = id(relation_class)
         if rel_id in relation_class._rels_ids:
