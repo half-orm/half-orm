@@ -1273,17 +1273,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#half_orm.relation.Relation.ho_assert_is_singleton" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ho_assert_is_singleton
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1383,6 +1372,17 @@
   
     <nav class="md-nav" aria-label="Introspection">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_assert_is_singleton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_assert_is_singleton
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#half_orm.relation.Relation.ho_is_set" class="md-nav__link">
@@ -1507,16 +1507,21 @@
 <p>A <code>Relation</code> object is a <strong>predicate</strong> — it describes the logical condition
 that rows must satisfy to belong to the relation. Its <em>extension</em> is the set
 of rows currently satisfying that predicate in the database.</p>
-<p>Instantiating with keyword arguments specialises the predicate. No SQL is
-executed until you call an executor method.</p>
+<p>Instantiating with keyword arguments specialises the predicate. <strong>No SQL is
+executed</strong> until you call an executor method.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">()</span>                          <span class="c1"># tautology — the whole table</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>        <span class="c1"># subset: &quot;is an author named Martin&quot;</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span> <span class="c1"># at most one row</span>
 </code></pre></div>
+<p><strong>Executors</strong> (<code>ho_select</code>, <code>ho_insert</code>, <code>ho_update</code>, <code>ho_delete</code>, <code>ho_count</code>,
+<code>ho_is_empty</code>) execute SQL immediately and return results.
+<strong>Introspection</strong> methods (<code>ho_assert_is_singleton</code>, <code>ho_is_set</code>,
+<code>ho_where_display</code>, <code>ho_mogrify</code>) inspect or assert on the predicate without
+touching the database.</p>
 <p>See <a href="../../half-an-hour/">Learn halfORM in half an hour</a> for a full walkthrough.</p>
 <hr />
 <h2 id="executors">Executors<a class="headerlink" href="#executors" title="Permanent link">&para;</a></h2>
-<p>These methods execute SQL and return results immediately.</p>
+<p>These methods execute SQL immediately and return results.</p>
 
 
 <div class="doc doc-object doc-function">
@@ -1530,7 +1535,7 @@ executed until you call an executor method.</p>
 
     <div class="doc doc-contents first">
 
-        <p>Insert the row described by this predicate.</p>
+        <p>Insert the row described by this predicate. <em>Executes SQL.</em></p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1637,7 +1642,7 @@ alice[&#39;id&#39;]   # 1
 
     <div class="doc doc-contents first">
 
-        <p>Enumerate the extension of this predicate.</p>
+        <p>Enumerate the extension of this predicate. <em>Executes SQL.</em></p>
 <p>This method is a generator. Without arguments it is equivalent to
 iterating directly on the relation object (<code>for row in rel:</code>).</p>
 
@@ -1814,7 +1819,7 @@ for row in alice.ho_select(json_agg={&#39;post_rfk&#39;: [&#39;id&#39;, &#39;tit
 
     <div class="doc doc-contents first">
 
-        <p>Return the number of rows that satisfy the predicate.</p>
+        <p>Return the number of rows that satisfy the predicate. <em>Executes SQL.</em></p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1910,7 +1915,7 @@ Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
 
     <div class="doc doc-contents first">
 
-        <p>Return <code>True</code> if the extension is empty, <code>False</code> otherwise.</p>
+        <p>Return <code>True</code> if the extension is empty, <code>False</code> otherwise. <em>Executes SQL.</em></p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -1957,7 +1962,7 @@ Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
 
     <div class="doc doc-contents first">
 
-        <p>Update every row that satisfies the predicate.</p>
+        <p>Update every row that satisfies the predicate. <em>Executes SQL.</em></p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2106,7 +2111,7 @@ Post(author_id=99).ho_update(content=&#39;[archived]&#39;)
 
     <div class="doc doc-contents first">
 
-        <p>Remove every row that satisfies the predicate.</p>
+        <p>Remove every row that satisfies the predicate. <em>Executes SQL.</em></p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2226,7 +2231,147 @@ Post(author_id=1).ho_delete(delete_all=True)
 
     </div>
 
+</div><hr />
+<h2 id="async-executors">Async executors<a class="headerlink" href="#async-executors" title="Permanent link">&para;</a></h2>
+<p>Async counterparts of every executor. Require an async connection opened
+with <code>await model.aconnect()</code>. Return plain values (not generators) so the
+cursor can be closed before returning to the caller.</p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_ainsert" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_ainsert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_ainsert" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_insert. <em>Executes SQL.</em></p>
+
+
+    </div>
+
 </div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_aselect" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_aselect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_aselect" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_select. Returns a list of dicts (not a generator). <em>Executes SQL.</em></p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_acount" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_acount</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_acount" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_count. <em>Executes SQL.</em></p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_ais_empty" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_ais_empty</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_ais_empty" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_is_empty. <em>Executes SQL.</em></p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_aupdate" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_aupdate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">update_all</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_aupdate" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_update. <em>Executes SQL.</em></p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_adelete" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_adelete</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">delete_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_adelete" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_delete. <em>Executes SQL.</em></p>
+
+
+    </div>
+
+</div><hr />
+<h2 id="introspection">Introspection<a class="headerlink" href="#introspection" title="Permanent link">&para;</a></h2>
+<p>These methods inspect or assert on the predicate <strong>without executing SQL</strong>.</p>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2309,146 +2454,7 @@ Author(id=42).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;
 
     </div>
 
-</div><hr />
-<h2 id="async-executors">Async executors<a class="headerlink" href="#async-executors" title="Permanent link">&para;</a></h2>
-<p>Async counterparts of every executor. Require an async connection opened
-with <code>await model.aconnect()</code>. Return plain values (not generators) so the
-cursor can be closed before returning to the caller.</p>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_ainsert" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_ainsert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_ainsert" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_insert.</p>
-
-
-    </div>
-
 </div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_aselect" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_aselect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_aselect" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_select. Returns a list of dicts (not a generator).</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_acount" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_acount</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_acount" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_count.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_ais_empty" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_ais_empty</span><span class="p">()</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_ais_empty" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_is_empty.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_aupdate" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_aupdate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">update_all</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_aupdate" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_update.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.relation.Relation.ho_adelete" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_adelete</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">delete_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.relation.Relation.ho_adelete" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async variant of ho_delete.</p>
-
-
-    </div>
-
-</div><hr />
-<h2 id="introspection">Introspection<a class="headerlink" href="#introspection" title="Permanent link">&para;</a></h2>
-
 
 <div class="doc doc-object doc-function">
 
@@ -2706,7 +2712,7 @@ class Author(blog.get_relation_class(&#39;blog.author&#39;)):
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 09:51:25 UTC">March 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 09:59:43 UTC">March 27, 2026</span>
   </span>
 
     
