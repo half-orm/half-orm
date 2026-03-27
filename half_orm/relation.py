@@ -702,6 +702,10 @@ class Relation:
                 field = self._ho_fields_by_fieldnum[fieldnum]
                 ho_ukey[field.name] = field
             self._ho_ukeys.append(ho_ukey)
+        # If no PRIMARY KEY is defined, the first UNIQUE NOT NULL constraint
+        # acts as the effective PK (FK references to it are valid in PostgreSQL).
+        if not self._ho_pkey and self._ho_ukeys:
+            self._ho_pkey = self._ho_ukeys[0]
 
     def _ho_set_fkeys(self):
         """Initialisation of the foreign keys of the relation"""
