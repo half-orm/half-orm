@@ -85,3 +85,24 @@ class Test(TestCase):
             self.assertEqual(initial_count + 1, self.pers.ho_count())
         finally:
             halftest.person_cls(first_name='x', last_name='x').ho_delete()
+
+    def test_nested_with_savepoint_isolation(self):
+        "Nested 'with Transaction' failure must not abort the outer transaction"
+        initial_count = self.pers.ho_count()
+        try:
+            with Transaction(halftest.model):
+                self.pers(
+                    first_name='y', last_name='y', birth_date='2000-01-01'
+                ).ho_insert()
+                try:
+                    with Transaction(halftest.model):   # savepoint
+                        # duplicate → UniqueViolation, rolled back to savepoint
+                        self.pers(
+                            first_name='aa', last_name='aa', birth_date='1970-01-01'
+                        ).ho_insert()
+                except UniqueViolation:
+                    pass
+                # outer transaction still valid: y/y committed, aa/aa rolled back
+            self.assertEqual(initial_count + 1, self.pers.ho_count())
+        finally:
+            halftest.person_cls(first_name='y', last_name='y').ho_delete()
