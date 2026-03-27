@@ -1,39 +1,23 @@
 #-*- coding: utf-8 -*-
 # pylint: disable=protected-access, too-few-public-methods, no-member
 
-"""This module is used by the `model <#module-half_orm.model>`_ module
-to generate the classes that manipulate the data in your database
-with the `Model.get_relation_class <#half_orm.model.Model.get_relation_class>`_
-method.
+"""Core predicate/relation abstraction for halfORM.
 
+A :class:`Relation` object is a **predicate** — it describes the logical
+condition that rows must satisfy to belong to the relation. Its *extension*
+is the set of rows currently satisfying that predicate in the database.
+
+This module is used by :mod:`half_orm.model` to generate relation classes
+via :meth:`~half_orm.model.Model.get_relation_class`. It also provides the
+:func:`singleton` and :func:`transaction` decorators for use in custom
+subclasses.
 
 Example:
     >>> from half_orm.model import Model
-    >>> model = Model('halftest')
-    >>> class Person(model.get_relation_class('actor.person')):
-    >>>     # your code goes here
-
-Main methods provided by the class Relation:
-- ho_insert: inserts a tuple into the pg table.
-- ho_select: returns a generator of the elements of the set defined by
-  the constraint on the Relation object. The elements are dictionaries with the
-  keys corresponding to the selected columns names in the relation.
-  The result is affected by the methods: ho_distinct, ho_order_by, ho_limit and ho_offset
-  (see below).
-- ho_update: updates the set defined by the constraint on the Relation object
-  with the values passed as arguments.
-- ho_delete: deletes from the relation the set of elements defined by the constraint
-  on the Relation object.
-- ho_get: returns the unique element defined by the constraint on the Relation object.
-  the element returned if of the type of the Relation object.
-
-The following methods can be chained on the object before a select.
-
-- ho_distinct: ensures that there are no duplicates on the select result.
-- ho_order_by: sets the order of the select result.
-- ho_limit: limits the number of elements returned by the select method.
-- ho_offset: sets the offset for the select method.
-
+    >>> blog = Model('blog')
+    >>> Author = blog.get_relation_class('blog.author')
+    >>> Author(last_name='Martin').ho_count()   # cardinality of the predicate
+    3
 """
 
 import inspect
@@ -96,145 +80,74 @@ class _SetOperators:
 
 @dataclass
 class DC_Relation: # pragma: no cover
+    """Stub for IDE type-checking only. See :class:`Relation` for full documentation."""
     def __init__(self, **kwargs): ...
 
-    def ho_insert(self, *args: List[str]) -> Dict:
-        """Insert a new tuple into the Relation.
-
-        Returns:
-            Dict: A dictionary containing the data inserted.
-
-        Example:
-            >>> gaston = Person(last_name='La', first_name='Ga', birth_date='1970-01-01').ho_insert()
-            >>> print(gaston)
-            {'id': 1772, 'first_name': 'Ga', 'last_name': 'La', 'birth_date': datetime.date(1970, 1, 1)}
-
-        Note:
-            It is not possible to insert more than one row with the ho_insert method
-        """
+    def ho_insert(self, *args) -> Dict:
+        """Insert the row described by this predicate. Returns the inserted row as a dict."""
         ...
-    def ho_select(self, *args: List[str],
-        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None) -> [Dict]:
-        """Gets the set of values correponding to the constraint attached to self.
-        This method is a generator.
-
-        Arguments:
-            *args: the fields names of the returned attributes. If omitted,
-                all the fields are returned.
-
-        Yields:
-            the result of the query as a list of dictionaries.
-
-        Example:
-            >>> for person in Person(last_name=('like', 'La%')).ho_select('id'):
-            >>>     print(person)
-            {'id': 1772}
-        """
+    def ho_select(self, *args,
+        distinct:bool=False, order_by:str=None, limit:int=None, offset:int=None,
+        json_agg=None):
+        """Enumerate the extension of this predicate. Generator yielding one dict per row."""
         ...
-
     def ho_update(self, *args, update_all=False, **kwargs) -> Optional[Dict]:
-        """Updates the elements defined by self.
-
-        Arguments:
-            *args [Optional]: the list of columns names to return in the dictionary list for the updated elements.
-                If args is ('*', ), returns all the columns values otherwise None.
-            **kwargs: the values to be updated {[field name:value]}
-            update_all: a boolean that must be set to True if there is no constraint on
-                self. Defaults to False.
-        """
+        """Update every row that satisfies the predicate."""
         ...
-
-    def ho_delete(self, *args, delete_all=False) -> [Dict]:
-        """removes all elements from the set that correspond to the constraint.
-
-        Arguments:
-            *args [Optional]:
-        """
+    def ho_delete(self, *args, delete_all=False):
+        """Remove every row that satisfies the predicate."""
         ...
-
     def ho_assert_is_singleton(self):
-        """Assert that this predicate identifies exactly one row, without querying the database.
-
-        A predicate is a *singleton* when every field of a unique identifier
-        (primary key or any ``UNIQUE NOT NULL`` constraint) is set with the
-        ``=`` comparator. The check is purely structural — no SQL is executed.
-
-        Returns:
-            self — for chaining before a write operation.
-
-        Raises:
-            NotASingletonError: if no unique identifier is fully set.
-        """
+        """Assert that this predicate identifies exactly one row, without querying the database."""
         ...
-
-    def _ho_get(self, *args: List[str]) -> 'Relation':
-        """The get method allows you to fetch a singleton from the database.
-        It garantees that the constraint references one and only one tuple.
-
-        Arguments:
-            args (List[str]): list of fields names.\
-            If ommitted, all the values of the row retreived from the database\
-            are set for the self object.\
-            Otherwise, only the values listed in the `args` parameter are set.
-
-        Returns:
-            Relation: the object retreived from the database.
-
-        Raises:
-            ExpectedOneError: an exception is raised if no or more than one element is found.
-
-        Example:
-            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston')._ho_get()
-            >>> type(gaston) is Person
-            True
-            >>> gaston.id
-            (int4) NOT NULL (id = 1772)
-            >>> str(gaston.id)
-            '1772'
-            >>> gaston.id.value
-            1772
-        """
+    def _ho_get(self, *args) -> 'Relation':
+        """Fetch the single row matching this predicate from the database."""
         ...
-
     def ho_is_set(self) -> bool:
-        """Return True if one field at least is set or if self has been
-        constrained by at least one of its foreign keys or self is the
-        result of a combination of Relations (using set operators).
-        """
+        """Return True if at least one field or FK constraint is set."""
         ...
-
-    def ho_distinct(self) -> 'Relation':
-        """Set distinct for the SQL request."""
+    def ho_mogrify(self):
+        """Print the SQL SELECT that would be executed and return self."""
         ...
-
+    def ho_distinct(self, dist=True) -> 'Relation':
+        """Add DISTINCT to the next SELECT (deprecated: use ho_select(distinct=True))."""
+        ...
     def ho_unaccent(self, *fields_names) -> 'Relation':
-        "Sets unaccent for each field listed in fields_names"
+        """Apply unaccent to the listed fields for the next SELECT."""
         ...
-
     def ho_order_by(self, _order_) -> 'Relation':
-        """Sets the SQL `order by` according to the "_order_" string passed
-
-        Example :
-            personnes.ho_order_by("field1, field2 desc, field3, field4 desc")
-        """
+        """Set ORDER BY for the next SELECT (deprecated: use ho_select(order_by=...))."""
         ...
-
     def ho_limit(self, _limit_) -> 'Relation':
-        """Sets the limit for the next SQL select request."""
+        """Set LIMIT for the next SELECT (deprecated: use ho_select(limit=...))."""
         ...
-
     def ho_offset(self, _offset_) -> 'Relation':
-        """Set the offset for the next SQL select request."""
+        """Set OFFSET for the next SELECT (deprecated: use ho_select(offset=...))."""
         ...
-
-    def ho_count(self, limit=0) -> int:
-        """Returns the number of tuples matching the intention in the relation.
-        """
+    def ho_count(self, *args, distinct:bool=False) -> int:
+        """Return the number of rows that satisfy the predicate."""
         ...
-
     def ho_is_empty(self) -> bool:
-        """Returns True if the self is an empty set, False otherwise.
-        """
+        """Return True if the extension is empty, False otherwise."""
+        ...
+    async def ho_ainsert(self, *args) -> dict:
+        """Async variant of ho_insert."""
+        ...
+    async def ho_aselect(self, *args,
+        distinct:bool=False, order_by:str=None, limit:int=None, offset:int=None):
+        """Async variant of ho_select. Returns a list of dicts."""
+        ...
+    async def ho_aupdate(self, *args, update_all=False, **kwargs):
+        """Async variant of ho_update."""
+        ...
+    async def ho_adelete(self, *args, delete_all=False):
+        """Async variant of ho_delete."""
+        ...
+    async def ho_acount(self, *args, distinct:bool=False) -> int:
+        """Async variant of ho_count."""
+        ...
+    async def ho_ais_empty(self) -> bool:
+        """Async variant of ho_is_empty."""
         ...
 
 class Relation:

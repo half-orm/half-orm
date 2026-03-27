@@ -1,90 +1,138 @@
 # Relation
 
-<!-- TODO: Module overview -->
-<!-- TODO: Key concepts -->
-<!-- TODO: Usage patterns -->
+A `Relation` object is a **predicate** — it describes the logical condition
+that rows must satisfy to belong to the relation. Its *extension* is the set
+of rows currently satisfying that predicate in the database.
 
-!!! note "API Status"
-    API documentation is auto-generated from docstrings. Ensure docstrings are comprehensive.
+Instantiating with keyword arguments specialises the predicate. No SQL is
+executed until you call an executor method.
 
-## Overview
+```python
+Author()                          # tautology — the whole table
+Author(last_name='Martin')        # subset: "is an author named Martin"
+Author(last_name='Martin', id=42) # at most one row
+```
 
-## Method Categories
+See [Learn halfORM in half an hour](../half-an-hour.md) for a full walkthrough.
 
-Relation methods are divided into two categories:
+---
 
-### Query Builders (Lazy)
-Return modified relation objects without executing SQL:
-- `ho_order_by()`, `ho_limit()`, `ho_offset()`
-- Set operations: `&`, `|`, `-`, `^`
-- Foreign key navigation: `relation_fk()`, `relation_rfk()`
+## Executors
 
-### Query Executors (Eager)
-Execute SQL immediately and return results:
-- `ho_select(*fields)` → **Generator**
-- `ho_count()` → **int**
-- `ho_is_empty()` → **bool**
-- `ho_insert()`, `ho_update()`, `ho_delete()` → **dict**
+These methods execute SQL and return results immediately.
 
-!!! warning "ho_get() is deprecated"
-    Use the `@singleton` decorator instead. See [The Singleton Pattern](../fundamentals.md#the-singleton-pattern).
-
-!!! warning "No Chaining After Execution"
-    ```python
-    # ✅ Chain builders first
-    query = Author().ho_order_by('name').ho_limit(10)
-    
-    # ✅ Then execute
-    results = query.ho_select('name')  # Returns generator
-    
-    # ❌ Cannot chain after execution
-    # results.ho_order_by('email')  # ERROR!
-    ```
-
-!!! tip "Conceptual Background"
-    This builder/executor pattern is core to halfORM's design. Learn more in [halfORM Fundamentals](../fundamentals.md#method-categories-builders-vs-executors).
-
-### Async Executors (Eager, coroutines)
-Async counterparts of every query executor. Require an async connection opened via
-`await model.aconnect()` before use, and closed with `await model.adisconnect()`.
-Return plain values (not generators) so the underlying cursor can be closed immediately.
-
-- `ho_aselect(*fields)` → **list[dict]**
-- `ho_acount()` → **int**
-- `ho_ais_empty()` → **bool**
-- `ho_ainsert()` → **dict**
-- `ho_aupdate(**kwargs)` → —
-- `ho_adelete()` → —
-
-!!! example "Concurrent queries with asyncio.gather"
-    ```python
-    import asyncio
-    from half_orm.model import Model
-
-    db = Model('my_database')
-    Person = db.get_relation_class('public.person')
-
-    async def main():
-        await db.aconnect()
-        try:
-            admins, users = await asyncio.gather(
-                Person(role='admin').ho_aselect(),
-                Person(role='user').ho_aselect(),
-            )
-        finally:
-            await db.adisconnect()
-
-    asyncio.run(main())
-    ```
-
-### Introspection (no SQL)
-Inspect the query intent without executing anything:
-- `ho_where_display()` → **dict | None** — returns the JOIN/WHERE clauses as built on the object
-- `ho_is_set()` → **bool** — True if at least one field or FK constraint is set
-
-## Reference
-
-::: half_orm.relation
+::: half_orm.relation.Relation.ho_insert
     options:
-      show_source: true
       show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_select
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_count
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_is_empty
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_update
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_delete
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_assert_is_singleton
+    options:
+      show_root_heading: true
+      show_source: false
+
+---
+
+## Async executors
+
+Async counterparts of every executor. Require an async connection opened
+with `await model.aconnect()`. Return plain values (not generators) so the
+cursor can be closed before returning to the caller.
+
+::: half_orm.relation.Relation.ho_ainsert
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_aselect
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_acount
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_ais_empty
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_aupdate
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_adelete
+    options:
+      show_root_heading: true
+      show_source: false
+
+---
+
+## Introspection
+
+::: half_orm.relation.Relation.ho_is_set
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_where_display
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_mogrify
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_dict
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.Relation.ho_description
+    options:
+      show_root_heading: true
+      show_source: false
+
+---
+
+## Decorators
+
+::: half_orm.relation.singleton
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: half_orm.relation.transaction
+    options:
+      show_root_heading: true
+      show_source: false

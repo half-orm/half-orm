@@ -73,8 +73,7 @@ r "blog"."comment"
 r "blog"."post"
 ```
 
-Get a class for a table — each class represents the **set of all rows** in that
-table:
+Get a class for a table with [`get_relation_class()`](api/model.md#half_orm.model.Model.get_relation_class) — each class represents the **set of all rows** in that table:
 
 ```python
 Author  = blog.get_relation_class('blog.author')
@@ -103,7 +102,7 @@ Author(last_name='Martin', id=42)     # predicate: "Martin with id 42"         �
 ```
 
 The object does not query the database. It holds a predicate. The query happens
-only when you explicitly ask for the extension (via `ho_select`, `ho_count`, etc.).
+only when you explicitly ask for the extension (via [`ho_select`](api/relation.md#half_orm.relation.Relation.ho_select), [`ho_count`](api/relation.md#half_orm.relation.Relation.ho_count), etc.).
 
 This is the foundation everything else builds on.
 
@@ -121,7 +120,7 @@ Author(last_name='Unknown').ho_is_empty()  # True if the extension is empty
 
 ### Enumerate the extension
 
-`ho_select()` is a generator that yields each row as a dict. Without arguments
+[`ho_select()`](api/relation.md#half_orm.relation.Relation.ho_select) is a generator that yields each row as a dict. Without arguments
 it is equivalent to iterating directly on the relation:
 
 ```python
@@ -170,7 +169,7 @@ Post(content=('is not', NULL))           # set where content IS NOT NULL
 
 ## 4. Insert: add an element to a table (2 min)
 
-`ho_insert()` inserts the row described by the object's constraints and returns
+[`ho_insert()`](api/relation.md#half_orm.relation.Relation.ho_insert) inserts the row described by the object's constraints and returns
 the inserted row as a dict:
 
 ```python
@@ -190,7 +189,7 @@ print(row)   # {'id': 1, 'first_name': 'Alice', 'last_name': 'Martin', ...}
 A predicate is a **singleton** when it logically identifies at most one row —
 i.e. a primary key or unique NOT NULL constraint is fully specified with `=`.
 
-`ho_assert_is_singleton()` verifies this *without querying the database* and
+[`ho_assert_is_singleton()`](api/relation.md#half_orm.relation.Relation.ho_assert_is_singleton) verifies this *without querying the database* and
 returns `self` for chaining. It raises `NotASingletonError` if the predicate
 is not a singleton.
 
@@ -211,7 +210,7 @@ Author(id=99).ho_assert_is_singleton().ho_delete()
 
 ## 6. Update: transform the extension (1 min)
 
-`ho_update()` modifies every row that satisfies the predicate:
+[`ho_update()`](api/relation.md#half_orm.relation.Relation.ho_update) modifies every row that satisfies the predicate:
 
 ```python
 # Update one row — guarded
@@ -225,7 +224,7 @@ Post(author_id=99).ho_update(content='[archived]')
 
 ## 7. Delete: remove the extension (1 min)
 
-`ho_delete()` removes every row that satisfies the predicate:
+[`ho_delete()`](api/relation.md#half_orm.relation.Relation.ho_delete) removes every row that satisfies the predicate:
 
 ```python
 Author(id=99).ho_assert_is_singleton().ho_delete()
@@ -288,7 +287,7 @@ class Comment(blog.get_relation_class('blog.comment')):
 !!! tip "Finding FK names"
     `print(Post())` lists all foreign keys with their internal names.
 
-### `fkey()` — extend the predicate into a related table
+### [`fkey()`](api/fkey.md#half_orm.fkey.FKey.__call__) — extend the predicate into a related table
 
 Calling a FK attribute produces a new predicate on the related table, restricted
 to the rows linked to the current predicate's extension:
@@ -309,7 +308,7 @@ martin_posts = Author(last_name='Martin').post_rfk(content=('is not', NULL))
 print(martin_posts.ho_count())
 ```
 
-### `fkey.set(predicate)` — compose predicates across a join
+### [`fkey.set(predicate)`](api/fkey.md#half_orm.fkey.FKey.set) — compose predicates across a join
 
 `.set()` adds a join condition: the rows satisfying the current predicate must
 also be linked to rows satisfying the given predicate in another table.
@@ -395,7 +394,7 @@ print(active.ho_count())
 
 ## 10. Transactions (5 min)
 
-`Transaction` is a context manager that wraps operations in a single atomic unit.
+[`Transaction`](api/transaction.md#half_orm.transaction.Transaction) is a context manager that wraps operations in a single atomic unit.
 It commits on success, rolls back on exception.
 
 ```python
@@ -448,7 +447,7 @@ class Author(blog.get_relation_class('blog.author')):
         return self.post_rfk(title=title, content=content).ho_insert()
 ```
 
-`@singleton` calls `ho_assert_is_singleton()` automatically — no DB round-trip,
+[`@singleton`](api/relation.md#half_orm.relation.singleton) calls [`ho_assert_is_singleton()`](api/relation.md#half_orm.relation.Relation.ho_assert_is_singleton) automatically — no DB round-trip,
 pure predicate check:
 
 ```python
