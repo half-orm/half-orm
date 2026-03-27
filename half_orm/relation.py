@@ -276,12 +276,13 @@ class Relation:
                 non-writable kind.
 
         Example:
-            >>> alice = Author(
-            ...     first_name='Alice', last_name='Martin',
-            ...     email='alice@example.com',
-            ... ).ho_insert()
-            >>> alice['id']
-            1
+            ::
+
+                alice = Author(
+                    first_name='Alice', last_name='Martin',
+                    email='alice@example.com',
+                ).ho_insert()
+                alice['id']   # 1
         """
         query, vals = self._ho_prep_insert(*args)
         with self.__execute(query, vals) as cursor:

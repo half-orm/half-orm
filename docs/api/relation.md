@@ -25,36 +25,43 @@ These methods execute SQL and return results immediately.
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_select
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_count
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_is_empty
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_update
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_delete
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_assert_is_singleton
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ---
 
@@ -68,31 +75,37 @@ cursor can be closed before returning to the caller.
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_aselect
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_acount
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_ais_empty
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_aupdate
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_adelete
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ---
 
@@ -102,26 +115,31 @@ cursor can be closed before returning to the caller.
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_where_display
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_mogrify
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_dict
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.Relation.ho_description
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ---
 
@@ -131,8 +149,10 @@ cursor can be closed before returning to the caller.
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
 
 ::: half_orm.relation.transaction
     options:
       show_root_heading: true
       show_source: false
+      heading_level: 3
