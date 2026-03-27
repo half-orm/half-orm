@@ -494,10 +494,13 @@ class Model:
         * a list of tuples indentifying the inherited relations.
 
         Example:
-            >>> from half_orm.model import Model
-            >>> halftest = Model('halftest')
-            >>> halftest.desc()
-            [('r', ('halftest', 'actor', 'person'), []), ('r', ('halftest', 'blog', 'comment'), []), ('r', ('halftest', 'blog', 'event'), [('halftest', 'blog', 'post')]), ('r', ('halftest', 'blog', 'post'), []), ('v', ('halftest', 'blog.view', 'post_comment'), [])]
+            ::
+
+                from half_orm.model import Model
+                halftest = Model('halftest')
+                halftest.desc()
+
+                [('r', ('halftest', 'actor', 'person'), []), ('r', ('halftest', 'blog', 'comment'), []), ('r', ('halftest', 'blog', 'event'), [('halftest', 'blog', 'post')]), ('r', ('halftest', 'blog', 'post'), []), ('v', ('halftest', 'blog.view', 'post_comment'), [])]
         """
         return self.__pg_meta.desc(self.__dbname)
 

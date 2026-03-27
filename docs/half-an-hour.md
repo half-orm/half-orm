@@ -382,12 +382,12 @@ for row in (martins | gmail).ho_select('first_name', 'last_name', 'email'):
 Compose freely:
 
 ```python
-# "is an author with a non-null email whose last name does not contain 'test'"
-active = (
-    Author(email=('is not', NULL)) &
-    -Author(last_name=('ilike', '%test%'))
+# "is a post with content whose title does not contain 'draft'"
+relevant = (
+    Post(content=('is not', NULL)) &
+    -Post(title=('ilike', '%draft%'))
 )
-print(active.ho_count())
+print(relevant.ho_count())
 ```
 
 ---
@@ -473,7 +473,7 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 | Compose into related table | [`obj.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
 | Compose via join | [`obj.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
 | Aggregate related extension | [`obj.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
-| Disjunction / conjunction / difference / negation | `a \| b`, `a & b`, `a - b`, `-a` |
+| Disjunction / conjunction / difference / negation | `a &#124; b`, `a & b`, `a - b`, `-a` |
 | Atomic operations | [`with Transaction(model):`](api/transaction.md#half_orm.transaction.Transaction) |
 | SQL NULL | `from half_orm.null import NULL` |
 | Inspect generated SQL | `model.sql_trace = True` |
