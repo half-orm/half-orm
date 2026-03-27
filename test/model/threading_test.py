@@ -100,6 +100,54 @@ class Test(TestCase):
         row = _run_in_thread(do_ping)
         self.assertEqual(row['?column?'], 1)
 
+    def test_reload_reconnects_other_threads(self):
+        "reconnect(reload=True) must force other threads to get a fresh connection."
+        barrier = threading.Barrier(2)
+        results = {}
+
+        def thread_b():
+            conn_before = model._connection
+            barrier.wait()          # A is about to reload
+            barrier.wait()          # A has reloaded
+            conn_after = model._connection
+            results['same'] = conn_before is conn_after
+
+        tb = threading.Thread(target=thread_b)
+        tb.start()
+        barrier.wait()              # B has its initial connection
+        model.reconnect(reload=True)
+        barrier.wait()              # signal B to re-access _connection
+        tb.join()
+
+        self.assertFalse(results['same'], "Thread B should have received a new connection after reload")
+        model.reconnect()           # restore main-thread connection
+
+    def test_reload_does_not_reconnect_disconnected_threads(self):
+        "reconnect(reload=True) must not auto-reconnect an explicitly disconnected thread."
+        barrier = threading.Barrier(2)
+        results = {}
+
+        def thread_b():
+            _ = model._connection
+            model.disconnect()
+            barrier.wait()          # A is about to reload
+            barrier.wait()          # A has reloaded
+            try:
+                _ = model._connection
+                results['raised'] = False
+            except psycopg.InterfaceError:
+                results['raised'] = True
+
+        tb = threading.Thread(target=thread_b)
+        tb.start()
+        barrier.wait()              # B has disconnected
+        model.reconnect(reload=True)
+        barrier.wait()              # signal B
+        tb.join()
+
+        self.assertTrue(results['raised'], "Disconnected thread should still raise InterfaceError after reload")
+        model.reconnect()
+
     def test_transaction_state_isolated_per_thread(self):
         "Transaction level must be independent in each thread."
         levels = {}

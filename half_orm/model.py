@@ -73,6 +73,7 @@ class Model:
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
         self.__thread_local = threading.local()
+        self.__schema_generation = 0
         self.__aconn = None
         self.__connect()
 
@@ -152,9 +153,11 @@ class Model:
         conn.adapters.register_dumper(Field, FieldDumper)
         conn.adapters.register_dumper(dict, JsonbDumper)
         self.__pg_meta = pg_meta.PgMeta(conn, reload)
-        self.__thread_local.conn = conn
         if reload:
+            self.__schema_generation += 1
             self._classes_[self._dbname] = {}
+        self.__thread_local.conn = conn
+        self.__thread_local.schema_generation = self.__schema_generation
         if self.__dbname not in self.__class__.__deja_vu:
             self.__deja_vu[self.__dbname] = self
 
@@ -304,13 +307,19 @@ class Model:
         - After an explicit disconnect(): raises InterfaceError until reconnect()
           is called.
         """
-        if not hasattr(self.__thread_local, 'conn'):
+        tl = self.__thread_local
+        if not hasattr(tl, 'conn'):
             # New thread — open a connection lazily
             self.__connect()
-        elif getattr(self.__thread_local, 'conn', None) is not None and self.__thread_local.conn.closed:
+        elif getattr(tl, 'conn', None) is not None and tl.conn.closed:
             # Connection dropped unexpectedly — reconnect
             self.__connect()
-        conn = self.__thread_local.conn
+        elif (getattr(tl, 'schema_generation', -1) != self.__schema_generation
+              and getattr(tl, 'conn', None) is not None):
+            # Schema was reloaded by another thread — get a fresh connection
+            tl.conn.close()
+            self.__connect()
+        conn = tl.conn
         if conn is None:
             raise psycopg.InterfaceError(
                 "Connection closed. Call model.reconnect() to re-establish.")
