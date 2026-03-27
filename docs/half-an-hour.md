@@ -462,17 +462,18 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 | Goal | Code |
 |------|------|
 | Connect | [`Model('dbname')`](api/model.md#half_orm.model.Model) |
-| Tautological predicate (whole table) | [`model.get_relation_class('schema.table')`](api/model.md#half_orm.model.Model.get_relation_class) |
-| Specialise a predicate | `Rel(field=val, ...)` |
+| Get a relation class | `Rel = `[`model.get_relation_class('schema.table')`](api/model.md#half_orm.model.Model.get_relation_class) |
+| Tautological predicate (whole table) | `rel = Rel()` |
+| Specialise a predicate | `rel = Rel(field=val, ...)` |
 | Cardinality of the extension | [`rel.ho_count()`](api/relation.md#half_orm.relation.Relation.ho_count) |
 | Enumerate the extension | [`rel.ho_select('col1', 'col2')`](api/relation.md#half_orm.relation.Relation.ho_select) |
 | Add a row | [`Rel(col=val).ho_insert()`](api/relation.md#half_orm.relation.Relation.ho_insert) |
 | Update the extension | [`Rel(pred).ho_update(col=new_val)`](api/relation.md#half_orm.relation.Relation.ho_update) |
 | Delete the extension | [`Rel(pred).ho_delete()`](api/relation.md#half_orm.relation.Relation.ho_delete) |
 | Assert singleton predicate (no DB) | [`Rel(pk=val).ho_assert_is_singleton()`](api/relation.md#half_orm.relation.Relation.ho_assert_is_singleton) |
-| Compose into related table | [`obj.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
-| Compose via join | [`obj.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
-| Aggregate related extension | [`obj.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
+| Compose into related table | [`rel.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
+| Compose via join | [`rel.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
+| Aggregate related extension | [`rel.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
 | Disjunction / conjunction / difference / negation | `a &#124; b`, `a & b`, `a - b`, `-a` |
 | Atomic operations | [`with Transaction(model):`](api/transaction.md#half_orm.transaction.Transaction) |
 | SQL NULL | `from half_orm.null import NULL` |
