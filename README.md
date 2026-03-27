@@ -23,379 +23,62 @@
 >
 > **psycopg2 users:** the **0.17.x** branch is maintained for psycopg2 and receives bug fixes.
 
-**The PostgreSQL-native ORM that stays out of your way**
+halfORM is a database-first ORM for PostgreSQL. You write the schema in SQL;
+halfORM introspects it at runtime and gives you Python objects to work with your
+data. No migrations, no code generation.
 
-> halfORM lets you keep your database schema in SQL where it belongs, while giving you the comfort of Python for data manipulation. No migrations, no schema conflicts, no ORM fighting — just PostgreSQL and Python working together.
+**The central idea:** a `Relation` object is a **predicate**. It describes the
+logical condition that rows must satisfy to belong to the relation. Its
+*extension* — the set of rows that currently satisfy the predicate in the
+database — is what you read, update, or delete.
 
-```python
-from half_orm.model import Model
+## Install
 
-# Connect to your existing database
-blog = Model('blog_db')
-
-# Work with your existing tables instantly
-Post = blog.get_relation_class('blog.post')
-Author = blog.get_relation_class('blog.author')
-
-# Clean, intuitive operations
-post = Post(title='Hello halfORM!', content='Simple and powerful.')
-result = post.ho_insert()
-print(f"Created post #{result['id']}")
-```
-
-## 🎯 Why halfORM?
-
-**Database-First Approach**: Your PostgreSQL schema is the source of truth. halfORM adapts to your database, not the other way around.
-
-**SQL Transparency**: See exactly what queries are generated with `ho_mogrify()`. No mysterious SQL, no query surprises.
-
-**PostgreSQL Native**: Use views, triggers, stored procedures, and advanced PostgreSQL features without compromise.
-
-## ⚡ Quick Start
-
-### Installation
 ```bash
 pip install half_orm
 ```
 
-### Configuration (one-time setup)
-```bash
-# Create config directory
-mkdir ~/.half_orm
-export HALFORM_CONF_DIR=~/.half_orm
+## Configure
 
-# Create connection file: ~/.half_orm/my_database
-echo "[database]
-name = my_database
-user = username
-password = password
+```ini
+# ~/.half_orm/blog
+[database]
+name = blog
+user = alice
+password = secret
 host = localhost
-port = 5432" > ~/.half_orm/my_database
 ```
 
-### First Steps
+## Usage
+
 ```python
 from half_orm.model import Model
 
-# Connect to your database
-db = Model('my_database')
-
-# See all your tables and views
-print(db)
-
-# Create a class for any table
-Person = db.get_relation_class('public.person')
-
-# See the table structure
-print(Person())
-```
-
-## 🚀 Core Operations
-
-### CRUD Made Simple
-
-```python
-# Create
-person = Person(first_name='Alice', last_name='Smith', email='alice@example.com')
-result = person.ho_insert()
-
-# Read
-for person in Person(last_name='Smith').ho_select():
-    print(f"{person['first_name']} {person['last_name']}")
-
-# Update
-Person(email='alice@example.com').ho_update(last_name='Johnson')
-
-# Delete  
-Person(email='alice@example.com').ho_delete()
-```
-
-### Smart Querying
-
-```python
-# No .filter() method needed - the object IS the filter
-young_people = Person(birth_date=('>', '1990-01-01'))
-gmail_users = Person(email=('ilike', '%@gmail.com'))
-
-# Navigate and constrain in one step
-alice_posts = Post().author_fk(name=('ilike', 'alice%'))
-
-# Chainable operations
-recent_posts = (Post(is_published=True)
-    .ho_order_by('created_at desc')
-    .ho_limit(10)
-    .ho_offset(20))
-
-# Set operations
-active_or_recent = active_users | recent_users
-power_users = premium_users & active_users
-```
-
-## 🎨 Custom Relation Classes with Foreign Key Navigation
-
-Override generic relation classes with custom implementations containing business logic and personalized foreign key mappings:
-
-```python
-from half_orm.model import Model, register
-from half_orm.relation import singleton
-
-blog = Model('blog_db')
-
-@register
-class Author(blog.get_relation_class('blog.author')):
-    Fkeys = {
-        'posts_rfk': '_reverse_fkey_blog_post_author_id',
-        'comments_rfk': '_reverse_fkey_blog_comment_author_id',
-    }
-    
-    @singleton
-    def create_post(self, title, content):
-        """Create a new blog post for this author."""
-        return self.posts_rfk(title=title, content=content).ho_insert()
-    
-    @singleton
-    def get_author_s_recent_posts(self, limit=10):
-        """Get author's most recent posts."""
-        return self.posts_rfk().ho_order_by('published_at desc').ho_limit(limit).ho_select()
-
-    def get_recent_posts(self, limit=10):
-        """Get most recent posts."""
-        return self.posts_rfk().ho_order_by('published_at desc').ho_limit(limit).ho_select()
-
-@register  
-class Post(blog.get_relation_class('blog.post')):
-    Fkeys = {
-        'author_fk': 'author_id',
-        'comments_rfk': '_reverse_fkey_blog_comment_post_id',
-    }
-
-    def publish(self):
-        """Publish this post."""
-        from datetime import datetime
-        self.published_at.value = datetime.now()
-        return self.ho_update()
-
-# This returns your custom Author class with all methods!
-post = Post(title='Welcome').ho_get()
-author = post.author_fk().ho_get()  # Instance of your custom Author class
-
-# Use your custom methods
-author.create_post("New Post", "Content here")
-recent_posts = author.get_recent_posts(5)
-
-# Chain relationships seamlessly  
-author.posts_rfk().comments_rfk().author_fk()  # The authors that commented any post of the author
-```
-
-## 🔧 Advanced Features
-
-### Transactions
-```python
-from half_orm.relation import transaction
-
-class Author(db.get_relation_class('blog.author')):
-    @transaction
-    def create_with_posts(self, posts_data):
-        # Everything in one transaction
-        author_result = self.ho_insert()
-        for post_data in posts_data:
-            Post(author_id=author_result['id'], **post_data).ho_insert()
-        return author_result
-```
-
-### PostgreSQL Functions & Procedures
-```python
-# Execute functions
-results = db.execute_function('my_schema.calculate_stats', user_id=123)
-
-# Call procedures  
-db.call_procedure('my_schema.cleanup_old_data', days=30)
-```
-
-### Query Debugging
-```python
-# See the exact SQL being generated
-person = Person(last_name=('ilike', 'sm%'))
-person.ho_mogrify()
-list(person.ho_select())  # or simply list(person)
-# Prints: SELECT * FROM person WHERE last_name ILIKE 'sm%'
-
-# Works with all operations
-person = Person(email='old@example.com')
-person.ho_mogrify()
-person.ho_update(email='new@example.com')
-# Prints the UPDATE query
-
-# Performance analysis
-count = Person().ho_count()
-is_empty = Person(email='nonexistent@example.com').ho_is_empty()
-```
-
-### Async Support
-
-halfORM supports async execution via psycopg 3's `AsyncConnection`. Open an async
-connection once, use `ho_a*` counterparts of the standard executors, then close it.
-
-```python
-import asyncio
-from half_orm.model import Model
-
-blog = Model('blog_db')
-Post = blog.get_relation_class('blog.post')
-
-async def main():
-    await blog.aconnect()
-    try:
-        # Async variants of every executor
-        new_post = await Post(title='Async!', content='Fast.').ho_ainsert()
-        posts    = await Post(is_published=True).ho_aselect()
-        count    = await Post().ho_acount()
-        empty    = await Post(title='?').ho_ais_empty()
-
-        # Fan-out: run independent queries concurrently
-        drafts, published = await asyncio.gather(
-            Post(is_published=False).ho_aselect(),
-            Post(is_published=True).ho_aselect(),
-        )
-    finally:
-        await blog.adisconnect()
-
-asyncio.run(main())
-```
-
-**Async executor methods** (all `await`-able):
-
-| Async method | Sync equivalent | Returns |
-|---|---|---|
-| `ho_aselect(*fields)` | `ho_select()` | `list[dict]` |
-| `ho_acount()` | `ho_count()` | `int` |
-| `ho_ais_empty()` | `ho_is_empty()` | `bool` |
-| `ho_ainsert()` | `ho_insert()` | `dict` |
-| `ho_aupdate(**kwargs)` | `ho_update()` | — |
-| `ho_adelete()` | `ho_delete()` | — |
-
-> **Note**: `ho_aselect()` returns a `list` (not a generator) so the cursor can be
-> closed before returning to the caller.
-
-### SQL Trace Mode
-```python
-# Enable SQL trace to see queries with caller context
-db.sql_trace = True
-
-# Now every query shows where it was called from
-person = Person(last_name='Smith').ho_get()
-# Output shows:
-# SQL TRACE:
-#   Called from: script.py:42
-#   SELECT * FROM person WHERE last_name = 'Smith'
-
-# Useful for debugging complex applications
-db.sql_trace = False  # Disable when done
-```
-
-## 🏗️ Real-World Example
-
-```python
-from half_orm.model import Model, register
-from half_orm.relation import singleton
-
-# Blog application
 blog = Model('blog')
+Post   = blog.get_relation_class('blog.post')
+Author = blog.get_relation_class('blog.author')
 
-@register
-class Author(blog.get_relation_class('blog.author')):
-    Fkeys = {
-        'posts_rfk': '_reverse_fkey_blog_post_author_id'
-    }
-    
-    @singleton
-    def create_post(self, title, content):
-        return self.posts_rfk(title=title, content=content).ho_insert()
+# Insert
+alice = Author(
+    first_name='Alice', last_name='Martin', email='alice@example.com'
+).ho_insert()
 
-@register
-class Post(blog.get_relation_class('blog.post')):
-    Fkeys = {
-        'author_fk': 'author_id',
-        'comments_rfk': '_reverse_fkey_blog_comment_post_id' 
-    }
+# Query — Author(last_name='Martin') is the predicate "is an author named Martin"
+for row in Author(last_name='Martin').ho_select('id', 'email'):
+    print(row)
 
-# Usage
-author = Author(name='Jane Doe', email='jane@collorg.org')
-if author.ho_is_empty():
-    author.ho_insert()
+# Update a singleton (predicate identifies exactly one row)
+Author(id=alice['id']).ho_assert_is_singleton().ho_update(email='alice@newdomain.com')
 
-# Create post through relationship
-post_data = author.create_post(
-    title='halfORM is Awesome!',
-    content='Here is why you should try it...'
-)
-
-post = Post(**post_data)
-print(f"Published: {post.title.value}")
-print(f"Comments: {post.comments_rfk().ho_count()}")
+# Delete
+Author(id=alice['id']).ho_assert_is_singleton().ho_delete()
 ```
 
-## 📊 halfORM vs. Others
+## Documentation
 
-| Feature | SQLAlchemy | Django ORM | Peewee | **halfORM** |
-|---------|------------|------------|---------|-------------|
-| **Learning Curve** | Steep | Moderate | Gentle | **Minimal** |
-| **SQL Control** | Limited | Limited | Good | **Complete** |
-| **Custom Business Logic** | Classes/Mixins | Model Methods | Model Methods | **@register decorator** |
-| **Database Support** | Multi | Multi | Multi | **PostgreSQL only** |
-| **PostgreSQL-Native** | Partial | Partial | No | **✅ Full** |
-| **Database-First** | No | No | Partial | **✅ Native** |
-| **Setup Complexity** | High | Framework | Low | **Ultra-Low** |
-| **Best For** | Complex Apps | Django Web | Multi-DB Apps | **PostgreSQL + Python** |
+- [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/half-an-hour/)
+- [API Reference](https://half-orm.github.io/half-orm/api/relation/)
 
-## 🎓 When to Choose halfORM
-
-### ✅ Perfect For
-- **PostgreSQL-centric applications** - You want to leverage PostgreSQL's full power
-- **Existing database projects** - You have a schema and want Python access
-- **SQL-comfortable teams** - You prefer SQL for complex queries and logic
-- **Rapid prototyping** - Get started in seconds, not hours
-- **Microservices** - Lightweight, focused ORM without framework baggage
-
-### ⚠️ Consider Alternatives If
-- **Multi-database support needed** - halfORM is PostgreSQL-only
-- **Django ecosystem** - Django ORM integrates better with Django
-- **Team prefers code-first** - You want to define models in Python
-- **Heavy ORM features needed** - You need advanced ORM patterns like lazy loading, identity maps, etc.
-
-## 📚 Documentation (WIP)
-
-**[📖 Complete Documentation](https://half-orm.github.io/half-orm/)** - Full documentation site 🚧
-
-### Quick Links
-
-- **[🚀 Quick Start](https://half-orm.github.io/half-orm/quick-start/)** - Get running in 5 minutes
-- **[🎓 Tutorial](https://half-orm.github.io/half-orm/tutorial/)** - Step-by-step learning path *(WIP)*
-- **[📋 API Reference](https://half-orm.github.io/half-orm/api/)** - Complete method documentation *(WIP)*
-
-## 🤝 Contributing
-
-We welcome contributions! halfORM is designed to stay simple and focused.
-
-- **[Issues](https://github.com/half-orm/half-orm/issues)** - Bug reports and feature requests
-- **[Discussions](https://github.com/half-orm/half-orm/discussions)** - Questions and community
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute code
-
-## 📈 Status & Roadmap
-
-halfORM is actively maintained and used in production. Current focus:
-
-- ✅ **Stable API** - Core features are stable since v0.8
-- 🔄 **Performance optimizations** - Query generation improvements  
-- 📝 **Documentation expansion** - More examples and guides
-- 🧪 **Advanced PostgreSQL features** - Better support for newer PostgreSQL versions
-
-## 📜 License
+## License
 
 halfORM is licensed under the [GPL-3.0](LICENSE) license.
-
----
-
-> **"Database-first development shouldn't be this hard. halfORM makes it simple."**
-
-**Made with ❤️ for PostgreSQL and Python developers**

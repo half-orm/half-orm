@@ -239,14 +239,30 @@ Post(author_id=1).ho_delete(delete_all=True)
 
 ## 8. Foreign keys: composing predicates across tables (10 min)
 
+### `@register` — make your subclass the default
+
+`blog.get_relation_class('blog.post')` returns a generated base class. When you
+subclass it, halfORM still uses the base class for FK navigation unless you
+register your subclass:
+
+```python
+from half_orm.model import register
+
+@register
+class Post(blog.get_relation_class('blog.post')):
+    ...
+```
+
+`@register` tells the Model to use `Post` everywhere that table appears — FK
+navigation returns *your* class, with your aliases and methods, not the
+generated base class. **Always decorate relation subclasses with `@register`.**
+
 ### Naming FK attributes
 
 halfORM exposes every foreign key, but auto-generated names are long. Give them
 friendly aliases in a `Fkeys` class attribute:
 
 ```python
-from half_orm.model import register
-
 @register
 class Post(blog.get_relation_class('blog.post')):
     Fkeys = {
@@ -271,9 +287,6 @@ class Comment(blog.get_relation_class('blog.comment')):
 
 !!! tip "Finding FK names"
     `print(Post())` lists all foreign keys with their internal names.
-
-`@register` makes your subclasses the default everywhere — FK navigation returns
-*your* classes, with your aliases, not the base classes.
 
 ### `fkey()` — extend the predicate into a related table
 
