@@ -367,10 +367,9 @@ class Relation:
                 for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
                     print(row['post_rfk'])  # [{'id': 1, 'title': '...'}, ...]
 
-        .. versionadded:: 0.18.0
-            The ``distinct``, ``order_by``, ``limit`` and ``offset`` parameters.
-        .. versionadded:: 0.18.6
-            The ``json_agg`` parameter.
+        *New in version 0.18.0:* ``distinct``, ``order_by``, ``limit`` and ``offset`` parameters.
+
+        *New in version 0.18.6:* ``json_agg`` parameter.
         """
         if json_agg is not None:
             query, values = self._ho_prep_json_agg_select(
@@ -429,7 +428,7 @@ class Relation:
                 # Typical usage: guard a single-row write
                 Author(id=42).ho_assert_is_singleton().ho_update(email='new@example.com')
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         def _fully_set(fields):
             return all(f.is_set() and f._comp() == '=' for f in fields.values())
@@ -784,7 +783,7 @@ class Relation:
                 'values' : list of string values (join values first, then where values)
             or None if the relation has no constraint set.
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         if not self.ho_is_set():
             return None
@@ -1199,8 +1198,7 @@ Fkeys = {"""
                 Author().ho_count()                    # total number of authors
                 Author(last_name='Martin').ho_count()  # subset cardinality
 
-        .. versionadded:: 0.18.0
-            The ``distinct`` parameter.
+        *New in version 0.18.0:* ``distinct`` parameter.
         """
         query, values = self._ho_prep_count(*args, distinct=distinct)
         return self.__execute(query, values).fetchone()['count']
@@ -1223,7 +1221,7 @@ Fkeys = {"""
     async def ho_ainsert(self, *args) -> dict:
         """Async variant of ho_insert. *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         query, vals = self._ho_prep_insert(*args)
         cursor = await self.__aexecute(query, vals)
@@ -1234,7 +1232,7 @@ Fkeys = {"""
         distinct: bool=False, order_by: str=None, limit: int=None, offset: int=None):
         """Async variant of ho_select. Returns a list of dicts (not a generator). *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         query, values, can_dedup, pk_names = self._ho_prep_select_query(
             *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
@@ -1254,7 +1252,7 @@ Fkeys = {"""
     async def ho_aupdate(self, *args, update_all=False, **kwargs):
         """Async variant of ho_update. *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
         if prep is None:
@@ -1270,7 +1268,7 @@ Fkeys = {"""
     async def ho_adelete(self, *args, delete_all=False):
         """Async variant of ho_delete. *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         cursor = await self.__aexecute(query, vals)
@@ -1281,7 +1279,7 @@ Fkeys = {"""
     async def ho_acount(self, *args, distinct: bool=False) -> int:
         """Async variant of ho_count. *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         query, values = self._ho_prep_count(*args, distinct=distinct)
         cursor = await self.__aexecute(query, values)
@@ -1291,7 +1289,7 @@ Fkeys = {"""
     async def ho_ais_empty(self) -> bool:
         """Async variant of ho_is_empty. *Executes SQL.*
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         return (await self.ho_acount()) == 0
 
@@ -1491,8 +1489,7 @@ def singleton(fct):
             Author(id=1).publish('My post', 'Content here')   # OK
             Author(last_name='Martin').publish('…', '…')      # raises NotASingletonError
 
-    .. versionchanged:: 0.18.0
-        The check is now purely structural (no database query).
+    *Changed in version 0.18.0:* the check is now purely structural (no database query).
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):

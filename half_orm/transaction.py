@@ -47,8 +47,7 @@ class Transaction:
                     Post(...).ho_insert()
                     # exception here rolls back only the post, not Alice
 
-    .. versionadded:: 0.18.0
-        Nested ``Transaction`` blocks use savepoints.
+    *New in version 0.18.0:* nested ``Transaction`` blocks use savepoints.
     """
 
     __tls = threading.local()

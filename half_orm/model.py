@@ -236,7 +236,7 @@ class Model:
         Must be called explicitly before using any ``ho_a*`` method.
         The sync connection (used for metadata, ``ho_select``, etc.) remains available.
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         if self.__aconn is not None and not self.__aconn.closed:
             return
@@ -252,7 +252,7 @@ class Model:
     async def adisconnect(self):
         """Closes the async connection to the database.
 
-        .. versionadded:: 0.18.0
+        *New in version 0.18.0.*
         """
         if self.__aconn is not None and not self.__aconn.closed:
             await self.__aconn.close()
