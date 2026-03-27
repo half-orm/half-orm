@@ -1802,10 +1802,8 @@ alice.post_rfk.set(Post())
 for row in alice.ho_select(json_agg={&#39;post_rfk&#39;: [&#39;id&#39;, &#39;title&#39;]}):
     print(row[&#39;post_rfk&#39;])  # [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]
 </code></pre></div>
-</details>        <p>.. versionadded:: 0.18.0
-    The <code>distinct</code>, <code>order_by</code>, <code>limit</code> and <code>offset</code> parameters.
-.. versionadded:: 0.18.6
-    The <code>json_agg</code> parameter.</p>
+</details>        <p><em>New in version 0.18.0:</em> <code>distinct</code>, <code>order_by</code>, <code>limit</code> and <code>offset</code> parameters.</p>
+<p><em>New in version 0.18.6:</em> <code>json_agg</code> parameter.</p>
 
 
     </div>
@@ -1902,8 +1900,7 @@ Default: <code>False</code>.</p>
 <div class="highlight"><pre><span></span><code>Author().ho_count()                    # total number of authors
 Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
 </code></pre></div>
-</details>        <p>.. versionadded:: 0.18.0
-    The <code>distinct</code> parameter.</p>
+</details>        <p><em>New in version 0.18.0:</em> <code>distinct</code> parameter.</p>
 
 
     </div>
@@ -2260,7 +2257,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_insert. <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2283,7 +2280,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_select. Returns a list of dicts (not a generator). <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2306,7 +2303,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_count. <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2329,7 +2326,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_is_empty. <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2352,7 +2349,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_update. <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2375,7 +2372,7 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Async variant of ho_delete. <em>Executes SQL.</em></p>
-<p>.. versionadded:: 0.18.0</p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2462,7 +2459,7 @@ Author(last_name=&#39;Martin&#39;).ho_assert_is_singleton()
 # Typical usage: guard a single-row write
 Author(id=42).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
 </code></pre></div>
-</details>        <p>.. versionadded:: 0.18.0</p>
+</details>        <p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2535,7 +2532,7 @@ result of a combination of Relations (using set operators).</p>
           </tr>
       </tbody>
     </table>
-        <p>.. versionadded:: 0.18.0</p>
+        <p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2662,8 +2659,7 @@ class Author(blog.get_relation_class(&#39;blog.author&#39;)):
 Author(id=1).publish(&#39;My post&#39;, &#39;Content here&#39;)   # OK
 Author(last_name=&#39;Martin&#39;).publish(&#39;…&#39;, &#39;…&#39;)      # raises NotASingletonError
 </code></pre></div>
-</details>        <p>.. versionchanged:: 0.18.0
-    The check is now purely structural (no database query).</p>
+</details>        <p><em>Changed in version 0.18.0:</em> the check is now purely structural (no database query).</p>
 
 
     </div>
