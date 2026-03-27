@@ -93,6 +93,10 @@ class FKey:
                 post = Post()
                 post.author_fk.set(Author(last_name=('like', 'Mar%')))
                 print(post.ho_count())
+
+        .. versionadded:: 0.18.6
+            Raises ``RuntimeError`` if setting this FK would create a cycle in
+            the join graph.
         """
         # pylint: disable=import-outside-toplevel
         from half_orm.relation import Relation

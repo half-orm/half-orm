@@ -46,6 +46,9 @@ class Transaction:
                 with Transaction(blog):          # savepoint
                     Post(...).ho_insert()
                     # exception here rolls back only the post, not Alice
+
+    .. versionadded:: 0.18.0
+        Nested ``Transaction`` blocks use savepoints.
     """
 
     __tls = threading.local()
