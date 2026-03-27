@@ -153,6 +153,7 @@ extra:
 #       - halfORM Documentation Workflow Guide: ecosystem/development/documentation-workflow.md
 nav:
   - Home: index.md
+  - Learn in half an hour: half-an-hour.md
   - Quick Start: quick-start.md
   - Fundamentals: fundamentals.md
   - Tutorial:
