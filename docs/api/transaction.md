@@ -1,19 +1,20 @@
 # Transaction
 
-<!-- TODO: Module overview -->
-<!-- TODO: Key concepts -->
-<!-- TODO: Usage patterns -->
+`Transaction` is a context manager that wraps one or more SQL operations
+in a single atomic unit: commits on success, rolls back on exception.
 
-!!! note "API Status"
-    API documentation is auto-generated from docstrings. Ensure docstrings are comprehensive.
+Nested `with Transaction(model)` blocks use PostgreSQL savepoints
+automatically — an exception in an inner block rolls back only that scope,
+leaving the outer transaction intact.
 
-## Overview
+See [Learn halfORM in half an hour](../half-an-hour.md#10-transactions-5-min)
+for a full walkthrough.
 
-*[Module purpose and key concepts]*
+---
 
-## Reference
-
-::: half_orm.transaction
+::: half_orm.transaction.Transaction
     options:
-      show_source: true
       show_root_heading: true
+      show_source: false
+      heading_level: 3
+      members: false

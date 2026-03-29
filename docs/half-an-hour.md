@@ -357,7 +357,7 @@ alice.ho_select(json_agg={
 
 ## 9. Predicate algebra (5 min)
 
-Predicates compose. The four logical operators map directly to Python operators —
+Predicates compose. Five logical operators map directly to Python operators —
 the result is always a new predicate.
 
 ```python
@@ -368,6 +368,7 @@ martins | gmail   # disjunction:  "is a Martin" OR "has a gmail address"
 martins & gmail   # conjunction:  "is a Martin" AND "has a gmail address"
 martins - gmail   # difference:   "is a Martin" AND NOT "has a gmail address"
 -martins          # negation:     NOT "is a Martin"
+martins ^ gmail   # symmetric difference: (A | B) - (A & B)
 ```
 
 Every result is a predicate — query its extension like any other:
@@ -474,7 +475,7 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 | Compose into related table | [`rel.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
 | Compose via join | [`rel.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
 | Aggregate related extension | [`rel.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
-| Disjunction / conjunction / difference / negation | `a &#124; b`, `a & b`, `a - b`, `-a` |
+| Disjunction / conjunction / difference / negation / XOR | `a &#124; b`, `a & b`, `a - b`, `-a`, `a ^ b` |
 | Atomic operations | [`with Transaction(model):`](api/transaction.md#half_orm.transaction.Transaction) |
 | SQL NULL | `from half_orm.null import NULL` |
 | Inspect generated SQL | `model.sql_trace = True` |
