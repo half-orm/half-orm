@@ -48,10 +48,12 @@ create table blog.comment (
 
 ## 1. Connect (1 min)
 
-halfORM reads connection parameters from `~/.half_orm/<dbname>`:
+halfORM reads connection parameters from a file named after the database,
+searched in the directory defined by `HALFORM_CONF_DIR` (defaults to
+`/etc/half_orm`):
 
 ```ini
-# ~/.half_orm/blog
+# /etc/half_orm/blog   (or $HALFORM_CONF_DIR/blog)
 [database]
 name = blog
 user = alice
