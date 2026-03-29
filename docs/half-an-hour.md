@@ -9,7 +9,7 @@ logical condition that rows must satisfy to belong to the relation. Its
 *extension* — the set of rows that currently satisfy the predicate in the
 database — is what you read, update, or delete.
 
-Adding a constraint specialises the predicate. Set operators (`|`, `&`, `-`)
+Adding a constraint specialises the predicate. Set operators (`|`, `&`, `-`, `^`)
 are logical operators on predicates. Foreign key navigation composes predicates
 across tables.
 
@@ -475,7 +475,7 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 | Compose into related table | [`rel.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
 | Compose via join | [`rel.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
 | Aggregate related extension | [`rel.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
-| Disjunction / conjunction / difference / negation / XOR | `a &#124; b`, `a & b`, `a - b`, `-a`, `a ^ b` |
+| Disjunction / conjunction / difference / negation / XOR | `a | b`, `a & b`, `a - b`, `-a`, `a ^ b` |
 | Atomic operations | [`with Transaction(model):`](api/transaction.md#half_orm.transaction.Transaction) |
 | SQL NULL | `from half_orm.null import NULL` |
 | Inspect generated SQL | `model.sql_trace = True` |
