@@ -187,3 +187,5 @@ These methods inspect or assert on the predicate **without executing SQL**.
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+See also: [Transaction](transaction.md) — the context manager equivalent.
