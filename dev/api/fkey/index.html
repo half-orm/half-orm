@@ -1138,13 +1138,13 @@ relation's constructor.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>post   = Post(id=1)
-author = post.author_fk()        # author of post 1
-
-# with extra constraint
-posts  = Author(last_name=&#39;Martin&#39;).post_rfk(content=(&#39;is not&#39;, NULL))
-</code></pre></div>
+  <p>Navigate to the related relation:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">post</span>   <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">author</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="p">()</span>        <span class="c1"># author of post 1</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># with extra constraint</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">posts</span>  <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;is not&#39;</span><span class="p">,</span> <span class="n">NULL</span><span class="p">))</span>
+</code></pre></div></p>
 </details>
 
     </div>
@@ -1258,13 +1258,11 @@ automatically include a JOIN against <code>other_rel</code> filtered by
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>is a post whose author's last name starts with 'Mar':</p>
-<div class="highlight"><pre><span></span><code>```python
-post = Post()
-post.author_fk.set(Author(last_name=(&#39;like&#39;, &#39;Mar%&#39;)))
-print(post.ho_count())
-```
-</code></pre></div>
+  <p>is a post whose author's last name starts with 'Mar':
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">)))</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.6:</em> raises <code>RuntimeError</code> if setting this FK would create a cycle in the join graph.</p>
 
 
