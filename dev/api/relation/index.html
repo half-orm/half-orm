@@ -1621,18 +1621,14 @@ non-writable kind.</p>
           </tr>
       </tbody>
     </table>
-
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>alice = Author(
-    first_name=&#39;Alice&#39;, last_name=&#39;Martin&#39;,
-    email=&#39;alice@example.com&#39;,
-).ho_insert()
-alice[&#39;id&#39;]   # 1
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    alice = Author(
+        first_name=&#39;Alice&#39;, last_name=&#39;Martin&#39;,
+        email=&#39;alice@example.com&#39;,
+    ).ho_insert()
+    alice[&#39;id&#39;]   # 1
 </code></pre></div>
-</details>
+
 
     </div>
 
@@ -1799,11 +1795,11 @@ calling <code>ho_select</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>Project and sort::</p>
+  <p>Project and sort:</p>
 <div class="highlight"><pre><span></span><code>for row in Author(last_name=&#39;Martin&#39;).ho_select(&#39;id&#39;, &#39;email&#39;, order_by=&#39;id&#39;):
     print(row)   # {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}
 </code></pre></div>
-<p>Aggregate related rows as JSON::</p>
+<p>Aggregate related rows as JSON:</p>
 <div class="highlight"><pre><span></span><code>alice = Author(last_name=&#39;Martin&#39;)
 alice.post_rfk.set(Post())
 for row in alice.ho_select(json_agg={&#39;post_rfk&#39;: [&#39;id&#39;, &#39;title&#39;]}):
@@ -1899,15 +1895,11 @@ Default: <code>False</code>.</p>
           </tr>
       </tbody>
     </table>
-
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>Author().ho_count()                    # total number of authors
-Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    Author().ho_count()                    # total number of authors
+    Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
 </code></pre></div>
-</details>        <p><em>New in version 0.18.0:</em> <code>distinct</code> parameter.</p>
+<p><em>New in version 0.18.0:</em> <code>distinct</code> parameter.</p>
 
 
     </div>
@@ -1948,14 +1940,10 @@ Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
           </tr>
       </tbody>
     </table>
-
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>Author(last_name=&#39;Unknown&#39;).ho_is_empty()  # True if no such author
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    Author(last_name=&#39;Unknown&#39;).ho_is_empty()  # True if no such author
 </code></pre></div>
-</details>
+
 
     </div>
 
@@ -2093,18 +2081,14 @@ Default: <code>False</code>.</p>
           </tr>
       </tbody>
     </table>
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    # Update a single row — guarded by singleton check
+    Author(id=1).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
 
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># Update a single row — guarded by singleton check
-Author(id=1).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
-
-# Update an entire subset at once
-Post(author_id=99).ho_update(content=&#39;[archived]&#39;)
+    # Update an entire subset at once
+    Post(author_id=99).ho_update(content=&#39;[archived]&#39;)
 </code></pre></div>
-</details>
+
 
     </div>
 
@@ -2226,18 +2210,14 @@ is <code>False</code>.</p>
           </tr>
       </tbody>
     </table>
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    # Delete one identified row
+    Author(id=99).ho_assert_is_singleton().ho_delete()
 
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># Delete one identified row
-Author(id=99).ho_assert_is_singleton().ho_delete()
-
-# Delete all posts for a given author
-Post(author_id=1).ho_delete(delete_all=True)
+    # Delete all posts for a given author
+    Post(author_id=1).ho_delete(delete_all=True)
 </code></pre></div>
-</details>
+
 
     </div>
 
@@ -2449,24 +2429,20 @@ cursor can be closed before returning to the caller.</p>
           </tr>
       </tbody>
     </table>
+        <p>Example:</p>
+<div class="highlight"><pre><span></span><code>    # OK — id is the primary key
+    Author(id=42).ho_assert_is_singleton()
 
+    # OK — email has a UNIQUE NOT NULL constraint
+    Author(email=&#39;alice@example.com&#39;).ho_assert_is_singleton()
 
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># OK — id is the primary key
-Author(id=42).ho_assert_is_singleton()
+    # Raises — last_name is not a unique identifier
+    Author(last_name=&#39;Martin&#39;).ho_assert_is_singleton()
 
-# OK — email has a UNIQUE NOT NULL constraint
-Author(email=&#39;alice@example.com&#39;).ho_assert_is_singleton()
-
-# Raises — last_name is not a unique identifier
-Author(last_name=&#39;Martin&#39;).ho_assert_is_singleton()
-
-# Typical usage: guard a single-row write
-Author(id=42).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
+    # Typical usage: guard a single-row write
+    Author(id=42).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
 </code></pre></div>
-</details>        <p><em>New in version 0.18.0.</em></p>
+<p><em>New in version 0.18.0.</em></p>
 
 
     </div>
@@ -2595,7 +2571,7 @@ debugging predicate composition.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>self — for chaining::</p>
+                <p>self — for chaining:</p>
 <p>Author(last_name='Martin').ho_mogrify().ho_count()</p>
               </div>
             </td>
@@ -2668,23 +2644,19 @@ that are set.</p>
 :exc:<code>~half_orm.relation_errors.NotASingletonError</code> if the predicate
 does not identify exactly one row. No database query is performed.</p>
 <p>Use this on any method that must operate on a single, identified row.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>    @register
+    class Author(blog.get_relation_class(&#39;blog.author&#39;)):
+        Fkeys = {&#39;post_rfk&#39;: &#39;_reverse_fkey_blog_post_author_id&#39;}
 
+        @singleton
+        def publish(self, title: str, content: str):
+            return self.post_rfk(title=title, content=content).ho_insert()
 
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>@register
-class Author(blog.get_relation_class(&#39;blog.author&#39;)):
-    Fkeys = {&#39;post_rfk&#39;: &#39;_reverse_fkey_blog_post_author_id&#39;}
-
-    @singleton
-    def publish(self, title: str, content: str):
-        return self.post_rfk(title=title, content=content).ho_insert()
-
-Author(id=1).publish(&#39;My post&#39;, &#39;Content here&#39;)   # OK
-Author(last_name=&#39;Martin&#39;).publish(&#39;…&#39;, &#39;…&#39;)      # raises NotASingletonError
+    Author(id=1).publish(&#39;My post&#39;, &#39;Content here&#39;)   # OK
+    Author(last_name=&#39;Martin&#39;).publish(&#39;…&#39;, &#39;…&#39;)      # raises NotASingletonError
 </code></pre></div>
-</details>        <p><em>Changed in version 0.18.0:</em> the check is now purely structural (no database query).</p>
+<p><em>Changed in version 0.18.0:</em> the check is now purely structural (no database query).</p>
 
 
     </div>
@@ -2708,21 +2680,17 @@ inside a single atomic unit. Commits on normal return, rolls back and
 re-raises on any exception.</p>
 <p>Nested <code>@transaction</code> calls use PostgreSQL savepoints: a failure in an
 inner method rolls back only that inner scope.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>    from half_orm.relation import transaction
 
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>from half_orm.relation import transaction
-
-@register
-class Author(blog.get_relation_class(&#39;blog.author&#39;)):
-    @transaction
-    def publish_many(self, posts):
-        for title, content in posts:
-            self.post_rfk(title=title, content=content).ho_insert()
+    @register
+    class Author(blog.get_relation_class(&#39;blog.author&#39;)):
+        @transaction
+        def publish_many(self, posts):
+            for title, content in posts:
+                self.post_rfk(title=title, content=content).ho_insert()
 </code></pre></div>
-</details>
+
 
     </div>
 
