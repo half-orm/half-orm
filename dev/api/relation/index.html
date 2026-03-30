@@ -2329,16 +2329,16 @@ calling <code>ho_select</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>Project and sort::</p>
-<div class="highlight"><pre><span></span><code>for row in Author(last_name=&#39;Martin&#39;).ho_select(&#39;id&#39;, &#39;email&#39;, order_by=&#39;id&#39;):
-    print(row)   # {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}
-</code></pre></div>
-<p>Aggregate related rows as JSON::</p>
-<div class="highlight"><pre><span></span><code>alice = Author(last_name=&#39;Martin&#39;)
-alice.post_rfk.set(Post())
-for row in alice.ho_select(json_agg={&#39;post_rfk&#39;: [&#39;id&#39;, &#39;title&#39;]}):
-    print(row[&#39;post_rfk&#39;])  # [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]
-</code></pre></div>
+  <p>Project and sort:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>   <span class="c1"># {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}</span>
+</code></pre></div></p>
+<p>Aggregate related rows as JSON:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">alice</span><span class="o">.</span><span class="n">post_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Post</span><span class="p">())</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">])</span>  <span class="c1"># [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.0:</em> <code>distinct</code>, <code>order_by</code>, <code>limit</code> and <code>offset</code> parameters.</p>
 <p><em>New in version 0.18.6:</em> <code>json_agg</code> parameter.</p>
 
