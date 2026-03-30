@@ -108,6 +108,10 @@ jobs:
             echo "version=${VERSION}-dev" >> $GITHUB_OUTPUT
             echo "alias=" >> $GITHUB_OUTPUT
             echo "title=${VERSION} (development)" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == refs/heads/doc ]]; then
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "alias=" >> $GITHUB_OUTPUT
+            echo "title=Development" >> $GITHUB_OUTPUT
           else
             echo "version=" >> $GITHUB_OUTPUT
             echo "alias=" >> $GITHUB_OUTPUT
