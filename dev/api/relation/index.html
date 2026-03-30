@@ -2718,18 +2718,16 @@ inner method rolls back only that inner scope.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>transaction decorator usage:</p>
-<div class="highlight"><pre><span></span><code>```python
-from half_orm.relation import transaction
-
-@register
-class Author(blog.get_relation_class(&#39;blog.author&#39;)):
-    @transaction
-    def publish_many(self, posts):
-        for title, content in posts:
-            self.post_rfk(title=title, content=content).ho_insert()
-```
-</code></pre></div>
+  <p>transaction decorator usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.relation</span><span class="w"> </span><span class="kn">import</span> <span class="n">transaction</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nd">@register</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="nd">@transaction</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">publish_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posts</span><span class="p">):</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+</code></pre></div></p>
 </details>
 
     </div>
