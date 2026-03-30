@@ -61,6 +61,16 @@ These methods execute SQL immediately and return results.
     post.author_fk.set(Author())
     for row in post.ho_select(json_agg={'author_fk': ['last_name']}):
         print(row['author_fk'])    # {'last_name': 'Martin'}
+
+    # Chained FK (A ← B → C) — aggregate the leaf relation's data
+    # For each post, collect the persons who commented on it.
+    # post ← comment → person  (comment is the junction)
+    post = Post(title='Hello')
+    comment = Comment()
+    comment.author_fk.set(Person())    # chain: comment → person
+    post.comment_rfk.set(comment)
+    for row in post.ho_select(json_agg={'comment_rfk': ['last_name']}):
+        print(row['comment_rfk'])  # [{'last_name': '...'}, ...]
     ```
 
     *Changed in version 0.18.7* **(breaking)**.

@@ -264,3 +264,69 @@ class Test(TestCase):
                 self.assertEqual(comment['content'], 'my comment')
         finally:
             self._drop_unique_constraint()
+
+    # ------------------------------------------------------------------
+    # Chained FK (A ← B → C): person ← comment → post
+    # ------------------------------------------------------------------
+
+    def _insert_comment(self, post_id, content='comment'):
+        aa = self.aa
+        self.comment(
+            post_id=post_id,
+            content=content,
+            author_id=aa['id'],
+        ).ho_insert()
+
+    def _insert_post_and_get_id(self, title, content=''):
+        aa = self.aa
+        row = self.post(
+            title=title,
+            content=content,
+            author_first_name=str(aa['first_name']),
+            author_last_name=str(aa['last_name']),
+            author_birth_date=aa['birth_date'],
+        ).ho_insert()
+        return row['id']
+
+    def test_chained_fk_returns_list_of_leaf(self):
+        "post ← comment → person: must return list of person dicts per post"
+        with Transaction(halftest.model):
+            pid = self._insert_post_and_get_id('chained_post', 'c')
+            self._insert_comment(pid, 'hello')
+
+            p = self.post(title='chained_post')
+            c = self.comment()
+            c.author_fk.set(self.person())   # chain: comment → person
+            p.comment_rfk.set(c)
+
+            rows = list(p.ho_select(json_agg={'comment_rfk': ['last_name']}))
+            self.assertEqual(len(rows), 1)
+            persons = rows[0]['comment_rfk']
+            self.assertIsInstance(persons, list)
+            self.assertEqual(len(persons), 1)
+            self.assertEqual(persons[0]['last_name'], 'aa')
+
+    def test_chained_fk_empty_returns_empty_list(self):
+        "post ← comment → person with no comments: must return []"
+        with Transaction(halftest.model):
+            self._insert_post_and_get_id('empty_chained', 'c')
+            p = self.post(title='empty_chained')
+            c = self.comment()
+            c.author_fk.set(self.person())
+            p.comment_rfk.set(c)
+
+            rows = list(p.ho_select(json_agg={'comment_rfk': ['last_name']}))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]['comment_rfk'], [])
+
+    def test_chained_fk_branching_raises(self):
+        "branching FK chain (B has two FKs set) must raise RuntimeError"
+        p = self.post(title='branching')
+        c = self.comment()
+        c.author_fk.set(self.person())
+        c.post_fk.set(self.post())       # second FK set on comment → branching
+        p.comment_rfk.set(c)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            list(p.ho_select(json_agg={'comment_rfk': []}))
+        self.assertIn('branching', str(ctx.exception))

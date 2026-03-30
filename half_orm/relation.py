@@ -371,12 +371,24 @@ class Relation:
                     print(row)   # {'id': 1, 'email': 'alice@example.com'}
                 ```
 
-            Aggregate related rows as JSON:
+            Aggregate related rows as JSON (reverse FK):
                 ```python
                 alice = Author(last_name='Martin')
                 alice.post_rfk.set(Post())
                 for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
                     print(row['post_rfk'])  # [{'id': 1, 'title': '...'}, ...]
+                ```
+
+            Chained FK (A ← B → C) — aggregate the leaf relation's data:
+                ```python
+                # For each post, collect the persons who commented on it.
+                # post ← comment → person  (comment is the junction)
+                post = Post(title='Hello')
+                comment = Comment()
+                comment.author_fk.set(Person())   # chain: comment → person
+                post.comment_rfk.set(comment)
+                for row in post.ho_select(json_agg={'comment_rfk': ['last_name']}):
+                    print(row['comment_rfk'])  # [{'last_name': '...'}, ...]
                 ```
 
         *New in version 0.18.0:* ``distinct``, ``order_by``, ``limit`` and ``offset`` parameters.
@@ -1063,7 +1075,10 @@ Fkeys = {"""
                 f"ho_select(json_agg=...) requires the main relation to have a primary key "
                 f"({self._qrn} has none).")
 
-        # First pass: resolve FKeys, build JOINs, collect per-entry info
+        # First pass: resolve FKeys, build JOINs, follow FK chains, collect per-entry info.
+        # Each entry records (is_list, leaf_rel, alias, obj_expr) where:
+        #   is_list  — True when the result should be a JSON array (GROUP BY needed)
+        #   leaf_rel — the last relation in the chain (whose columns are aggregated)
         entries = []
         has_reverse = False
         for fkey_attr, spec in json_agg.items():
@@ -1085,37 +1100,59 @@ Fkeys = {"""
                 raise RuntimeError(
                     f"self.{fkey_attr} has not been set. Call self.{fkey_attr}.set(...) first.")
 
+            # First JOIN: main relation → fk_rel
             fk_rel._ho_query_type = 'select'
             fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
-
             self._ho_ast_joins.append(ASTJoin(
                 table=fk_rel._ho_sql_id(),
                 on=fkey._join_query(self),
                 where=fk_where_expr,
                 join_type='left join',
             ))
+            is_list = fkey.is_reverse and not fkey.is_singleton
 
-            rel_id = f'r{fk_rel.ho_id}'
+            # Follow chained FKs (e.g. A ← B → C): fk_rel may itself have FKs set.
+            leaf_rel = fk_rel
+            current_rel = fk_rel
+            while current_rel._ho_join_to:
+                if len(current_rel._ho_join_to) > 1:
+                    raise RuntimeError(
+                        f"json_agg: branching FK chains are not supported — "
+                        f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
+                chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
+                chained_rel._ho_query_type = 'select'
+                chained_where = chained_rel.__where_expr(chained_rel.ho_id)
+                self._ho_ast_joins.append(ASTJoin(
+                    table=chained_rel._ho_sql_id(),
+                    on=chained_fkey._join_query(self),
+                    where=chained_where,
+                    join_type='left join',
+                ))
+                if chained_fkey.is_reverse and not chained_fkey.is_singleton:
+                    is_list = True
+                leaf_rel = chained_rel
+                current_rel = chained_rel
+
+            rel_id = f'r{leaf_rel.ho_id}'
             if fields:
                 obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
                 obj_expr = f'json_build_object({obj_pairs})'
             else:
                 obj_expr = f'row_to_json({rel_id})'
 
-            if fkey.is_reverse and not fkey.is_singleton:
+            if is_list:
                 has_reverse = True
-            entries.append((fkey, fk_rel, alias, obj_expr))
+            entries.append((is_list, leaf_rel, alias, obj_expr))
 
         # Second pass: build column expressions.
-        # GROUP BY is required only when at least one FK is a non-singleton reverse.
-        # "Scalar" FKs (direct or singleton reverse) return dict/None and need special
-        # treatment in a GROUP BY context since PostgreSQL has no MAX(json).
-        for fkey, fk_rel, alias, obj_expr in entries:
-            is_scalar = not fkey.is_reverse or fkey.is_singleton
+        # GROUP BY is required only when at least one entry produces a list.
+        # Scalar entries (dict/None) need special treatment when GROUP BY is present.
+        for is_list, leaf_rel, alias, obj_expr in entries:
+            is_scalar = not is_list
             if not is_scalar:
-                # non-singleton reverse FK: aggregate into a list
-                rel_id = f'r{fk_rel.ho_id}'
-                fk_pk_fields = list(fk_rel._ho_pkey.keys())
+                # list result: aggregate leaf rows into a JSON array
+                rel_id = f'r{leaf_rel.ho_id}'
+                fk_pk_fields = list(leaf_rel._ho_pkey.keys())
                 filter_clause = (
                     f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
                     if fk_pk_fields else ''
@@ -1124,11 +1161,11 @@ Fkeys = {"""
                     f"coalesce(json_agg({obj_expr}){filter_clause}, '[]'::json) as \"{alias}\""
                 )
             else:
-                # Direct FK or singleton reverse FK: at most one row → dict or NULL.
+                # scalar result: at most one leaf row → dict or NULL.
                 # When GROUP BY is present wrap in json_agg and extract element 0.
                 if has_reverse:
-                    rel_id = f'r{fk_rel.ho_id}'
-                    fk_pk_fields = list(fk_rel._ho_pkey.keys())
+                    rel_id = f'r{leaf_rel.ho_id}'
+                    fk_pk_fields = list(leaf_rel._ho_pkey.keys())
                     filter_clause = (
                         f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
                         if fk_pk_fields else ''
