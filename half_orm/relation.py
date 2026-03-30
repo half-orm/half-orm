@@ -352,6 +352,15 @@ class Relation:
                 The fkey must have been set via ``.fk_attr.set(rel)`` before
                 calling ``ho_select``.
 
+                The type of the aggregated value depends on the FK direction:
+
+                - **reverse FK, non-unique** (one-to-many): a ``list`` of dicts,
+                  empty (``[]``) when no related rows exist.
+                - **reverse FK, unique** (one-to-one via UNIQUE or PK constraint):
+                  a single ``dict``, or ``None`` when no related row exists.
+                - **direct FK** (many-to-one): a single ``dict``, or ``None``
+                  when the FK target is absent (nullable FK).
+
         Yields:
             dict: one row of the extension.
 
@@ -373,6 +382,8 @@ class Relation:
         *New in version 0.18.0:* ``distinct``, ``order_by``, ``limit`` and ``offset`` parameters.
 
         *New in version 0.18.6:* ``json_agg`` parameter.
+
+        *New in version 0.18.7:* direct FK and singleton reverse FK (UNIQUE/PK) in ``json_agg`` return a ``dict`` (or ``None``) instead of a list.
         """
         if json_agg is not None:
             query, values = self._ho_prep_json_agg_select(
@@ -1052,6 +1063,9 @@ Fkeys = {"""
                 f"ho_select(json_agg=...) requires the main relation to have a primary key "
                 f"({self._qrn} has none).")
 
+        # First pass: resolve FKeys, build JOINs, collect per-entry info
+        entries = []
+        has_reverse = False
         for fkey_attr, spec in json_agg.items():
             if isinstance(spec, dict):
                 alias = spec.get('alias', fkey_attr)
@@ -1071,7 +1085,6 @@ Fkeys = {"""
                 raise RuntimeError(
                     f"self.{fkey_attr} has not been set. Call self.{fkey_attr}.set(...) first.")
 
-            # WHERE conditions on fk_rel go into the ON clause (LEFT JOIN safety)
             fk_rel._ho_query_type = 'select'
             fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
 
@@ -1082,25 +1095,50 @@ Fkeys = {"""
                 join_type='left join',
             ))
 
-            # Build the json_agg column expression
             rel_id = f'r{fk_rel.ho_id}'
-            fk_pk_fields = list(fk_rel._ho_pkey.keys())
-            filter_clause = (
-                f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
-                if fk_pk_fields else ''
-            )
-
             if fields:
                 obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                agg_expr = f'json_build_object({obj_pairs})'
+                obj_expr = f'json_build_object({obj_pairs})'
             else:
-                agg_expr = f'row_to_json({rel_id})'
+                obj_expr = f'row_to_json({rel_id})'
 
-            columns.append(
-                f"coalesce(json_agg({agg_expr}){filter_clause}, '[]'::json) as \"{alias}\""
-            )
+            if fkey.is_reverse and not fkey.is_singleton:
+                has_reverse = True
+            entries.append((fkey, fk_rel, alias, obj_expr))
 
-        group_by = [f'r{self.ho_id}."{pk}"' for pk in self._ho_pkey]
+        # Second pass: build column expressions.
+        # GROUP BY is required only when at least one FK is a non-singleton reverse.
+        # "Scalar" FKs (direct or singleton reverse) return dict/None and need special
+        # treatment in a GROUP BY context since PostgreSQL has no MAX(json).
+        for fkey, fk_rel, alias, obj_expr in entries:
+            is_scalar = not fkey.is_reverse or fkey.is_singleton
+            if not is_scalar:
+                # non-singleton reverse FK: aggregate into a list
+                rel_id = f'r{fk_rel.ho_id}'
+                fk_pk_fields = list(fk_rel._ho_pkey.keys())
+                filter_clause = (
+                    f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
+                    if fk_pk_fields else ''
+                )
+                columns.append(
+                    f"coalesce(json_agg({obj_expr}){filter_clause}, '[]'::json) as \"{alias}\""
+                )
+            else:
+                # Direct FK or singleton reverse FK: at most one row → dict or NULL.
+                # When GROUP BY is present wrap in json_agg and extract element 0.
+                if has_reverse:
+                    rel_id = f'r{fk_rel.ho_id}'
+                    fk_pk_fields = list(fk_rel._ho_pkey.keys())
+                    filter_clause = (
+                        f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
+                        if fk_pk_fields else ''
+                    )
+                    col_expr = f'(json_agg({obj_expr}){filter_clause})->0'
+                else:
+                    col_expr = obj_expr
+                columns.append(f"{col_expr} as \"{alias}\"")
+
+        group_by = [f'r{self.ho_id}."{pk}"' for pk in self._ho_pkey] if has_reverse else []
 
         stmt = ASTSelect(
             columns=columns,

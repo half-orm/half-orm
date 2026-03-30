@@ -137,3 +137,130 @@ class Test(TestCase):
         p = self.person(last_name='aa')
         with self.assertRaises(RuntimeError):
             list(p.ho_select(json_agg={'no_such_fkey': []}))
+
+    # ------------------------------------------------------------------
+    # Direct FK (many-to-one) — must return a dict, not a list
+    # ------------------------------------------------------------------
+
+    def test_direct_fk_returns_dict(self):
+        "direct FK must return a dict (not a list)"
+        with Transaction(halftest.model):
+            self._insert_post('for_author', 'c')
+
+            p = self.post(author_last_name='aa')
+            p.author_fk.set(self.person())
+
+            rows = list(p.ho_select(json_agg={'author_fk': ['last_name']}))
+            self.assertEqual(len(rows), 1)
+            author = rows[0]['author_fk']
+            self.assertIsInstance(author, dict)
+            self.assertEqual(author['last_name'], 'aa')
+
+    def test_direct_fk_specific_fields(self):
+        "direct FK with field list must include only those fields"
+        with Transaction(halftest.model):
+            self._insert_post('direct_fields', 'c')
+
+            p = self.post(author_last_name='aa')
+            p.author_fk.set(self.person())
+
+            rows = list(p.ho_select(json_agg={'author_fk': ['last_name', 'first_name']}))
+            author = rows[0]['author_fk']
+            self.assertEqual(set(author.keys()), {'last_name', 'first_name'})
+
+    def test_direct_fk_all_fields(self):
+        "direct FK with empty field list must return all columns"
+        with Transaction(halftest.model):
+            self._insert_post('direct_all', 'c')
+
+            p = self.post(author_last_name='aa')
+            p.author_fk.set(self.person())
+
+            rows = list(p.ho_select(json_agg={'author_fk': []}))
+            author = rows[0]['author_fk']
+            self.assertIn('last_name', author)
+            self.assertIn('first_name', author)
+            self.assertIn('birth_date', author)
+
+    def test_mixed_direct_and_reverse_fk(self):
+        "mixing direct FK (dict) and reverse FK (list) in one json_agg call"
+        with Transaction(halftest.model):
+            self._insert_post('mixed', 'content')
+
+            p = self.post(author_last_name='aa')
+            p.author_fk.set(self.person())
+            p.comment_rfk.set(self.comment())
+
+            rows = list(p.ho_select(json_agg={
+                'author_fk':  ['last_name'],
+                'comment_rfk': ['content'],
+            }))
+            self.assertEqual(len(rows), 1)
+            self.assertIsInstance(rows[0]['author_fk'], dict)
+            self.assertIsInstance(rows[0]['comment_rfk'], list)
+
+    # ------------------------------------------------------------------
+    # Singleton reverse FK (one-to-one via UNIQUE constraint)
+    # ------------------------------------------------------------------
+
+    def _add_unique_constraint(self):
+        "Add UNIQUE(post_id) on blog.comment to simulate a one-to-one reverse FK."
+        halftest.model.execute_query(
+            'ALTER TABLE blog.comment ADD CONSTRAINT _test_comment_post_id_unique UNIQUE (post_id)'
+        )
+        halftest.model.reconnect(reload=True)
+
+    def _drop_unique_constraint(self):
+        "Remove the temporary UNIQUE constraint and reload metadata."
+        halftest.model.execute_query(
+            'ALTER TABLE blog.comment DROP CONSTRAINT IF EXISTS _test_comment_post_id_unique'
+        )
+        halftest.model.reconnect(reload=True)
+
+    def test_singleton_reverse_fk_is_singleton_flag(self):
+        "comment_rfk must report is_singleton=True after UNIQUE(post_id) is added"
+        self._add_unique_constraint()
+        try:
+            post = self.post()
+            self.assertTrue(post.comment_rfk.is_singleton)
+        finally:
+            self._drop_unique_constraint()
+
+    def test_singleton_reverse_fk_returns_dict(self):
+        "singleton reverse FK must return a dict (not a list)"
+        self._add_unique_constraint()
+        try:
+            with Transaction(halftest.model):
+                self._insert_post('singleton_post', 'c')
+                post = self.post(author_last_name='aa')
+                post.comment_rfk.set(self.comment())
+                rows = list(post.ho_select(json_agg={'comment_rfk': ['content']}))
+                self.assertEqual(len(rows), 1)
+                self.assertIsInstance(rows[0]['comment_rfk'], (dict, type(None)))
+        finally:
+            self._drop_unique_constraint()
+
+    def test_singleton_reverse_fk_with_data(self):
+        "singleton reverse FK with a matching comment must return a dict with the data"
+        self._add_unique_constraint()
+        try:
+            with Transaction(halftest.model):
+                self._insert_post('singleton_with_data', 'c')
+                post_row = self.post(
+                    title='singleton_with_data',
+                    author_last_name='aa',
+                ).ho_get()
+                self.comment(
+                    post_id=post_row['id'],
+                    content='my comment',
+                ).ho_insert()
+
+                p = self.post(title='singleton_with_data', author_last_name='aa')
+                p.comment_rfk.set(self.comment())
+                rows = list(p.ho_select(json_agg={'comment_rfk': ['content']}))
+                self.assertEqual(len(rows), 1)
+                comment = rows[0]['comment_rfk']
+                self.assertIsInstance(comment, dict)
+                self.assertEqual(comment['content'], 'my comment')
+        finally:
+            self._drop_unique_constraint()

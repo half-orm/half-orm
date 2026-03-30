@@ -39,6 +39,32 @@ These methods execute SQL immediately and return results.
       show_source: false
       heading_level: 3
 
+!!! note "json_agg: FK direction determines the return type"
+    When using the `json_agg` parameter, the type of each aggregated value
+    depends on the FK direction:
+
+    | FK type | Condition | Return value |
+    |---|---|---|
+    | Reverse (one-to-many) | no UNIQUE/PK on FK columns | `list` of dicts (`[]` if empty) |
+    | Reverse (one-to-one) | FK columns have UNIQUE or PK | `dict` or `None` |
+    | Direct (many-to-one) | — | `dict` or `None` |
+
+    ```python
+    # Reverse FK, non-unique — author → posts (list)
+    alice = Author(last_name='Martin')
+    alice.post_rfk.set(Post())
+    for row in alice.ho_select(json_agg={'post_rfk': ['title']}):
+        print(row['post_rfk'])     # [{'title': '...'}, ...]
+
+    # Direct FK — post → author (dict)
+    post = Post(title='Hello')
+    post.author_fk.set(Author())
+    for row in post.ho_select(json_agg={'author_fk': ['last_name']}):
+        print(row['author_fk'])    # {'last_name': 'Martin'}
+    ```
+
+    *New in version 0.18.7.*
+
 ::: half_orm.relation.Relation.ho_count
     options:
       show_root_heading: true

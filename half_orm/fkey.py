@@ -57,11 +57,14 @@ class FKey:
 
     def __init__(self,
                  fk_name, relation, fk_sfqrn,
-                 fk_names=None, fields=None, confupdtype=None, confdeltype=None):
+                 fk_names=None, fields=None, confupdtype=None, confdeltype=None,
+                 is_reverse=False, is_singleton=False):
         self.__relation = relation
         self.__to_relation = None
         self.__name = fk_name
         self.__is_set = False
+        self.__is_reverse = is_reverse
+        self.__is_singleton = is_singleton
         self.__fk_names = fk_names or []
         self.__fk_from = None
         self.__fk_to = None
@@ -108,7 +111,8 @@ class FKey:
         f_relation._ho_fkeys[rev_fkey_name] = FKey(
             rev_fkey_name,
             f_relation,
-            f_relation._t_fqrn, self.__fields, self.__fk_names)
+            f_relation._t_fqrn, self.__fields, self.__fk_names,
+            is_reverse=True)
         f_relation._ho_fkeys[rev_fkey_name].set(self.__relation)
         return f_relation
 
@@ -202,9 +206,19 @@ class FKey:
         return self.__name
 
     @property
+    def is_reverse(self):
+        "Returns True if this is a reverse (one-to-many) foreign key."
+        return self.__is_reverse
+
+    @property
+    def is_singleton(self):
+        "Returns True if this reverse FK is one-to-one (FK columns are UNIQUE or PK)."
+        return self.__is_singleton
+
+    @property
     def remote(self):
         "Returns the fqtn of the foreign table and if the link is reverse"
-        return {'fqtn': self()._t_fqrn[1:], 'reverse': self.__name.find('_reverse_fkey_') == 0}
+        return {'fqtn': self()._t_fqrn[1:], 'reverse': self.__is_reverse}
 
     @property
     def fk_names(self):

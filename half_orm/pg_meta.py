@@ -291,8 +291,29 @@ class PgMeta:
                     rev_fkey_name = f'_reverse_fkey_{"_".join(table_key)}.{".".join(fields)}'
                     rev_fkey_name = strip_quotes(rev_fkey_name.replace(".", "_").replace(":", "_"))
                     byname[table_key]['fkeys'][fkeyname] = (
-                        ftable_key, ffields, fields, confupdtype, confdeltype)
-                    byname[ftable_key]['fkeys'][rev_fkey_name] = (table_key, fields, ffields, confupdtype, confdeltype)
+                        ftable_key, ffields, fields, confupdtype, confdeltype, False, False)
+                    # Detect one-to-one: FK fields form a UNIQUE or PK on table_key
+                    target = frozenset(fields)
+                    pk_fields = frozenset(
+                        fname for fname, fd in byname[table_key]['fields'].items()
+                        if fd.get('pkey')
+                    )
+                    is_singleton = (target == pk_fields)
+                    if not is_singleton:
+                        seen_ugroups = set()
+                        for fd in byname[table_key]['fields'].values():
+                            if fd.get('uniq'):
+                                group = frozenset(
+                                    byid[tableid]['fields'][num]
+                                    for num in fd['pkeynum']
+                                )
+                                if group not in seen_ugroups:
+                                    seen_ugroups.add(group)
+                                    if target == group:
+                                        is_singleton = True
+                                        break
+                    byname[ftable_key]['fkeys'][rev_fkey_name] = (
+                        table_key, fields, ffields, confupdtype, confdeltype, True, is_singleton)
 
         metadata['relations_list'].sort()
         PgMeta.meta.register(self.__dbname, metadata)
