@@ -869,7 +869,7 @@ Fkeys = {"""
         constrained by at least one of its foreign keys or self is the
         result of a combination of Relations (using set operators).
         """
-        joined_to = any(jt_.ho_is_set() for jt_ in self._ho_join_to.values())
+        joined_to = bool(self._ho_join_to)
         return (joined_to or bool(self._ho_set_operators.operator) or bool(self._ho_neg) or
                 bool({field for field in self._ho_fields.values() if field.is_set()}))
 

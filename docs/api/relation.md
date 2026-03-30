@@ -125,6 +125,29 @@ These methods inspect or assert on the predicate **without executing SQL**.
       show_source: false
       heading_level: 3
 
+!!! warning "Syntactic check, not semantic — risk of data loss"
+    `ho_is_set()` inspects the predicate structure only. It returns `True`
+    for any predicate built with set operators or FK joins, even when the
+    extension is semantically equivalent to the full table:
+
+    ```python
+    Post() & Post()                             # True — but = all posts
+    Post() | Post(title='a')                    # True — but = all posts
+    Post(title='a') | Post(title=('!=', 'a'))   # True — but = all posts
+    ```
+
+    Because `ho_delete()` and `ho_update()` allow execution without
+    `delete_all=True` / `update_all=True` when `ho_is_set()` is `True`,
+    these predicates will silently operate on the **entire table**.
+
+    ```python
+    # Deletes ALL posts — no error raised
+    (Post() | Post(title='a')).ho_delete()
+    ```
+
+    Always verify the actual extension with `ho_count()` or `ho_mogrify()`
+    before destructive operations on set-operator predicates.
+
 ::: half_orm.relation.Relation.ho_where_display
     options:
       show_root_heading: true
