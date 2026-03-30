@@ -63,7 +63,7 @@ These methods execute SQL immediately and return results.
         print(row['author_fk'])    # {'last_name': 'Martin'}
     ```
 
-    *New in version 0.18.7.*
+    *Changed in version 0.18.7* **(breaking)**.
 
 ::: half_orm.relation.Relation.ho_count
     options:

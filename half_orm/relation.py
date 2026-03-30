@@ -383,7 +383,7 @@ class Relation:
 
         *New in version 0.18.6:* ``json_agg`` parameter.
 
-        *New in version 0.18.7:* direct FK and singleton reverse FK (UNIQUE/PK) in ``json_agg`` return a ``dict`` (or ``None``) instead of a list.
+        *Changed in version 0.18.7* **(breaking)**: direct FK and singleton reverse FK (UNIQUE/PK) in ``json_agg`` return a ``dict`` (or ``None``) instead of a list.
         """
         if json_agg is not None:
             query, values = self._ho_prep_json_agg_select(
