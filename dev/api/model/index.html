@@ -1422,14 +1422,13 @@ database is enough — it is shared across all relation classes.</p>
               <div class="doc-md-description">
                 <p>name of the connection file searched in
 <code>HALFORM_CONF_DIR</code> (env var, defaults to <code>/etc/half_orm</code>).
-File format::</p>
-<div class="highlight"><pre><span></span><code>[database]
-name     = &lt;db name&gt;      # mandatory
-user     = &lt;user&gt;
-password = &lt;password&gt;
-host     = &lt;host&gt;
-port     = &lt;port&gt;
-</code></pre></div>
+File format:
+    [database]
+    name     = <db name>      # mandatory
+    user     = <user>
+    password = <password>
+    host     = <host>
+    port     = <port></p>
 <p><code>name</code> is the only mandatory key when using peer authentication.</p>
               </div>
             </td>
@@ -1646,13 +1645,15 @@ port     = &lt;port&gt;
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>Author = blog.get_relation_class(&#39;blog.author&#39;)
+  <p>generate a Relation class:</p>
+<div class="highlight"><pre><span></span><code>```python
+Author = blog.get_relation_class(&#39;blog.author&#39;)
 
 # Preferred: subclass and register
 @register
 class Author(blog.get_relation_class(&#39;blog.author&#39;)):
     Fkeys = {&#39;post_rfk&#39;: &#39;_reverse_fkey_blog_post_author_id&#39;}
+```
 </code></pre></div>
 </details>
 
