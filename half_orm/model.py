@@ -9,7 +9,6 @@ connects to the database, and exposes
 that map to tables and views.
 
 Example:
-    ::
 
         from half_orm.model import Model
 
@@ -47,7 +46,7 @@ class Model:
     Args:
         config_file (str): name of the connection file searched in
             ``HALFORM_CONF_DIR`` (env var, defaults to ``/etc/half_orm``).
-            File format::
+            File format:
 
                 [database]
                 name     = <db name>      # mandatory
@@ -178,7 +177,6 @@ class Model:
             UnknownRelation: if the relation does not exist in the database.
 
         Example:
-            ::
 
                 Author = blog.get_relation_class('blog.author')
 
@@ -508,7 +506,6 @@ class Model:
         * a list of tuples indentifying the inherited relations.
 
         Example:
-            ::
 
                 from half_orm.model import Model
                 halftest = Model('halftest')

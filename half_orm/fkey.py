@@ -35,14 +35,14 @@ class FKey:
 
     FK attributes are exposed automatically on every relation class — both
     direct FKs (``table_fk``) and reverse FKs (``_reverse_fkey_...``).
-    Give them friendly names via the ``Fkeys`` class attribute::
+    Give them friendly names via the ``Fkeys`` class attribute:
 
-        @register
-        class Post(blog.get_relation_class('blog.post')):
-            Fkeys = {
-                'author_fk':   'post_author_id_fkey',
-                'comment_rfk': '_reverse_fkey_blog_comment_post_id',
-            }
+            @register
+            class Post(blog.get_relation_class('blog.post')):
+                Fkeys = {
+                    'author_fk':   'post_author_id_fkey',
+                    'comment_rfk': '_reverse_fkey_blog_comment_post_id',
+                }
 
     Use a FK attribute in two ways:
 
@@ -91,7 +91,6 @@ class FKey:
             Relation: a new predicate on the related table.
 
         Example:
-            ::
 
                 post   = Post(id=1)
                 author = post.author_fk()        # author of post 1
@@ -129,7 +128,6 @@ class FKey:
             RuntimeError: if setting this FK would create a cycle in the join graph.
 
         Example:
-            ::
 
                 # "is a post whose author's last name starts with 'Mar'"
                 post = Post()

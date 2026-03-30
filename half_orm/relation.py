@@ -276,7 +276,6 @@ class Relation:
                 non-writable kind.
 
         Example:
-            ::
 
                 alice = Author(
                     first_name='Alice', last_name='Martin',
@@ -355,12 +354,12 @@ class Relation:
             dict: one row of the extension.
 
         Example:
-            Project and sort::
+            Project and sort:
 
                 for row in Author(last_name='Martin').ho_select('id', 'email', order_by='id'):
                     print(row)   # {'id': 1, 'email': 'alice@example.com'}
 
-            Aggregate related rows as JSON::
+            Aggregate related rows as JSON:
 
                 alice = Author(last_name='Martin')
                 alice.post_rfk.set(Post())
@@ -414,7 +413,6 @@ class Relation:
             NotASingletonError: if no unique identifier is fully set.
 
         Example:
-            ::
 
                 # OK — id is the primary key
                 Author(id=42).ho_assert_is_singleton()
@@ -543,7 +541,6 @@ class Relation:
                 ``False``.
 
         Example:
-            ::
 
                 # Update a single row — guarded by singleton check
                 Author(id=1).ho_assert_is_singleton().ho_update(email='new@example.com')
@@ -603,7 +600,6 @@ class Relation:
                 is ``False``.
 
         Example:
-            ::
 
                 # Delete one identified row
                 Author(id=99).ho_assert_is_singleton().ho_delete()
@@ -1164,7 +1160,7 @@ Fkeys = {"""
         debugging predicate composition.
 
         Returns:
-            self — for chaining::
+            self — for chaining:
 
                 Author(last_name='Martin').ho_mogrify().ho_count()
         """
@@ -1193,7 +1189,6 @@ Fkeys = {"""
             int: the cardinality of the extension.
 
         Example:
-            ::
 
                 Author().ho_count()                    # total number of authors
                 Author(last_name='Martin').ho_count()  # subset cardinality
@@ -1210,7 +1205,6 @@ Fkeys = {"""
             bool
 
         Example:
-            ::
 
                 Author(last_name='Unknown').ho_is_empty()  # True if no such author
         """
@@ -1476,7 +1470,6 @@ def singleton(fct):
     Use this on any method that must operate on a single, identified row.
 
     Example:
-        ::
 
             @register
             class Author(blog.get_relation_class('blog.author')):
@@ -1512,7 +1505,6 @@ def transaction(fct):
     inner method rolls back only that inner scope.
 
     Example:
-        ::
 
             from half_orm.relation import transaction
 
