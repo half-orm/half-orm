@@ -1,3 +1,18 @@
+# 0.18.7 (2026-03-30)
+
+* 4bfbaf8 2026-03-30 | feat(fkey)!: direct and singleton reverse FK in json_agg now return dict, not list [Joël Maizi]
+* b27aecd 2026-03-30 | docs: enrich async executors section and fix get_relation_class example indent (origin/doc, doc) [Joël Maizi]
+* 016fbe5 2026-03-30 | feat(docs): Add ref to transaction.md in relation.md [Joël Maizi]
+* b08eaf7 2026-03-30 | fix(docs): syntax highlighting of examples [Joël Maizi]
+* aa3fc4c 2026-03-30 | ci: deploy dev docs on push to doc branch [Joël Maizi]
+* 6190ed6 2026-03-30 | fix(docs): remove unnecessary '::' [Joël Maizi]
+* 0bac479 2026-03-30 | fix(relation): ho_is_set() returns True when any FK is joined; warn in docs [Joël Maizi]
+* 9de4dec 2026-03-30 | docs: remove Quick Start, Fundamentals and Tutorial from nav [Joël Maizi]
+* e3a90eb 2026-03-29 | docs: fix connection config section in half-an-hour [Joël Maizi]
+* 0b44bb6 2026-03-29 | docs: use U+2223 (∣) instead of | in quick reference table cell [Joël Maizi]
+* 472cf07 2026-03-29 | docs: add ^ to intro; fix | rendering in quick reference table [Joël Maizi]
+* c1cbadb 2026-03-29 | docs: add XOR operator, API Reference nav, and rewrite transaction.md [Joël Maizi]
+
 # 0.18.6 (2026-03-27)
 
 * docs: replace .. versionadded/versionchanged with *New/Changed in version X.* (HEAD -> main) (6f2034c)
