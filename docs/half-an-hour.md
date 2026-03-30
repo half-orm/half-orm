@@ -485,3 +485,10 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 ---
 
 **Next:** the [API reference](api/relation.md) documents every method in detail.
+
+---
+
+## Examples
+
+* [Database Exploration with GitLab](examples/gitlab.md)
+* [Instant REST API with halfORM](examples/instant-rest-api/instant-rest-api.md)
