@@ -71,11 +71,35 @@ Async counterparts of every executor. Require an async connection opened
 with `await model.aconnect()`. Return plain values (not generators) so the
 cursor can be closed before returning to the caller.
 
+```python
+import asyncio
+from half_orm.model import Model
+
+async def main():
+    blog = Model('blog')
+    await blog.aconnect()
+    Author = blog.get_relation_class('blog.author')
+    Post = blog.get_relation_class('blog.post')
+
+    alice = await Author(
+        name='Alice', email='alice@example.com'
+    ).ho_ainsert()
+
+    posts = await Post(author_id=alice['id']).ho_aselect()
+    n     = await Post().ho_acount()
+
+    await blog.adisconnect()
+
+asyncio.run(main())
+```
+
 ::: half_orm.relation.Relation.ho_ainsert
     options:
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+*Sync counterpart: [ho_insert](#ho_insert)*
 
 ::: half_orm.relation.Relation.ho_aselect
     options:
@@ -83,11 +107,15 @@ cursor can be closed before returning to the caller.
       show_source: false
       heading_level: 3
 
+*Sync counterpart: [ho_select](#ho_select)*
+
 ::: half_orm.relation.Relation.ho_acount
     options:
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+*Sync counterpart: [ho_count](#ho_count)*
 
 ::: half_orm.relation.Relation.ho_ais_empty
     options:
@@ -95,17 +123,23 @@ cursor can be closed before returning to the caller.
       show_source: false
       heading_level: 3
 
+*Sync counterpart: [ho_is_empty](#ho_is_empty)*
+
 ::: half_orm.relation.Relation.ho_aupdate
     options:
       show_root_heading: true
       show_source: false
       heading_level: 3
 
+*Sync counterpart: [ho_update](#ho_update)*
+
 ::: half_orm.relation.Relation.ho_adelete
     options:
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+*Sync counterpart: [ho_delete](#ho_delete)*
 
 ---
 
