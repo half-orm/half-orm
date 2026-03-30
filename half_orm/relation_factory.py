@@ -26,8 +26,8 @@ def register_class(relation_class):
         ValueError: if ``relation_class`` is not a valid relation subclass.
 
     Example:
-        ::
-
+        Register a class:
+            ```python
             from half_orm.model import Model, register
 
             blog = Model('blog')
@@ -35,6 +35,7 @@ def register_class(relation_class):
             @register
             class Author(blog.get_relation_class('blog.author')):
                 Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
+            ```
     """
     try:
         rel_id = id(relation_class)

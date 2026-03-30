@@ -24,8 +24,8 @@ class Transaction:
             connection should be used.
 
     Example:
-        Atomic insert of two related rows::
-
+        Atomic insert of two related rows:
+            ```python
             from half_orm.transaction import Transaction
 
             with Transaction(blog):
@@ -38,14 +38,16 @@ class Transaction:
                     author_id=alice['id'],
                 ).ho_insert()
             # both rows are committed, or neither is
+            ```
 
-        Nested transactions use savepoints::
-
+        Nested transactions use savepoints:
+            ```python
             with Transaction(blog):
                 alice = Author(...).ho_insert()
                 with Transaction(blog):          # savepoint
                     Post(...).ho_insert()
                     # exception here rolls back only the post, not Alice
+            ```
 
     *New in version 0.18.0:* nested ``Transaction`` blocks use savepoints.
     """

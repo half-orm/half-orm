@@ -37,12 +37,14 @@ class FKey:
     direct FKs (``table_fk``) and reverse FKs (``_reverse_fkey_...``).
     Give them friendly names via the ``Fkeys`` class attribute:
 
-            @register
-            class Post(blog.get_relation_class('blog.post')):
-                Fkeys = {
-                    'author_fk':   'post_author_id_fkey',
-                    'comment_rfk': '_reverse_fkey_blog_comment_post_id',
-                }
+    ```python
+    @register
+    class Post(blog.get_relation_class('blog.post')):
+        Fkeys = {
+            'author_fk':   'post_author_id_fkey',
+            'comment_rfk': '_reverse_fkey_blog_comment_post_id',
+        }
+    ```
 
     Use a FK attribute in two ways:
 
@@ -91,12 +93,15 @@ class FKey:
             Relation: a new predicate on the related table.
 
         Example:
-
+            Navigate to the related relation:
+                ```python
                 post   = Post(id=1)
                 author = post.author_fk()        # author of post 1
 
                 # with extra constraint
                 posts  = Author(last_name='Martin').post_rfk(content=('is not', NULL))
+                ```
+
         """
         f_relation = self.__get_rel(__cast__ or normalize_qrn(self.__fk_fqrn))(**kwargs)
         rev_fkey_name = f'_reverse_{f_relation.ho_id}'
@@ -128,11 +133,12 @@ class FKey:
             RuntimeError: if setting this FK would create a cycle in the join graph.
 
         Example:
-
-                # "is a post whose author's last name starts with 'Mar'"
+            is a post whose author's last name starts with 'Mar':
+                ```python
                 post = Post()
                 post.author_fk.set(Author(last_name=('like', 'Mar%')))
                 print(post.ho_count())
+                ```
 
         *New in version 0.18.6:* raises ``RuntimeError`` if setting this FK would create a cycle in the join graph.
         """

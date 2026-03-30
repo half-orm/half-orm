@@ -276,12 +276,14 @@ class Relation:
                 non-writable kind.
 
         Example:
-
+            Insert an author:
+                ```python
                 alice = Author(
                     first_name='Alice', last_name='Martin',
                     email='alice@example.com',
                 ).ho_insert()
                 alice['id']   # 1
+                ```
         """
         query, vals = self._ho_prep_insert(*args)
         with self.__execute(query, vals) as cursor:
@@ -355,16 +357,18 @@ class Relation:
 
         Example:
             Project and sort:
-
+                ```python
                 for row in Author(last_name='Martin').ho_select('id', 'email', order_by='id'):
                     print(row)   # {'id': 1, 'email': 'alice@example.com'}
+                ```
 
             Aggregate related rows as JSON:
-
+                ```python
                 alice = Author(last_name='Martin')
                 alice.post_rfk.set(Post())
                 for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
                     print(row['post_rfk'])  # [{'id': 1, 'title': '...'}, ...]
+                ```
 
         *New in version 0.18.0:* ``distinct``, ``order_by``, ``limit`` and ``offset`` parameters.
 
@@ -413,7 +417,8 @@ class Relation:
             NotASingletonError: if no unique identifier is fully set.
 
         Example:
-
+            ho_is_singleton usage:
+                ```python
                 # OK — id is the primary key
                 Author(id=42).ho_assert_is_singleton()
 
@@ -425,6 +430,7 @@ class Relation:
 
                 # Typical usage: guard a single-row write
                 Author(id=42).ho_assert_is_singleton().ho_update(email='new@example.com')
+                ```
 
         *New in version 0.18.0.*
         """
@@ -541,12 +547,14 @@ class Relation:
                 ``False``.
 
         Example:
-
+            ho_update usage:
+                ```python
                 # Update a single row — guarded by singleton check
                 Author(id=1).ho_assert_is_singleton().ho_update(email='new@example.com')
 
                 # Update an entire subset at once
                 Post(author_id=99).ho_update(content='[archived]')
+                ```
         """
         prep = self._ho_prep_update(*args, update_all=update_all, **kwargs)
         if prep is None:
@@ -600,12 +608,14 @@ class Relation:
                 is ``False``.
 
         Example:
-
+            ho_delete usage:
+                ```python
                 # Delete one identified row
                 Author(id=99).ho_assert_is_singleton().ho_delete()
 
                 # Delete all posts for a given author
                 Post(author_id=1).ho_delete(delete_all=True)
+                ```
         """
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
         with self.__execute(query, vals) as cursor:
@@ -1160,9 +1170,22 @@ Fkeys = {"""
         debugging predicate composition.
 
         Returns:
-            self — for chaining:
+            self — for chaining.
 
-                Author(last_name='Martin').ho_mogrify().ho_count()
+        Example:
+            ```python
+            Author(last_name='Martin').ho_mogrify().ho_count()
+            ```
+            displays:
+            ```sql
+            select
+            count(*) from (select
+            r... .*
+            from
+            "blog"."author" as r...
+            where
+                (r... ."name" = 'Martin'::text)) as ho_count
+            ```
         """
         self._ho_mogrify = True
         return self
@@ -1189,9 +1212,11 @@ Fkeys = {"""
             int: the cardinality of the extension.
 
         Example:
-
+            ho_count usage:
+                ```python
                 Author().ho_count()                    # total number of authors
                 Author(last_name='Martin').ho_count()  # subset cardinality
+                ```
 
         *New in version 0.18.0:* ``distinct`` parameter.
         """
@@ -1205,8 +1230,10 @@ Fkeys = {"""
             bool
 
         Example:
-
+            ho_is_empty usage:
+                ```python
                 Author(last_name='Unknown').ho_is_empty()  # True if no such author
+                ```
         """
         return self.ho_count() == 0
 
@@ -1470,7 +1497,8 @@ def singleton(fct):
     Use this on any method that must operate on a single, identified row.
 
     Example:
-
+        singleton decorator usage:
+            ```python
             @register
             class Author(blog.get_relation_class('blog.author')):
                 Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
@@ -1481,6 +1509,7 @@ def singleton(fct):
 
             Author(id=1).publish('My post', 'Content here')   # OK
             Author(last_name='Martin').publish('…', '…')      # raises NotASingletonError
+            ```
 
     *Changed in version 0.18.0:* the check is now purely structural (no database query).
     """
@@ -1505,7 +1534,8 @@ def transaction(fct):
     inner method rolls back only that inner scope.
 
     Example:
-
+        transaction decorator usage:
+            ```python
             from half_orm.relation import transaction
 
             @register
@@ -1514,6 +1544,8 @@ def transaction(fct):
                 def publish_many(self, posts):
                     for title, content in posts:
                         self.post_rfk(title=title, content=content).ho_insert()
+            ```
+
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):

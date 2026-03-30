@@ -9,11 +9,14 @@ connects to the database, and exposes
 that map to tables and views.
 
 Example:
+    Connect to a database and generate a Relation class:
 
+        ```python
         from half_orm.model import Model
 
         blog = Model('blog')
         Author = blog.get_relation_class('blog.author')
+        ```
 """
 
 import importlib
@@ -47,7 +50,6 @@ class Model:
         config_file (str): name of the connection file searched in
             ``HALFORM_CONF_DIR`` (env var, defaults to ``/etc/half_orm``).
             File format:
-
                 [database]
                 name     = <db name>      # mandatory
                 user     = <user>
@@ -177,13 +179,16 @@ class Model:
             UnknownRelation: if the relation does not exist in the database.
 
         Example:
-
+            Generate a Relation class:
+                ```python
                 Author = blog.get_relation_class('blog.author')
 
                 # Preferred: subclass and register
                 @register
                 class Author(blog.get_relation_class('blog.author')):
                     Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
+                ```
+
         """
         try:
             schema, table = relation_name.replace('"', '').rsplit('.', 1)
@@ -506,12 +511,15 @@ class Model:
         * a list of tuples indentifying the inherited relations.
 
         Example:
-
+            list model relations:
+                ```python
                 from half_orm.model import Model
                 halftest = Model('halftest')
                 halftest.desc()
 
                 [('r', ('halftest', 'actor', 'person'), []), ('r', ('halftest', 'blog', 'comment'), []), ('r', ('halftest', 'blog', 'event'), [('halftest', 'blog', 'post')]), ('r', ('halftest', 'blog', 'post'), []), ('v', ('halftest', 'blog.view', 'post_comment'), [])]
+                ```
+
         """
         return self.__pg_meta.desc(self.__dbname)
 
