@@ -2605,9 +2605,17 @@ debugging predicate composition.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>ho_mogrify usage:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_mogrify</span><span class="p">()</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>
-</code></pre></div></p>
+  <p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_mogrify</span><span class="p">()</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>
+</code></pre></div>
+Display:
+<code>python
+select
+count(*) from (select
+r125544106238928.*
+from
+"blog"."author" as r125544106238928
+where
+    (r125544106238928."name" = 'Martin'::text)) as ho_count</code>python</p>
 </details>
 
     </div>
