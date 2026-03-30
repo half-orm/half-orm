@@ -1625,13 +1625,13 @@ non-writable kind.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>alice = Author(
-    first_name=&#39;Alice&#39;, last_name=&#39;Martin&#39;,
-    email=&#39;alice@example.com&#39;,
-).ho_insert()
-alice[&#39;id&#39;]   # 1
-</code></pre></div>
+  <p>Insert an author:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">first_name</span><span class="o">=</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span> <span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">alice</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>   <span class="c1"># 1</span>
+</code></pre></div></p>
 </details>
 
     </div>
@@ -1799,16 +1799,16 @@ calling <code>ho_select</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>Project and sort::</p>
-<div class="highlight"><pre><span></span><code>for row in Author(last_name=&#39;Martin&#39;).ho_select(&#39;id&#39;, &#39;email&#39;, order_by=&#39;id&#39;):
-    print(row)   # {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}
-</code></pre></div>
-<p>Aggregate related rows as JSON::</p>
-<div class="highlight"><pre><span></span><code>alice = Author(last_name=&#39;Martin&#39;)
-alice.post_rfk.set(Post())
-for row in alice.ho_select(json_agg={&#39;post_rfk&#39;: [&#39;id&#39;, &#39;title&#39;]}):
-    print(row[&#39;post_rfk&#39;])  # [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]
-</code></pre></div>
+  <p>Project and sort:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>   <span class="c1"># {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}</span>
+</code></pre></div></p>
+<p>Aggregate related rows as JSON:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">alice</span><span class="o">.</span><span class="n">post_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Post</span><span class="p">())</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">])</span>  <span class="c1"># [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.0:</em> <code>distinct</code>, <code>order_by</code>, <code>limit</code> and <code>offset</code> parameters.</p>
 <p><em>New in version 0.18.6:</em> <code>json_agg</code> parameter.</p>
 
@@ -1903,10 +1903,10 @@ Default: <code>False</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>Author().ho_count()                    # total number of authors
-Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
-</code></pre></div>
+  <p>ho_count usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">()</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>                    <span class="c1"># total number of authors</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>  <span class="c1"># subset cardinality</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.0:</em> <code>distinct</code> parameter.</p>
 
 
@@ -1952,9 +1952,9 @@ Author(last_name=&#39;Martin&#39;).ho_count()  # subset cardinality
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>Author(last_name=&#39;Unknown&#39;).ho_is_empty()  # True if no such author
-</code></pre></div>
+  <p>ho_is_empty usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_is_empty</span><span class="p">()</span>  <span class="c1"># True if no such author</span>
+</code></pre></div></p>
 </details>
 
     </div>
@@ -2097,13 +2097,13 @@ Default: <code>False</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># Update a single row — guarded by singleton check
-Author(id=1).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
-
-# Update an entire subset at once
-Post(author_id=99).ho_update(content=&#39;[archived]&#39;)
-</code></pre></div>
+  <p>ho_update usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Update a single row — guarded by singleton check</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;new@example.com&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Update an entire subset at once</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s1">&#39;[archived]&#39;</span><span class="p">)</span>
+</code></pre></div></p>
 </details>
 
     </div>
@@ -2230,13 +2230,13 @@ is <code>False</code>.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># Delete one identified row
-Author(id=99).ho_assert_is_singleton().ho_delete()
-
-# Delete all posts for a given author
-Post(author_id=1).ho_delete(delete_all=True)
-</code></pre></div>
+  <p>ho_delete usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Delete one identified row</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Delete all posts for a given author</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">(</span><span class="n">delete_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></p>
 </details>
 
     </div>
@@ -2453,19 +2453,19 @@ cursor can be closed before returning to the caller.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code># OK — id is the primary key
-Author(id=42).ho_assert_is_singleton()
-
-# OK — email has a UNIQUE NOT NULL constraint
-Author(email=&#39;alice@example.com&#39;).ho_assert_is_singleton()
-
-# Raises — last_name is not a unique identifier
-Author(last_name=&#39;Martin&#39;).ho_assert_is_singleton()
-
-# Typical usage: guard a single-row write
-Author(id=42).ho_assert_is_singleton().ho_update(email=&#39;new@example.com&#39;)
-</code></pre></div>
+  <p>ho_is_singleton usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># OK — id is the primary key</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># OK — email has a UNIQUE NOT NULL constraint</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">Author</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Raises — last_name is not a unique identifier</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Typical usage: guard a single-row write</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;new@example.com&#39;</span><span class="p">)</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.0.</em></p>
 
 
@@ -2595,14 +2595,20 @@ debugging predicate composition.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>self — for chaining::</p>
-<p>Author(last_name='Martin').ho_mogrify().ho_count()</p>
+                <p>self — for chaining.</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
 
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>ho_mogrify usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_mogrify</span><span class="p">()</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>
+</code></pre></div></p>
+</details>
 
     </div>
 
@@ -2672,18 +2678,18 @@ does not identify exactly one row. No database query is performed.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>@register
-class Author(blog.get_relation_class(&#39;blog.author&#39;)):
-    Fkeys = {&#39;post_rfk&#39;: &#39;_reverse_fkey_blog_post_author_id&#39;}
-
-    @singleton
-    def publish(self, title: str, content: str):
-        return self.post_rfk(title=title, content=content).ho_insert()
-
-Author(id=1).publish(&#39;My post&#39;, &#39;Content here&#39;)   # OK
-Author(last_name=&#39;Martin&#39;).publish(&#39;…&#39;, &#39;…&#39;)      # raises NotASingletonError
-</code></pre></div>
+  <p>singleton decorator usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@register</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_post_author_id&#39;</span><span class="p">}</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="nd">@singleton</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;My post&#39;</span><span class="p">,</span> <span class="s1">&#39;Content here&#39;</span><span class="p">)</span>   <span class="c1"># OK</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;…&#39;</span><span class="p">,</span> <span class="s1">&#39;…&#39;</span><span class="p">)</span>      <span class="c1"># raises NotASingletonError</span>
+</code></pre></div></p>
 </details>        <p><em>Changed in version 0.18.0:</em> the check is now purely structural (no database query).</p>
 
 
@@ -2712,8 +2718,9 @@ inner method rolls back only that inner scope.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>::</p>
-<div class="highlight"><pre><span></span><code>from half_orm.relation import transaction
+  <p>transaction decorator usage:</p>
+<div class="highlight"><pre><span></span><code>```python
+from half_orm.relation import transaction
 
 @register
 class Author(blog.get_relation_class(&#39;blog.author&#39;)):
@@ -2721,6 +2728,7 @@ class Author(blog.get_relation_class(&#39;blog.author&#39;)):
     def publish_many(self, posts):
         for title, content in posts:
             self.post_rfk(title=title, content=content).ho_insert()
+```
 </code></pre></div>
 </details>
 
