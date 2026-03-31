@@ -2586,25 +2586,26 @@ cursor can be closed before returning to the caller.</p>
 
         <p>Return True if one field at least is set or if self has been
 constrained by at least one of its foreign keys or self is the
-result of a combination of Relations (using set operators).</p>
+result of a combination of Relations (using set operators) where
+at least one operand is itself constrained.</p>
 
 
     </div>
 
 </div><div class="admonition warning">
 <p class="admonition-title">Syntactic check, not semantic — risk of data loss</p>
-<p><code>ho_is_set()</code> inspects the predicate structure only. It returns <code>True</code>
-for any predicate built with set operators or FK joins, even when the
+<p><code>ho_is_set()</code> inspects the predicate structure only. When both operands
+of a set operator are constrained, it returns <code>True</code> even if the
 extension is semantically equivalent to the full table:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Post</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Post</span><span class="p">()</span>                             <span class="c1"># True — but = all posts</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Post</span><span class="p">()</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>                    <span class="c1"># True — but = all posts</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">))</span>   <span class="c1"># True — but = all posts</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Post</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Post</span><span class="p">()</span>                             <span class="c1"># False — both operands unconstrained</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Post</span><span class="p">()</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>                    <span class="c1"># True  — right operand is constrained</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">))</span>   <span class="c1"># True  — but = all posts</span>
 </code></pre></div>
 <p>Because <code>ho_delete()</code> and <code>ho_update()</code> allow execution without
 <code>delete_all=True</code> / <code>update_all=True</code> when <code>ho_is_set()</code> is <code>True</code>,
 these predicates will silently operate on the <strong>entire table</strong>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Deletes ALL posts — no error raised</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">(</span><span class="n">Post</span><span class="p">()</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">(</span><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)))</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
 </code></pre></div>
 <p>Always verify the actual extension with <code>ho_count()</code> or <code>ho_mogrify()</code>
 before destructive operations on set-operator predicates.</p>
@@ -2863,7 +2864,7 @@ inner method rolls back only that inner scope.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 09:12:36 UTC">March 31, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 12:32:56 UTC">March 31, 2026</span>
   </span>
 
     
