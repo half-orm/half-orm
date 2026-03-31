@@ -1,3 +1,10 @@
+# 0.18.8 (2026-03-31)
+
+* feat(fkey): set() without argument joins against all rows of related table (cf0c139)
+* feat(json_agg): support chained FK (A ← B → C) in ho_select (json_agg) (d5e4692)
+* ci: auto-cleanup stale doc versions on tag push (a776c84)
+* feat(doc): add breaking change for json_agg return value with singleton and direct fkeys. (a29fb39)
+
 # 0.18.7 (2026-03-30)
 
 * feat(fkey)!: direct and singleton reverse FK in json_agg now return dict, not list (4bfbaf8)
@@ -15,7 +22,7 @@
 
 # 0.18.6 (2026-03-27)
 
-* docs: replace .. versionadded/versionchanged with *New/Changed in version X.* (HEAD -> main) (6f2034c)
+* docs: replace .. versionadded/versionchanged with *New/Changed in version X.* (6f2034c)
 * docs: enable griffe-sphinx for .. versionadded/versionchanged rendering (0a16cd7)
 * docs: fix quick reference table in half-an-hour (addf464)
 * docs: rewrite fkey.md and fkey.py docstrings (dffd9d7)
@@ -143,7 +150,7 @@ full example.
 Relation method ho_get is now private (_ho_get) and has been marked deprecated. It was
 an anti-pattern. Use @singleton decorator instead.
 
-* deprecate(relation): deprecate ho_get in favor of @singleton decorator (HEAD -> main) (f6ecff4)
+* deprecate(relation): deprecate ho_get in favor of @singleton decorator (f6ecff4)
 * feat(relation): redefine equality as (A - B) | (B - A) == ∅ (3307892)
 * fix(ci): remove python3.7 from tests on gitlab + add python3.14 (bf42640)
 * fix(ci): ignore coveralls errors. (0d03f19)
@@ -247,7 +254,7 @@ an anti-pattern. Use @singleton decorator instead.
 
 # 0.16.0-rc (2025-07-05)
 
-* docs: upgrade docs/index.md to 0.16 release. (HEAD -> main) (0e6230d)
+* docs: upgrade docs/index.md to 0.16 release. (0e6230d)
 * fix: force dev as default version for mike deployment (tag: v0.16.0-rc1) (fb7b8a5)
 * fix: utils.warning test. (4d3acfc)
 * fix: correct mike deployment command for dev version (0bf32c9)
@@ -323,7 +330,7 @@ If you were using the `hop` command, please clone https://github.com/collorg/hal
 
 # 0.13.8 -- hop 0.1.0 alpha 22 (2025-01-15)
 
-* Update licence date. (HEAD -> main)
+* Update licence date.
 * [hop] Fix: add missing kwargs in arguments transmitted to the parent table. (ddbe18f)
 * Bump virtualenv from 20.25.1 to 20.26.6 (e09fc9e)
 * [github/CI] Use ubuntu-22 (Python 3.7 not present on ubuntu-24). (38212e8)
@@ -385,7 +392,7 @@ If you were using the `hop` command, please clone https://github.com/collorg/hal
 
 Relation methods select, insert, upgrade, delete deprecated in 0.8.0 have now been removed. Use ho_select, ho_insert, ho_upgrade and ho_delete instead.
 
-* [hop] sort imports in ho_dataclasses.py (HEAD -> main) (801385b)
+* [hop] sort imports in ho_dataclasses.py (801385b)
 * [hop] Add Fkeys to dataclasses. (10ba318)
 * [hop][relation] Refactor. Add DC_Relation to improve developper experience. (a9e2dda)
 * [CI] Keep psycopg2 2.9.9 to preserve Python 3.7 compatibility. (f9c0380)
@@ -633,7 +640,7 @@ Relation.field.set(value)
 
 # 0.9.2 -- hop 0.1.0a4 (2023-06-09)
 
-* [hop] Fix: wrong order in CHANGELOG. (HEAD -> main) (c763300)
+* [hop] Fix: wrong order in CHANGELOG. (c763300)
 * Change the representation of a Relation object. (c2a18cb)
 * [hop][WIP] Add gen-api command. (d2b180e)
 * Add Makefile for test and build. (04ba7c2)

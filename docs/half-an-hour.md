@@ -340,7 +340,7 @@ print(comment.ho_count())
 ```python
 # For each author named Martin, their posts (id + title) as a JSON array
 alice = Author(last_name='Martin')
-alice.post_rfk.set(Post())
+alice.post_rfk.set()
 
 for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
     # row['post_rfk'] = [{'id': 1, 'title': '...'}, ...]
