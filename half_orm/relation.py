@@ -899,7 +899,7 @@ Fkeys = {"""
         result of a combination of Relations (using set operators) where
         at least one operand is itself constrained.
         """
-        joined_to = bool(self._ho_join_to)
+        joined_to = any(jt_.ho_is_set() for jt_ in self._ho_join_to.values())
         op = self._ho_set_operators.operator
         if op:
             left_set = self._ho_set_operators.left.ho_is_set()

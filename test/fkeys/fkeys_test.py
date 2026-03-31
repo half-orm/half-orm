@@ -48,13 +48,13 @@ class Test(TestCase):
         self.assertTrue(post.ho_is_set())
 
     def test_is_set_fk_tautological(self):
-        "A FK join to a tautological predicate still constrains the relation."
+        "A FK join to a tautological predicate leaves the relation unconstrained."
         post = self.post()
         self.assertFalse(post.ho_is_set())
         pers = self.pers()
         self.assertFalse(pers.ho_is_set())
         post.author_fk.set(pers)
-        self.assertTrue(post.ho_is_set())
+        self.assertFalse(post.ho_is_set())
 
     def test_is_set_reverse(self):
         post = self.post(title="toto")
@@ -62,10 +62,10 @@ class Test(TestCase):
         self.assertTrue(author.ho_is_set())
 
     def test_is_set_reverse_tautological(self):
-        "Navigating via FK from a tautological predicate constrains the result."
+        "Navigating via FK from a tautological predicate leaves the result unconstrained."
         post = self.post()
         self.assertFalse(post.author_fk.is_set())
-        self.assertTrue(post.author_fk().ho_is_set())
+        self.assertFalse(post.author_fk().ho_is_set())
 
     def test_check_FKEYS_class(self):
         pers = self.pers()
