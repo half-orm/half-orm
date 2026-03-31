@@ -1,0 +1,2038 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simple PostgreSQL to Python mapper">
+      
+      
+        <meta name="author" content="half-orm">
+      
+      
+        <link rel="canonical" href="https://half-orm.github.io/0.18/half-an-hour/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../api/model/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Learn in half an hour - halfORM Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../assets/css/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#learn-halform-in-half-an-hour" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="halfORM Documentation" class="md-header__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            halfORM Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Learn in half an hour
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/half-orm/half-orm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    half-orm/half-orm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Learn in half an hour
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/model/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../extensions/" class="md-tabs__link">
+          
+  
+  
+  Extensions
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guides/development/extension-development/" class="md-tabs__link">
+          
+  
+  
+  Development Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="halfORM Documentation" class="md-nav__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    halfORM Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/half-orm/half-orm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    half-orm/half-orm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learn in half an hour
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learn in half an hour
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#schema-used-in-this-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema used in this guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-connect-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Connect (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-a-relation-is-a-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. A Relation is a predicate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-query-the-extension-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Query the extension (5 min)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Query the extension (5 min)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cardinality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cardinality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumerate-the-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enumerate the extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NULL values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-insert-add-an-element-to-a-table-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Insert: add an element to a table (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-singleton-predicate-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Singleton predicate (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-update-transform-the-extension-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Update: transform the extension (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-delete-remove-the-extension-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delete: remove the extension (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-foreign-keys-composing-predicates-across-tables-10-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Foreign keys: composing predicates across tables (10 min)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Foreign keys: composing predicates across tables (10 min)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register-make-your-subclass-the-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @register — make your subclass the default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naming-fk-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming FK attributes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fkey-extend-the-predicate-into-a-related-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fkey() — extend the predicate into a related table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fkeysetpredicate-compose-predicates-across-a-join" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fkey.set(predicate) — compose predicates across a join
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json_agg-attach-a-related-predicates-extension-as-a-json-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_agg — attach a related predicate's extension as a JSON column
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-predicate-algebra-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Predicate algebra (5 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-transactions-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Transactions (5 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-custom-classes-and-business-logic-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Custom classes and business logic (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/relation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/fkey/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FKey
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extensions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Extensions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extensions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    halfORM Extensions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/development/extension-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/development/development-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    halfORM Development Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/development/documentation-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#schema-used-in-this-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema used in this guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-connect-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Connect (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-a-relation-is-a-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. A Relation is a predicate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-query-the-extension-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Query the extension (5 min)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Query the extension (5 min)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cardinality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cardinality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumerate-the-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enumerate the extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NULL values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-insert-add-an-element-to-a-table-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Insert: add an element to a table (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-singleton-predicate-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Singleton predicate (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-update-transform-the-extension-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Update: transform the extension (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-delete-remove-the-extension-1-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delete: remove the extension (1 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-foreign-keys-composing-predicates-across-tables-10-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Foreign keys: composing predicates across tables (10 min)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Foreign keys: composing predicates across tables (10 min)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register-make-your-subclass-the-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @register — make your subclass the default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naming-fk-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming FK attributes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fkey-extend-the-predicate-into-a-related-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fkey() — extend the predicate into a related table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fkeysetpredicate-compose-predicates-across-a-join" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fkey.set(predicate) — compose predicates across a join
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json_agg-attach-a-related-predicates-extension-as-a-json-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_agg — attach a related predicate's extension as a JSON column
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-predicate-algebra-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Predicate algebra (5 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-transactions-5-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Transactions (5 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-custom-classes-and-business-logic-2-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Custom classes and business logic (2 min)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="learn-halform-in-half-an-hour">Learn halfORM in half an hour<a class="headerlink" href="#learn-halform-in-half-an-hour" title="Permanent link">&para;</a></h1>
+<p>halfORM is a database-first ORM for PostgreSQL. You write the schema in SQL;
+halfORM introspects it at runtime and gives you Python objects to work with your
+data. No migrations, no code generation.</p>
+<p><strong>The central idea:</strong> a <code>Relation</code> object is a <strong>predicate</strong>. It describes the
+logical condition that rows must satisfy to belong to the relation. Its
+<em>extension</em> — the set of rows that currently satisfy the predicate in the
+database — is what you read, update, or delete.</p>
+<p>Adding a constraint specialises the predicate. Set operators (<code>|</code>, <code>&amp;</code>, <code>-</code>, <code>^</code>)
+are logical operators on predicates. Foreign key navigation composes predicates
+across tables.</p>
+<p>This guide covers everything you need, in order.</p>
+<hr />
+<h2 id="schema-used-in-this-guide">Schema used in this guide<a class="headerlink" href="#schema-used-in-this-guide" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">create</span><span class="w"> </span><span class="k">schema</span><span class="w"> </span><span class="n">blog</span><span class="p">;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">id</span><span class="w">         </span><span class="nb">serial</span><span class="w"> </span><span class="k">primary</span><span class="w"> </span><span class="k">key</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">first_name</span><span class="w"> </span><span class="nb">text</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">last_name</span><span class="w">  </span><span class="nb">text</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">email</span><span class="w">      </span><span class="nb">text</span><span class="w"> </span><span class="k">unique</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="n">id</span><span class="w">        </span><span class="nb">serial</span><span class="w"> </span><span class="k">primary</span><span class="w"> </span><span class="k">key</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="n">title</span><span class="w">     </span><span class="nb">text</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="n">content</span><span class="w">   </span><span class="nb">text</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="n">author_id</span><span class="w"> </span><span class="nb">integer</span><span class="w"> </span><span class="k">references</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">delete</span><span class="w"> </span><span class="k">cascade</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">);</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="k">comment</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="n">id</span><span class="w">        </span><span class="nb">serial</span><span class="w"> </span><span class="k">primary</span><span class="w"> </span><span class="k">key</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="n">content</span><span class="w">   </span><span class="nb">text</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="n">post_id</span><span class="w">   </span><span class="nb">integer</span><span class="w"> </span><span class="k">references</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">delete</span><span class="w"> </span><span class="k">cascade</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="n">author_id</span><span class="w"> </span><span class="nb">integer</span><span class="w"> </span><span class="k">references</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">delete</span><span class="w"> </span><span class="k">cascade</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">);</span>
+</code></pre></div>
+<hr />
+<h2 id="1-connect-1-min">1. Connect (1 min)<a class="headerlink" href="#1-connect-1-min" title="Permanent link">&para;</a></h2>
+<p>halfORM reads connection parameters from a file named after the database,
+searched in the directory defined by <code>HALFORM_CONF_DIR</code> (defaults to
+<code>/etc/half_orm</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># /etc/half_orm/blog   (or $HALFORM_CONF_DIR/blog)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">[database]</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">blog</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">alice</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="na">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="na">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;blog&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">blog</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>📋 Available relations for blog:
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>r &quot;blog&quot;.&quot;author&quot;
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>r &quot;blog&quot;.&quot;comment&quot;
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>r &quot;blog&quot;.&quot;post&quot;
+</code></pre></div>
+<p>Get a class for a table with <a href="../api/model/#half_orm.model.Model.get_relation_class"><code>get_relation_class()</code></a> — each class represents the <strong>set of all rows</strong> in that table:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">Author</span>  <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">Post</span>    <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.post&#39;</span><span class="p">)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">Comment</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.comment&#39;</span><span class="p">)</span>
+</code></pre></div>
+<p>Print a class to inspect its schema (columns, types, constraints, foreign keys):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">Author</span><span class="p">())</span>
+</code></pre></div>
+<hr />
+<h2 id="2-a-relation-is-a-predicate">2. A Relation is a predicate<a class="headerlink" href="#2-a-relation-is-a-predicate" title="Permanent link">&para;</a></h2>
+<p>Instantiating with keyword arguments <strong>specialises the predicate</strong> by adding
+conditions. No argument → the tautology "is a row of this table" (the whole
+table). Each argument adds a conjunct.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">Author</span><span class="p">()</span>                              <span class="c1"># predicate: &quot;is an author&quot;             → all rows</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>            <span class="c1"># predicate: &quot;is an author named Martin&quot; → subset</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>     <span class="c1"># predicate: &quot;Martin with id 42&quot;         → at most one row</span>
+</code></pre></div>
+<p>The object does not query the database. It holds a predicate. The query happens
+only when you explicitly ask for the extension (via <a href="../api/relation/#half_orm.relation.Relation.ho_select"><code>ho_select</code></a>, <a href="../api/relation/#half_orm.relation.Relation.ho_count"><code>ho_count</code></a>, etc.).</p>
+<p>This is the foundation everything else builds on.</p>
+<hr />
+<h2 id="3-query-the-extension-5-min">3. Query the extension (5 min)<a class="headerlink" href="#3-query-the-extension-5-min" title="Permanent link">&para;</a></h2>
+<h3 id="cardinality">Cardinality<a class="headerlink" href="#cardinality" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">Author</span><span class="p">()</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>                        <span class="c1"># cardinality of &quot;is an author&quot;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>      <span class="c1"># cardinality of &quot;is an author named Martin&quot;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_is_empty</span><span class="p">()</span>  <span class="c1"># True if the extension is empty</span>
+</code></pre></div>
+<h3 id="enumerate-the-extension">Enumerate the extension<a class="headerlink" href="#enumerate-the-extension" title="Permanent link">&para;</a></h3>
+<p><a href="../api/relation/#half_orm.relation.Relation.ho_select"><code>ho_select()</code></a> is a generator that yields each row as a dict. Without arguments
+it is equivalent to iterating directly on the relation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Author</span><span class="p">():</span>                  <span class="c1"># equivalent to Author().ho_select()</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">])</span>
+</code></pre></div>
+<p>Pass field names to project only certain columns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">):</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>   <span class="c1"># {&#39;id&#39;: 1, &#39;email&#39;: &#39;alice@example.com&#39;}</span>
+</code></pre></div>
+<p>Control ordering and size of the result set:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Author</span><span class="p">()</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;last_name&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="comparators">Comparators<a class="headerlink" href="#comparators" title="Permanent link">&para;</a></h3>
+<p>Equality is the default. For anything else, pass a <code>(operator, value)</code> tuple:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">))</span>       <span class="c1"># set where last_name LIKE &#39;Mar%&#39;</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ilike&#39;</span><span class="p">,</span> <span class="s1">&#39;mar%&#39;</span><span class="p">))</span>      <span class="c1"># case-insensitive</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>                     <span class="c1"># set where id &gt; 10</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>             <span class="c1"># set where id IN (1, 2, 3)</span>
+</code></pre></div>
+<h3 id="null-values">NULL values<a class="headerlink" href="#null-values" title="Permanent link">&para;</a></h3>
+<p>Python <code>None</code> <em>unsets</em> a constraint (no effect on the set definition).
+Use <code>half_orm.null.NULL</code> to build the set of rows where a column is NULL:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.null</span><span class="w"> </span><span class="kn">import</span> <span class="n">NULL</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">Post</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">NULL</span><span class="p">)</span>                       <span class="c1"># set where content IS NULL</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">Post</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;is not&#39;</span><span class="p">,</span> <span class="n">NULL</span><span class="p">))</span>           <span class="c1"># set where content IS NOT NULL</span>
+</code></pre></div>
+<hr />
+<h2 id="4-insert-add-an-element-to-a-table-2-min">4. Insert: add an element to a table (2 min)<a class="headerlink" href="#4-insert-add-an-element-to-a-table-2-min" title="Permanent link">&para;</a></h2>
+<p><a href="../api/relation/#half_orm.relation.Relation.ho_insert"><code>ho_insert()</code></a> inserts the row described by the object's constraints and returns
+the inserted row as a dict:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">row</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="n">first_name</span><span class="o">=</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span><span class="p">,</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>   <span class="c1"># {&#39;id&#39;: 1, &#39;first_name&#39;: &#39;Alice&#39;, &#39;last_name&#39;: &#39;Martin&#39;, ...}</span>
+</code></pre></div>
+<hr />
+<h2 id="5-singleton-predicate-2-min">5. Singleton predicate (2 min)<a class="headerlink" href="#5-singleton-predicate-2-min" title="Permanent link">&para;</a></h2>
+<p>A predicate is a <strong>singleton</strong> when it logically identifies at most one row —
+i.e. a primary key or unique NOT NULL constraint is fully specified with <code>=</code>.</p>
+<p><a href="../api/relation/#half_orm.relation.Relation.ho_assert_is_singleton"><code>ho_assert_is_singleton()</code></a> verifies this <em>without querying the database</em> and
+returns <code>self</code> for chaining. It raises <code>NotASingletonError</code> if the predicate
+is not a singleton.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>          <span class="c1"># OK — id is the PK</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>  <span class="c1"># OK — email is UNIQUE NOT NULL</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span>         <span class="c1"># raises: last_name is not unique</span>
+</code></pre></div>
+<p>Use it as a guard before any single-row write:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@newdomain.com&#39;</span><span class="p">)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="6-update-transform-the-extension-1-min">6. Update: transform the extension (1 min)<a class="headerlink" href="#6-update-transform-the-extension-1-min" title="Permanent link">&para;</a></h2>
+<p><a href="../api/relation/#half_orm.relation.Relation.ho_update"><code>ho_update()</code></a> modifies every row that satisfies the predicate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Update one row — guarded</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@newdomain.com&#39;</span><span class="p">)</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Update a whole subset at once</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s1">&#39;[archived]&#39;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="7-delete-remove-the-extension-1-min">7. Delete: remove the extension (1 min)<a class="headerlink" href="#7-delete-remove-the-extension-1-min" title="Permanent link">&para;</a></h2>
+<p><a href="../api/relation/#half_orm.relation.Relation.ho_delete"><code>ho_delete()</code></a> removes every row that satisfies the predicate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">ho_assert_is_singleton</span><span class="p">()</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="c1"># delete_all=True is required when no primary key field is set</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># — a deliberate safety guard against accidental mass deletions.</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">(</span><span class="n">delete_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="8-foreign-keys-composing-predicates-across-tables-10-min">8. Foreign keys: composing predicates across tables (10 min)<a class="headerlink" href="#8-foreign-keys-composing-predicates-across-tables-10-min" title="Permanent link">&para;</a></h2>
+<h3 id="register-make-your-subclass-the-default"><code>@register</code> — make your subclass the default<a class="headerlink" href="#register-make-your-subclass-the-default" title="Permanent link">&para;</a></h3>
+<p><code>blog.get_relation_class('blog.post')</code> returns a generated base class. When you
+subclass it, halfORM still uses the base class for FK navigation unless you
+register your subclass:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nd">@register</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Post</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.post&#39;</span><span class="p">)):</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="o">...</span>
+</code></pre></div>
+<p><code>@register</code> tells the Model to use <code>Post</code> everywhere that table appears — FK
+navigation returns <em>your</em> class, with your aliases and methods, not the
+generated base class. <strong>Always decorate relation subclasses with <code>@register</code>.</strong></p>
+<h3 id="naming-fk-attributes">Naming FK attributes<a class="headerlink" href="#naming-fk-attributes" title="Permanent link">&para;</a></h3>
+<p>halfORM exposes every foreign key, but auto-generated names are long. Give them
+friendly aliases in a <code>Fkeys</code> class attribute:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nd">@register</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Post</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.post&#39;</span><span class="p">)):</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>        <span class="s1">&#39;author_fk&#39;</span><span class="p">:</span>   <span class="s1">&#39;post_author_id_fkey&#39;</span><span class="p">,</span>                  <span class="c1"># FK → author</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>        <span class="s1">&#39;comment_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_comment_post_id&#39;</span><span class="p">,</span>   <span class="c1"># ← comment</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="p">}</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="nd">@register</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>        <span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span>    <span class="s1">&#39;_reverse_fkey_blog_post_author_id&#39;</span><span class="p">,</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>        <span class="s1">&#39;comment_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_comment_author_id&#39;</span><span class="p">,</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>    <span class="p">}</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="nd">@register</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="k">class</span><span class="w"> </span><span class="nc">Comment</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.comment&#39;</span><span class="p">)):</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>        <span class="s1">&#39;post_fk&#39;</span><span class="p">:</span>   <span class="s1">&#39;comment_post_id_fkey&#39;</span><span class="p">,</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>        <span class="s1">&#39;author_fk&#39;</span><span class="p">:</span> <span class="s1">&#39;comment_author_id_fkey&#39;</span><span class="p">,</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>    <span class="p">}</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Finding FK names</p>
+<p><code>print(Post())</code> lists all foreign keys with their internal names.</p>
+</div>
+<h3 id="fkey-extend-the-predicate-into-a-related-table"><a href="../api/fkey/#half_orm.fkey.FKey.__call__"><code>fkey()</code></a> — extend the predicate into a related table<a class="headerlink" href="#fkey-extend-the-predicate-into-a-related-table" title="Permanent link">&para;</a></h3>
+<p>Calling a FK attribute produces a new predicate on the related table, restricted
+to the rows linked to the current predicate's extension:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">post</span>   <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="n">author</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="p">()</span>           <span class="c1"># predicate: &quot;is the author of post 1&quot;</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">posts_by_martin</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">()</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>                                    <span class="c1"># predicate: &quot;is a post written by a Martin&quot;</span>
+</code></pre></div>
+<p>The result is itself a predicate — keep composing it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># &quot;is a post written by a Martin with non-empty content&quot;</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="n">martin_posts</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;is not&#39;</span><span class="p">,</span> <span class="n">NULL</span><span class="p">))</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">martin_posts</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="fkeysetpredicate-compose-predicates-across-a-join"><a href="../api/fkey/#half_orm.fkey.FKey.set"><code>fkey.set(predicate)</code></a> — compose predicates across a join<a class="headerlink" href="#fkeysetpredicate-compose-predicates-across-a-join" title="Permanent link">&para;</a></h3>
+<p><code>.set()</code> adds a join condition: the rows satisfying the current predicate must
+also be linked to rows satisfying the given predicate in another table.
+halfORM generates the JOIN automatically.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># &quot;is a post whose author satisfies last_name LIKE &#39;Mar%&#39;&quot;</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">)))</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+</code></pre></div>
+<p>Chain as many <code>.set()</code> calls as needed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># &quot;is a comment whose post was written by a &#39;Mar%&#39; author&quot;</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">comment</span> <span class="o">=</span> <span class="n">Comment</span><span class="p">()</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">post</span>    <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">)))</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">comment</span><span class="o">.</span><span class="n">post_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="json_agg-attach-a-related-predicates-extension-as-a-json-column"><code>json_agg</code> — attach a related predicate's extension as a JSON column<a class="headerlink" href="#json_agg-attach-a-related-predicates-extension-as-a-json-column" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># For each author named Martin, their posts (id + title) as a JSON array</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">alice</span><span class="o">.</span><span class="n">post_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>    <span class="c1"># row[&#39;post_rfk&#39;] = [{&#39;id&#39;: 1, &#39;title&#39;: &#39;...&#39;}, ...]</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">])</span>
+</code></pre></div>
+<p>Empty list = all fields. Optional <code>'alias'</code> key renames the output column:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>    <span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">],</span> <span class="s1">&#39;alias&#39;</span><span class="p">:</span> <span class="s1">&#39;posts&#39;</span><span class="p">}</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="p">})</span>
+</code></pre></div>
+<hr />
+<h2 id="9-predicate-algebra-5-min">9. Predicate algebra (5 min)<a class="headerlink" href="#9-predicate-algebra-5-min" title="Permanent link">&para;</a></h2>
+<p>Predicates compose. Five logical operators map directly to Python operators —
+the result is always a new predicate.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">martins</span>  <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="n">gmail</span>    <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ilike&#39;</span><span class="p">,</span> <span class="s1">&#39;%@gmail.com&#39;</span><span class="p">))</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="n">martins</span> <span class="o">|</span> <span class="n">gmail</span>   <span class="c1"># disjunction:  &quot;is a Martin&quot; OR &quot;has a gmail address&quot;</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="n">martins</span> <span class="o">&amp;</span> <span class="n">gmail</span>   <span class="c1"># conjunction:  &quot;is a Martin&quot; AND &quot;has a gmail address&quot;</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="n">martins</span> <span class="o">-</span> <span class="n">gmail</span>   <span class="c1"># difference:   &quot;is a Martin&quot; AND NOT &quot;has a gmail address&quot;</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="o">-</span><span class="n">martins</span>          <span class="c1"># negation:     NOT &quot;is a Martin&quot;</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="n">martins</span> <span class="o">^</span> <span class="n">gmail</span>   <span class="c1"># symmetric difference: (A | B) - (A &amp; B)</span>
+</code></pre></div>
+<p>Every result is a predicate — query its extension like any other:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="p">(</span><span class="n">martins</span> <span class="o">|</span> <span class="n">gmail</span><span class="p">)</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="s1">&#39;first_name&#39;</span><span class="p">,</span> <span class="s1">&#39;last_name&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">):</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="p">(</span><span class="n">martins</span> <span class="o">-</span> <span class="n">gmail</span><span class="p">)</span><span class="o">.</span><span class="n">ho_count</span><span class="p">()</span>
+</code></pre></div>
+<p>Compose freely:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># &quot;is a post with content whose title does not contain &#39;draft&#39;&quot;</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>    <span class="n">Post</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;is not&#39;</span><span class="p">,</span> <span class="n">NULL</span><span class="p">))</span> <span class="o">&amp;</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>    <span class="o">-</span><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ilike&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">raft%&#39;</span><span class="p">))</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="p">)</span>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">relevant</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+</code></pre></div>
+<hr />
+<h2 id="10-transactions-5-min">10. Transactions (5 min)<a class="headerlink" href="#10-transactions-5-min" title="Permanent link">&para;</a></h2>
+<p><a href="../api/transaction/#half_orm.transaction.Transaction"><code>Transaction</code></a> is a context manager that wraps operations in a single atomic unit.
+It commits on success, rolls back on exception.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.transaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Transaction</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>    <span class="n">alice_row</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>        <span class="n">first_name</span><span class="o">=</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span> <span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>    <span class="n">Post</span><span class="p">(</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;First post&#39;</span><span class="p">,</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>        <span class="n">content</span><span class="o">=</span><span class="s1">&#39;Hello world&#39;</span><span class="p">,</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>        <span class="n">author_id</span><span class="o">=</span><span class="n">alice_row</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="c1"># Both rows are committed, or neither is.</span>
+</code></pre></div>
+<p>Transactions nest — inner <code>Transaction</code> blocks use savepoints automatically:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>    <span class="n">alice_row</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>    <span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>            <span class="c1"># savepoint</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>        <span class="n">Post</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>        <span class="c1"># exception here rolls back only the post, not Alice</span>
+</code></pre></div>
+<hr />
+<h2 id="11-custom-classes-and-business-logic-2-min">11. Custom classes and business logic (2 min)<a class="headerlink" href="#11-custom-classes-and-business-logic-2-min" title="Permanent link">&para;</a></h2>
+<p>Put methods on your relation classes to encapsulate logic that belongs to a
+predicate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.relation</span><span class="w"> </span><span class="kn">import</span> <span class="n">singleton</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="nd">@register</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>        <span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_post_author_id&#39;</span><span class="p">,</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>    <span class="p">}</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>    <span class="nd">@singleton</span>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a post to the set defined by self (must be a singleton).&quot;&quot;&quot;</span>
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+</code></pre></div>
+<p><a href="../api/relation/#half_orm.relation.singleton"><code>@singleton</code></a> calls <a href="../api/relation/#half_orm.relation.Relation.ho_assert_is_singleton"><code>ho_assert_is_singleton()</code></a> automatically — no DB round-trip,
+pure predicate check:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="n">alice</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s1">&#39;My post&#39;</span><span class="p">,</span> <span class="s1">&#39;Content here&#39;</span><span class="p">)</span>   <span class="c1"># @singleton verifies alice is a singleton predicate</span>
+</code></pre></div>
+<hr />
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connect</td>
+<td><a href="../api/model/#half_orm.model.Model"><code>Model('dbname')</code></a></td>
+</tr>
+<tr>
+<td>Get a relation class</td>
+<td><code>Rel =</code><a href="../api/model/#half_orm.model.Model.get_relation_class"><code>model.get_relation_class('schema.table')</code></a></td>
+</tr>
+<tr>
+<td>Tautological predicate (whole table)</td>
+<td><code>rel = Rel()</code></td>
+</tr>
+<tr>
+<td>Specialise a predicate</td>
+<td><code>rel = Rel(field=val, ...)</code></td>
+</tr>
+<tr>
+<td>Cardinality of the extension</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_count"><code>rel.ho_count()</code></a></td>
+</tr>
+<tr>
+<td>Enumerate the extension</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_select"><code>rel.ho_select('col1', 'col2')</code></a></td>
+</tr>
+<tr>
+<td>Add a row</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_insert"><code>Rel(col=val).ho_insert()</code></a></td>
+</tr>
+<tr>
+<td>Update the extension</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_update"><code>Rel(pred).ho_update(col=new_val)</code></a></td>
+</tr>
+<tr>
+<td>Delete the extension</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_delete"><code>Rel(pred).ho_delete()</code></a></td>
+</tr>
+<tr>
+<td>Assert singleton predicate (no DB)</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_assert_is_singleton"><code>Rel(pk=val).ho_assert_is_singleton()</code></a></td>
+</tr>
+<tr>
+<td>Compose into related table</td>
+<td><a href="../api/fkey/#half_orm.fkey.FKey.__call__"><code>rel.fk_attr()</code></a></td>
+</tr>
+<tr>
+<td>Compose via join</td>
+<td><a href="../api/fkey/#half_orm.fkey.FKey.set"><code>rel.fk_attr.set(OtherRel(...))</code></a></td>
+</tr>
+<tr>
+<td>Aggregate related extension</td>
+<td><a href="../api/relation/#half_orm.relation.Relation.ho_select"><code>rel.ho_select(json_agg={'fk_attr': ['col', ...]})</code></a></td>
+</tr>
+<tr>
+<td>Disjunction / conjunction / difference / negation / XOR</td>
+<td><code>a ∣ b</code>, <code>a &amp; b</code>, <code>a - b</code>, <code>-a</code>, <code>a ^ b</code></td>
+</tr>
+<tr>
+<td>Atomic operations</td>
+<td><a href="../api/transaction/#half_orm.transaction.Transaction"><code>with Transaction(model):</code></a></td>
+</tr>
+<tr>
+<td>SQL NULL</td>
+<td><code>from half_orm.null import NULL</code></td>
+</tr>
+<tr>
+<td>Inspect generated SQL</td>
+<td><code>model.sql_trace = True</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Next:</strong> the <a href="../api/relation/">API reference</a> documents every method in detail.</p>
+<hr />
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../examples/gitlab/">Database Exploration with GitLab</a></li>
+<li><a href="../examples/instant-rest-api/instant-rest-api/">Instant REST API with halfORM</a></li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 08:16:37 UTC">March 31, 2026</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 08:13:34 UTC">March 27, 2026</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Home
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../api/model/" class="md-footer__link md-footer__link--next" aria-label="Next: Model">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Model
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/half-orm/half-orm" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/half-orm/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
