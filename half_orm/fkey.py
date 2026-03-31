@@ -119,40 +119,48 @@ class FKey:
     def values(self):
         return [list(elt.values()) for elt in self.__to_relation.ho_select(*self.__fk_names)]
 
-    def set(self, __to=None):
+    def set(self, ho_to_rel=None, **kwargs):
         """Bind this foreign key to a relation, adding a JOIN condition.
 
-        After calling ``.set(other_rel)``, queries on the owning relation
-        automatically include a JOIN against ``other_rel`` filtered by
-        ``other_rel``'s constraints.
+        After calling ``.set(...)``, queries on the owning relation
+        automatically include a JOIN against the related table filtered by
+        the given constraints.
 
-        Called with no argument, ``.set()`` joins against all rows of the
-        related table (tautological predicate) — equivalent to
-        ``.set(RelatedClass())``.
+        Three calling forms — no import of the related class required:
+
+        - ``.set()`` — joins all rows (tautological predicate).
+        - ``.set(field=value, ...)`` — joins with constraints, instantiating
+          the related class internally.
+        - ``.set(rel)`` — joins against an already-built
+          :class:`~half_orm.relation.Relation` instance.
 
         Args:
-            __to (Relation | None): the relation to join against. If omitted,
-                the related table is instantiated with no constraints.
+            ho_to_rel (Relation | None): an existing relation to join against.
+                Mutually exclusive with ``**kwargs``.
+            **kwargs: field constraints forwarded to the related class
+                constructor. Ignored when ``ho_to_rel`` is provided.
 
         Returns:
             self — for chaining.
 
         Raises:
-            RuntimeError: if ``__to`` is not a :class:`~half_orm.relation.Relation` instance.
+            RuntimeError: if ``ho_to_rel`` is not a :class:`~half_orm.relation.Relation` instance.
+            RuntimeError: if ``ho_to_rel`` and ``**kwargs`` are both provided.
             RuntimeError: if setting this FK would create a cycle in the join graph.
 
         Example:
-            is a post whose author's last name starts with 'Mar':
+            Without importing the related class:
+                ```python
+                post = Post()
+                post.author_fk.set()                            # all authors
+                post.author_fk.set(last_name=('like', 'Mar%')) # filtered
+                ```
+
+            With an existing relation:
                 ```python
                 post = Post()
                 post.author_fk.set(Author(last_name=('like', 'Mar%')))
-                print(post.ho_count())
-                ```
-
-            join with all rows of the related table:
-                ```python
-                post = Post()
-                post.author_fk.set()   # equivalent to post.author_fk.set(Author())
+                # equivalent to: Author(last_name=('like', 'Mar%')).post_rfk().ho_count()
                 ```
 
         *New in version 0.18.6:* raises ``RuntimeError`` if setting this FK would create a cycle in the join graph.
@@ -160,8 +168,12 @@ class FKey:
         # pylint: disable=import-outside-toplevel
         from half_orm.relation import Relation
 
-        if __to is None:
-            __to = self.__get_rel(normalize_qrn(self.__fk_fqrn))()
+        if ho_to_rel is not None and kwargs:
+            raise RuntimeError("FKey.set: cannot pass both a Relation and keyword arguments")
+        if ho_to_rel is None:
+            __to = self.__get_rel(normalize_qrn(self.__fk_fqrn))(**kwargs)
+        else:
+            __to = ho_to_rel
         if not issubclass(__to.__class__, Relation):
             raise RuntimeError("Fkey.set excepts an argument of type Relation")
         from_ = self.__relation

@@ -310,16 +310,16 @@ martin_posts = Author(last_name='Martin').post_rfk(content=('is not', NULL))
 print(martin_posts.ho_count())
 ```
 
-### [`fkey.set(predicate)`](api/fkey.md#half_orm.fkey.FKey.set) — compose predicates across a join
+### [`fkey.set(...)`](api/fkey.md#half_orm.fkey.FKey.set) — compose predicates across a join
 
 `.set()` adds a join condition: the rows satisfying the current predicate must
 also be linked to rows satisfying the given predicate in another table.
-halfORM generates the JOIN automatically.
+halfORM generates the JOIN automatically. No import of the related class needed:
 
 ```python
 # "is a post whose author satisfies last_name LIKE 'Mar%'"
 post = Post()
-post.author_fk.set(Author(last_name=('like', 'Mar%')))
+post.author_fk.set(last_name=('like', 'Mar%'))
 print(post.ho_count())
 ```
 
@@ -329,7 +329,7 @@ Chain as many `.set()` calls as needed:
 # "is a comment whose post was written by a 'Mar%' author"
 comment = Comment()
 post    = Post()
-post.author_fk.set(Author(last_name=('like', 'Mar%')))
+post.author_fk.set(last_name=('like', 'Mar%'))
 comment.post_fk.set(post)
 
 print(comment.ho_count())
@@ -475,7 +475,7 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 | Delete the extension | [`Rel(pred).ho_delete()`](api/relation.md#half_orm.relation.Relation.ho_delete) |
 | Assert singleton predicate (no DB) | [`Rel(pk=val).ho_assert_is_singleton()`](api/relation.md#half_orm.relation.Relation.ho_assert_is_singleton) |
 | Compose into related table | [`rel.fk_attr()`](api/fkey.md#half_orm.fkey.FKey.__call__) |
-| Compose via join | [`rel.fk_attr.set(OtherRel(...))`](api/fkey.md#half_orm.fkey.FKey.set) |
+| Compose via join | [`rel.fk_attr.set(Relation∣fields)`](api/fkey.md#half_orm.fkey.FKey.set) |
 | Aggregate related extension | [`rel.ho_select(json_agg={'fk_attr': ['col', ...]})`](api/relation.md#half_orm.relation.Relation.ho_select) |
 | Disjunction / conjunction / difference / negation / XOR | `a ∣ b`, `a & b`, `a - b`, `-a`, `a ^ b` |
 | Atomic operations | [`with Transaction(model):`](api/transaction.md#half_orm.transaction.Transaction) |
