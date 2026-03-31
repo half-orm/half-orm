@@ -896,10 +896,24 @@ Fkeys = {"""
     def ho_is_set(self):
         """Return True if one field at least is set or if self has been
         constrained by at least one of its foreign keys or self is the
-        result of a combination of Relations (using set operators).
+        result of a combination of Relations (using set operators) where
+        at least one operand is itself constrained.
         """
         joined_to = bool(self._ho_join_to)
-        return (joined_to or bool(self._ho_set_operators.operator) or bool(self._ho_neg) or
+        op = self._ho_set_operators.operator
+        if op:
+            left_set = self._ho_set_operators.left.ho_is_set()
+            right = self._ho_set_operators.right
+            right_set = right is not None and right.ho_is_set()
+            if op == "or":
+                # A() | B → all rows if any operand is unconstrained
+                set_op_constrained = left_set and right_set
+            else:
+                # "and" / "and not": unconstrained operand is transparent
+                set_op_constrained = left_set or right_set
+        else:
+            set_op_constrained = False
+        return (joined_to or set_op_constrained or bool(self._ho_neg) or
                 bool({field for field in self._ho_fields.values() if field.is_set()}))
 
     def __get_set_fields(self):
