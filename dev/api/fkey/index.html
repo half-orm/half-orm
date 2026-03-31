@@ -1055,9 +1055,13 @@ compose JOIN conditions.</p>
 <ul>
 <li><strong>Call</strong> the attribute — <code>post.author_fk()</code> — to navigate: returns the
   related relation restricted to rows linked to the current predicate.</li>
-<li><strong><code>.set(rel)</code></strong> — adds a JOIN condition on the owning relation. Called
-  with no argument, <code>.set()</code> joins against all rows of the related table
-  (equivalent to <code>.set(RelatedClass())</code>).</li>
+<li><strong><code>.set(...)</code></strong> — adds a JOIN condition on the owning relation. Three
+  forms, all without importing the related class:<ul>
+<li><code>.set()</code> — join all rows (tautological predicate).</li>
+<li><code>.set(field=value, ...)</code> — join with constraints.</li>
+<li><code>.set(rel)</code> — join against an existing <code>Relation</code> instance.</li>
+</ul>
+</li>
 </ul>
 <p>Print any relation instance to discover FK names (internal names to copy
 into <code>Fkeys</code>).</p>
@@ -1159,7 +1163,7 @@ relation's constructor.</p>
 
 
 <h3 id="half_orm.fkey.FKey.set" class="doc doc-heading">
-            <code class="highlight language-python"><span class="nb">set</span><span class="p">(</span><span class="n">__to</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="nb">set</span><span class="p">(</span><span class="n">ho_to_rel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#half_orm.fkey.FKey.set" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1167,12 +1171,17 @@ relation's constructor.</p>
     <div class="doc doc-contents first">
 
         <p>Bind this foreign key to a relation, adding a JOIN condition.</p>
-<p>After calling <code>.set(other_rel)</code>, queries on the owning relation
-automatically include a JOIN against <code>other_rel</code> filtered by
-<code>other_rel</code>'s constraints.</p>
-<p>Called with no argument, <code>.set()</code> joins against all rows of the
-related table (tautological predicate) — equivalent to
-<code>.set(RelatedClass())</code>.</p>
+<p>After calling <code>.set(...)</code>, queries on the owning relation
+automatically include a JOIN against the related table filtered by
+the given constraints.</p>
+<p>Three calling forms — no import of the related class required:</p>
+<ul>
+<li><code>.set()</code> — joins all rows (tautological predicate).</li>
+<li><code>.set(field=value, ...)</code> — joins with constraints, instantiating
+  the related class internally.</li>
+<li><code>.set(rel)</code> — joins against an already-built
+  :class:<code>~half_orm.relation.Relation</code> instance.</li>
+</ul>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1188,19 +1197,35 @@ related table (tautological predicate) — equivalent to
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>__to</code>
+                <code>ho_to_rel</code>
             </td>
             <td>
                   <code><span title="Relation">Relation</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>the relation to join against. If omitted,
-the related table is instantiated with no constraints.</p>
+                <p>an existing relation to join against.
+Mutually exclusive with <code>**kwargs</code>.</p>
               </div>
             </td>
             <td>
                   <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>field constraints forwarded to the related class
+constructor. Ignored when <code>ho_to_rel</code> is provided.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
             </td>
           </tr>
       </tbody>
@@ -1244,7 +1269,17 @@ the related table is instantiated with no constraints.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>if <code>__to</code> is not a :class:<code>~half_orm.relation.Relation</code> instance.</p>
+                <p>if <code>ho_to_rel</code> is not a :class:<code>~half_orm.relation.Relation</code> instance.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if <code>ho_to_rel</code> and <code>**kwargs</code> are both provided.</p>
               </div>
             </td>
           </tr>
@@ -1264,14 +1299,15 @@ the related table is instantiated with no constraints.</p>
 
 <details class="example" open>
   <summary>Example</summary>
-  <p>is a post whose author's last name starts with 'Mar':
+  <p>Without importing the related class:
     <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">)))</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">ho_count</span><span class="p">())</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>                            <span class="c1"># all authors</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">))</span> <span class="c1"># filtered</span>
 </code></pre></div></p>
-<p>join with all rows of the related table:
+<p>With an existing relation:
     <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>   <span class="c1"># equivalent to post.author_fk.set(Author())</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;like&#39;</span><span class="p">,</span> <span class="s1">&#39;Mar%&#39;</span><span class="p">)))</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># equivalent to: Author(last_name=(&#39;like&#39;, &#39;Mar%&#39;)).post_rfk().ho_count()</span>
 </code></pre></div></p>
 </details>        <p><em>New in version 0.18.6:</em> raises <code>RuntimeError</code> if setting this FK would create a cycle in the join graph.</p>
 
@@ -1301,7 +1337,7 @@ the related table is instantiated with no constraints.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 07:46:07 UTC">March 31, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 09:00:59 UTC">March 31, 2026</span>
   </span>
 
     
