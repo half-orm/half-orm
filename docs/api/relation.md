@@ -52,13 +52,13 @@ These methods execute SQL immediately and return results.
     ```python
     # Reverse FK, non-unique — author → posts (list)
     alice = Author(last_name='Martin')
-    alice.post_rfk.set(Post())
+    alice.post_rfk.set()               # join all posts
     for row in alice.ho_select(json_agg={'post_rfk': ['title']}):
         print(row['post_rfk'])     # [{'title': '...'}, ...]
 
     # Direct FK — post → author (dict)
     post = Post(title='Hello')
-    post.author_fk.set(Author())
+    post.author_fk.set()               # join all authors
     for row in post.ho_select(json_agg={'author_fk': ['last_name']}):
         print(row['author_fk'])    # {'last_name': 'Martin'}
 
@@ -67,7 +67,7 @@ These methods execute SQL immediately and return results.
     # post ← comment → person  (comment is the junction)
     post = Post(title='Hello')
     comment = Comment()
-    comment.author_fk.set(Person())    # chain: comment → person
+    comment.author_fk.set()            # chain: comment → person
     post.comment_rfk.set(comment)
     for row in post.ho_select(json_agg={'comment_rfk': ['last_name']}):
         print(row['comment_rfk'])  # [{'last_name': '...'}, ...]

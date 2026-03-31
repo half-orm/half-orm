@@ -374,7 +374,7 @@ class Relation:
             Aggregate related rows as JSON (reverse FK):
                 ```python
                 alice = Author(last_name='Martin')
-                alice.post_rfk.set(Post())
+                alice.post_rfk.set()   # join all posts
                 for row in alice.ho_select(json_agg={'post_rfk': ['id', 'title']}):
                     print(row['post_rfk'])  # [{'id': 1, 'title': '...'}, ...]
                 ```
@@ -385,7 +385,7 @@ class Relation:
                 # post ← comment → person  (comment is the junction)
                 post = Post(title='Hello')
                 comment = Comment()
-                comment.author_fk.set(Person())   # chain: comment → person
+                comment.author_fk.set()   # chain: comment → person
                 post.comment_rfk.set(comment)
                 for row in post.ho_select(json_agg={'comment_rfk': ['last_name']}):
                     print(row['comment_rfk'])  # [{'last_name': '...'}, ...]

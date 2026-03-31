@@ -9,7 +9,9 @@ Two usage patterns:
 
 * **Call** the attribute — `post.author_fk()` — to navigate: returns the
   related relation restricted to rows linked to the current predicate.
-* **`.set(rel)`** — adds a JOIN condition on the owning relation.
+* **`.set(rel)`** — adds a JOIN condition on the owning relation. Called
+  with no argument, `.set()` joins against all rows of the related table
+  (equivalent to `.set(RelatedClass())`).
 
 Print any relation instance to discover FK names (internal names to copy
 into `Fkeys`).

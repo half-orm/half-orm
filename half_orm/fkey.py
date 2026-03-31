@@ -119,15 +119,20 @@ class FKey:
     def values(self):
         return [list(elt.values()) for elt in self.__to_relation.ho_select(*self.__fk_names)]
 
-    def set(self, __to):
+    def set(self, __to=None):
         """Bind this foreign key to a relation, adding a JOIN condition.
 
         After calling ``.set(other_rel)``, queries on the owning relation
         automatically include a JOIN against ``other_rel`` filtered by
         ``other_rel``'s constraints.
 
+        Called with no argument, ``.set()`` joins against all rows of the
+        related table (tautological predicate) — equivalent to
+        ``.set(RelatedClass())``.
+
         Args:
-            __to (Relation): the relation to join against.
+            __to (Relation | None): the relation to join against. If omitted,
+                the related table is instantiated with no constraints.
 
         Returns:
             self — for chaining.
@@ -144,11 +149,19 @@ class FKey:
                 print(post.ho_count())
                 ```
 
+            join with all rows of the related table:
+                ```python
+                post = Post()
+                post.author_fk.set()   # equivalent to post.author_fk.set(Author())
+                ```
+
         *New in version 0.18.6:* raises ``RuntimeError`` if setting this FK would create a cycle in the join graph.
         """
         # pylint: disable=import-outside-toplevel
         from half_orm.relation import Relation
 
+        if __to is None:
+            __to = self.__get_rel(normalize_qrn(self.__fk_fqrn))()
         if not issubclass(__to.__class__, Relation):
             raise RuntimeError("Fkey.set excepts an argument of type Relation")
         from_ = self.__relation
