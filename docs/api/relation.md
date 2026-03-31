@@ -135,7 +135,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_insert](#ho_insert)*
+*Sync counterpart: [ho_insert](#half_orm.relation.Relation.ho_insert)*
 
 ::: half_orm.relation.Relation.ho_aselect
     options:
@@ -143,7 +143,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_select](#ho_select)*
+*Sync counterpart: [ho_select](#half_orm.relation.Relation.ho_select)*
 
 ::: half_orm.relation.Relation.ho_acount
     options:
@@ -151,7 +151,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_count](#ho_count)*
+*Sync counterpart: [ho_count](#half_orm.relation.Relation.ho_count)*
 
 ::: half_orm.relation.Relation.ho_ais_empty
     options:
@@ -159,7 +159,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_is_empty](#ho_is_empty)*
+*Sync counterpart: [ho_is_empty](#half_orm.relation.Relation.ho_is_empty)*
 
 ::: half_orm.relation.Relation.ho_aupdate
     options:
@@ -167,7 +167,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_update](#ho_update)*
+*Sync counterpart: [ho_update](#half_orm.relation.Relation.ho_update)*
 
 ::: half_orm.relation.Relation.ho_adelete
     options:
@@ -175,7 +175,7 @@ asyncio.run(main())
       show_source: false
       heading_level: 3
 
-*Sync counterpart: [ho_delete](#ho_delete)*
+*Sync counterpart: [ho_delete](#half_orm.relation.Relation.ho_delete)*
 
 ---
 
