@@ -1,3 +1,7 @@
+# 0.18.9 (2026-03-31)
+
+* feat(fkey): set(Relation|fields) — no import required for related class (d2b9afb)
+
 # 0.18.8 (2026-03-31)
 
 * feat(fkey): set() without argument joins against all rows of related table (cf0c139)
