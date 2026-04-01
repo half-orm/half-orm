@@ -61,6 +61,39 @@ password = secret
 host = localhost
 ```
 
+### CLI exploration
+
+Before writing any Python, use `python -m half_orm` to check connections and
+explore schemas from the command line:
+
+```bash
+# Diagnostic: check all databases in HALFORM_CONF_DIR
+python -m half_orm
+
+# List all relations in a database
+python -m half_orm blog
+
+# Inspect a specific relation (columns, types, constraints, foreign keys)
+python -m half_orm blog blog.author
+```
+
+```
+[halfORM] version 0.18.x
+📋 Available relations for blog:
+r "blog"."author"   → No description available
+r "blog"."comment"  → No description available
+r "blog"."post"     → No description available
+
+📋 Relation Types:
+  r: Table
+  p: Partioned table
+  v: View
+  m: Materialized view
+  f: Foreign data
+```
+
+### In Python
+
 ```python
 from half_orm.model import Model
 
