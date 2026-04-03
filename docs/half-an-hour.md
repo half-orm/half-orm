@@ -229,9 +229,18 @@ returns `self` for chaining. It raises `NotASingletonError` if the predicate
 is not a singleton.
 
 ```python
-Author(id=42).ho_assert_is_singleton()          # OK — id is the PK
+Author(id=42).ho_assert_is_singleton()                      # OK — id is the PK
 Author(email='alice@example.com').ho_assert_is_singleton()  # OK — email is UNIQUE NOT NULL
 Author(last_name='Martin').ho_assert_is_singleton()         # raises: last_name is not unique
+```
+
+FK navigation also works: if navigating from a relation whose join fields fix
+the PK of the target, the result is a singleton:
+
+```python
+# comment.post_id = 42 fixes post.id (PK) → singleton
+Comment(post_id=42).fk_post().ho_assert_is_singleton()      # OK
+Comment().fk_post().ho_assert_is_singleton()                # raises: post_id not fixed
 ```
 
 Use it as a guard before any single-row write:
@@ -239,6 +248,9 @@ Use it as a guard before any single-row write:
 ```python
 Author(id=42).ho_assert_is_singleton().ho_update(email='alice@newdomain.com')
 Author(id=99).ho_assert_is_singleton().ho_delete()
+
+# Via FK navigation
+Comment(post_id=42).fk_post().ho_assert_is_singleton().ho_delete()
 ```
 
 ---

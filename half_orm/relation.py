@@ -457,8 +457,14 @@ class Relation:
                 # Raises — last_name is not a unique identifier
                 Author(last_name='Martin').ho_assert_is_singleton()
 
+                # OK — FK navigation: comment.post_id fixes post.id (PK)
+                Comment(post_id=42).fk_post().ho_assert_is_singleton()
+
                 # Typical usage: guard a single-row write
                 Author(id=42).ho_assert_is_singleton().ho_update(email='new@example.com')
+
+                # Via FK navigation: delete the post linked to a specific comment
+                Comment(post_id=42).fk_post().ho_assert_is_singleton().ho_delete()
                 ```
 
         *New in version 0.18.0.*
