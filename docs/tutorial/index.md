@@ -85,7 +85,7 @@ CREATE TABLE blog.comment (
 
 ### Tutorial Database Setup
 
-We provide a complete setup script in [Chapter 1: Installation](installation.md#tutorial-database-setup) that creates:
+We provide a complete setup script in [Chapter 1: Installation](installation.md#database-configuration-optional) that creates:
 
 - **Sample schema** with the tables above
 - **Test data** for realistic examples
@@ -114,7 +114,7 @@ Throughout the tutorial:
 
 If you get stuck:
 
-- Check the [Fundamentals](../fundamentals.md#faq) if you haven't already
+- Check the [Fundamentals](../fundamentals.md) if you haven't already
 - Browse [Examples](../examples/index.md) for patterns
 - Ask in [GitHub Discussions](https://github.com/half-orm/half-orm/discussions)
 

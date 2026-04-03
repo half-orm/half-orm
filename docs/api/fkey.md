@@ -18,7 +18,7 @@ Two usage patterns:
 Print any relation instance to discover FK names (internal names to copy
 into `Fkeys`).
 
-See [Learn halfORM in half an hour](../half-an-hour.md#8-foreign-keys-composing-predicates-across-tables)
+See [Learn halfORM in half an hour](../half-an-hour.md#8-foreign-keys-composing-predicates-across-tables-10-min)
 for a full walkthrough.
 
 ---

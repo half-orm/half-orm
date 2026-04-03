@@ -23,7 +23,7 @@ By the end of this chapter, you'll understand:
 ## Model Class Deep Dive
 
 !!! info "Model Fundamentals"
-    The Model class architecture and responsibilities are covered in detail in [Model Architecture](../fundamentals.md#model-class). This section focuses on practical usage patterns.
+    The Model class architecture and responsibilities are covered in detail in [Model Architecture](../fundamentals.md). This section focuses on practical usage patterns.
 
 ### Model as a Relation Factory
 

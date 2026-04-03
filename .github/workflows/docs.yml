@@ -38,6 +38,10 @@ on:
         description: 'Alias to set on the rebuilt version (e.g. "latest"). Leave empty for none.'
         required: false
         default: ''
+      title:
+        description: 'Display title for the version (e.g. "0.18.10 (latest)"). Leave empty to auto-generate.'
+        required: false
+        default: ''
       cleanup:
         description: 'Delete versions not in the kept list (0.17, 0.18, dev)'
         type: boolean
@@ -84,9 +88,10 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             V="${{ github.event.inputs.version }}"
             A="${{ github.event.inputs.alias }}"
+            T="${{ github.event.inputs.title }}"
             echo "version=${V}" >> $GITHUB_OUTPUT
             echo "alias=${A}" >> $GITHUB_OUTPUT
-            echo "title=${V} (rebuild)" >> $GITHUB_OUTPUT
+            echo "title=${T:-${V} (rebuild)}" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
             VERSION_NUMBER="${VERSION#v}"
