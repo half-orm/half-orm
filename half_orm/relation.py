@@ -429,9 +429,15 @@ class Relation:
     def ho_assert_is_singleton(self):
         """Assert that this predicate identifies exactly one row, without querying the database.
 
-        A predicate is a *singleton* when every field of a unique identifier
-        (primary key or any ``UNIQUE NOT NULL`` constraint) is set with the
-        ``=`` comparator. The check is purely structural — no SQL is executed.
+        A predicate is a *singleton* when:
+
+        * every field of a unique identifier (primary key or any
+          ``UNIQUE NOT NULL`` constraint) is set with the ``=`` comparator, **or**
+        * a FK join constrains a unique identifier of this relation: the fields
+          on *this* side of the join form a PK or UNIQUE NOT NULL, and the
+          corresponding fields on the joined relation are all fixed with ``=``.
+
+        The check is purely structural — no SQL is executed.
 
         Returns:
             self — for chaining before a write operation.
@@ -464,6 +470,22 @@ class Relation:
             return self
         for ukey in self._ho_ukeys:
             if _fully_set(ukey):
+                return self
+        # A FK join uniquely identifies self when:
+        #   - the fields on self involved in the join form a PK or UNIQUE NOT NULL, AND
+        #   - the corresponding fields on the joined relation are all fixed with '='.
+        def _all_eq(names, rel):
+            return all(
+                rel._ho_fields.get(n.strip('"')) is not None
+                and rel._ho_fields[n.strip('"')].is_set()
+                and rel._ho_fields[n.strip('"')]._comp() == '='
+                for n in names
+            )
+        for fkey, fk_rel in self._ho_join_to.items():
+            self_fields = frozenset(fkey.names)
+            on_pk = bool(self._ho_pkey) and self_fields == frozenset(self._ho_pkey.keys())
+            on_ukey = any(self_fields == frozenset(uk.keys()) for uk in self._ho_ukeys)
+            if (on_pk or on_ukey) and _all_eq(fkey.fk_names, fk_rel):
                 return self
         if not self._ho_pkey and not self._ho_ukeys:
             raise relation_errors.NotASingletonError(

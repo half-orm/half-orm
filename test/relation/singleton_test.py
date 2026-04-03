@@ -63,3 +63,41 @@ class Test(TestCase):
         self.assertTrue(hasattr(self.pers.name, '__orig_args'))
         expected = "FullArgSpec(args=['self', 'last_name'], varargs=None, varkw=None, defaults=(None,), kwonlyargs=[], kwonlydefaults=None, annotations={'last_name': <class 'str'>})"
         self.assertEqual(str(getattr(self.pers.name, '__orig_args')), expected)
+
+
+class TestSingletonFKey(TestCase):
+    """ho_assert_is_singleton via FK join.
+
+    A FK join constrains self to a singleton when the join fields on self
+    form a PK/UNIQUE and the corresponding fields on the joined relation
+    are fixed with '='.
+    """
+
+    def setUp(self):
+        self.post = halftest.post_cls()
+        self.comment = halftest.comment_cls()
+
+    def test_singleton_via_fk_navigation(self):
+        "Comment(post_id=X).fk_post() → Post is a singleton (post.id constrained by join)"
+        post = self.comment(post_id=1).post_fk()
+        post.ho_assert_is_singleton()
+
+    def test_not_singleton_fk_unconstrained_navigation(self):
+        "Comment().fk_post() → Post is NOT a singleton (post_id not fixed)"
+        post = self.comment().post_fk()
+        with self.assertRaises(NotASingletonError):
+            post.ho_assert_is_singleton()
+
+    def test_not_singleton_fk_non_eq_navigation(self):
+        "Comment(post_id=('>', 1)).fk_post() → not a singleton (comparator != '=')"
+        post = self.comment(post_id=('>', 1)).post_fk()
+        with self.assertRaises(NotASingletonError):
+            post.ho_assert_is_singleton()
+
+    def test_singleton_reverse_fk_navigation(self):
+        "Post(id=X) navigated from a comment with fixed post_id via rfk → still singleton"
+        # Author(last_name='aa') is a singleton via unique NOT NULL.
+        # Navigate: Author(last_name='aa').rfk_posts(id=1) → post singleton via PK
+        author = halftest.person_cls()(last_name='aa')
+        post = author.post_rfk(id=1)
+        post.ho_assert_is_singleton()
