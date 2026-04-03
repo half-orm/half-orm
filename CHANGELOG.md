@@ -1,3 +1,11 @@
+# 0.18.10 (2026-04-03)
+
+* feat(relation): ho_assert_is_singleton() recognises FK-constrained identifiers (fecc614)
+* docs: document python -m half_orm CLI in the half-an-hour guide (b1c9724)
+* fix(relation): ho_is_set() propagates through FK joins (2fb91ec)
+* fix(relation): ho_is_set() propagates correctly through set operators (04a8c02)
+* docs: fix async→sync counterpart anchor links in relation.md (f0e3766)
+
 # 0.18.9 (2026-03-31)
 
 * feat(fkey): set(Relation|fields) — no import required for related class (d2b9afb)
