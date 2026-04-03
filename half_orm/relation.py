@@ -560,20 +560,37 @@ class Relation:
         if not update_args:
             return None
         self._ho_query_type = 'update'
-        _, where_expr = self.__where_args()
         set_clause = []
         for field_name, new_value in update_args.items():
             col_name = self._ho_fields[field_name].name
             set_clause.append((f'"{col_name}" = %s', new_value))
-        fk_where_str, fk_values = self.__fkey_where('', [])
-        stmt = ASTUpdate(
-            table=self._qrn,
-            set_clause=set_clause,
-            where=where_expr,
-            fk_where=fk_where_str or None,
-            fk_values=fk_values,
-            returning=ASTReturning(list(args)) if args else None,
-        )
+        if self._ho_join_to:
+            # Build a subquery to avoid any DB round-trip and to correctly
+            # propagate JOIN constraints into the UPDATE predicate.
+            pk_names = list(self._ho_pkey.keys())
+            sub_sql, sub_vals = self._ho_prep_select(*pk_names)
+            if len(pk_names) == 1:
+                where = ASTRaw(f'"{pk_names[0]}" in ({sub_sql})', sub_vals)
+            else:
+                pk_cols = ', '.join(f'"{pk}"' for pk in pk_names)
+                where = ASTRaw(f'({pk_cols}) in ({sub_sql})', sub_vals)
+            stmt = ASTUpdate(
+                table=self._qrn,
+                set_clause=set_clause,
+                where=where,
+                returning=ASTReturning(list(args)) if args else None,
+            )
+        else:
+            _, where_expr = self.__where_args()
+            fk_where_str, fk_values = self.__fkey_where('', [])
+            stmt = ASTUpdate(
+                table=self._qrn,
+                set_clause=set_clause,
+                where=where_expr,
+                fk_where=fk_where_str or None,
+                fk_values=fk_values,
+                returning=ASTReturning(list(args)) if args else None,
+            )
         query, vals = stmt.to_sql()
         return query, tuple(vals), update_args
 
@@ -627,15 +644,31 @@ class Relation:
                 f'Attempt to delete all rows from {self.__class__.__name__}'
                 ' without delete_all being set to True!')
         self._ho_query_type = 'delete'
-        _, where_expr = self.__where_args()
-        fk_where_str, fk_values = self.__fkey_where('', [])
-        stmt = ASTDelete(
-            table=self._qrn,
-            where=where_expr,
-            fk_where=fk_where_str or None,
-            fk_values=fk_values,
-            returning=ASTReturning(list(args)) if args else None,
-        )
+        if self._ho_join_to:
+            # Build a subquery to avoid any DB round-trip and to correctly
+            # propagate JOIN constraints into the DELETE predicate.
+            pk_names = list(self._ho_pkey.keys())
+            sub_sql, sub_vals = self._ho_prep_select(*pk_names)
+            if len(pk_names) == 1:
+                where = ASTRaw(f'"{pk_names[0]}" in ({sub_sql})', sub_vals)
+            else:
+                pk_cols = ', '.join(f'"{pk}"' for pk in pk_names)
+                where = ASTRaw(f'({pk_cols}) in ({sub_sql})', sub_vals)
+            stmt = ASTDelete(
+                table=self._qrn,
+                where=where,
+                returning=ASTReturning(list(args)) if args else None,
+            )
+        else:
+            _, where_expr = self.__where_args()
+            fk_where_str, fk_values = self.__fkey_where('', [])
+            stmt = ASTDelete(
+                table=self._qrn,
+                where=where_expr,
+                fk_where=fk_where_str or None,
+                fk_values=fk_values,
+                returning=ASTReturning(list(args)) if args else None,
+            )
         query, vals = stmt.to_sql()
         return query, tuple(vals)
 
