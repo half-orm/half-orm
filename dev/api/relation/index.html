@@ -2501,9 +2501,15 @@ cursor can be closed before returning to the caller.</p>
     <div class="doc doc-contents first">
 
         <p>Assert that this predicate identifies exactly one row, without querying the database.</p>
-<p>A predicate is a <em>singleton</em> when every field of a unique identifier
-(primary key or any <code>UNIQUE NOT NULL</code> constraint) is set with the
-<code>=</code> comparator. The check is purely structural — no SQL is executed.</p>
+<p>A predicate is a <em>singleton</em> when:</p>
+<ul>
+<li>every field of a unique identifier (primary key or any
+  <code>UNIQUE NOT NULL</code> constraint) is set with the <code>=</code> comparator, <strong>or</strong></li>
+<li>a FK join constrains a unique identifier of this relation: the fields
+  on <em>this</em> side of the join form a PK or UNIQUE NOT NULL, and the
+  corresponding fields on the joined relation are all fixed with <code>=</code>.</li>
+</ul>
+<p>The check is purely structural — no SQL is executed.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
