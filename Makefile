@@ -21,4 +21,5 @@ check_publish_ready:
 	@echo "OK: $(shell git describe --exact-match HEAD)"
 
 publish: check_publish_ready build
+	-git push origin $(shell git describe --exact-match HEAD)
 	twine upload -r half-orm dist/*
