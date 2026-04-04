@@ -1,3 +1,10 @@
+# 0.18.11 (2026-04-04)
+
+* fix(relation): prevent silent mass-delete/update when using FK navigation (8973324)
+* docs(relation): document FK navigation in ho_assert_is_singleton (a00d366)
+* ci: add title input to workflow_dispatch and fix broken doc links (aaeff38)
+* build: push git tag to remote on publish (52414fb)
+
 # 0.18.10 (2026-04-03)
 
 * feat(relation): ho_assert_is_singleton() recognises FK-constrained identifiers (fecc614)
