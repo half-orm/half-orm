@@ -1,3 +1,7 @@
+# 0.17.10 (2026-04-04)
+
+* fix(relation): prevent silent mass-delete/update when using FK navigation (d3380c3)
+
 # 0.17.9 (2026-25-03)
 
 * feat(fkey): detect fkey cycles (2fee2e9)
