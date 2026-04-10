@@ -466,6 +466,60 @@ class Model:
         except psycopg.ProgrammingError:
             return None
 
+    async def aexecute_function(self, fct_name, *args, **kwargs) -> typing.List[tuple]:
+        """Async version of :meth:`execute_function`. *Executes SQL.*
+
+        Args:
+            fct_name (str): fully qualified function name (``'schema.function'``).
+            *args: positional parameters.
+            **kwargs: named parameters (``name => value`` syntax).
+
+        Returns:
+            list[dict]: rows returned by the function.
+
+        Raises:
+            RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+        """
+        if bool(args) and bool(kwargs):
+            raise RuntimeError("You can't mix args and kwargs with the aexecute_function method!")
+        if kwargs:
+            params = ', '.join([f'{key} => %s' for key in kwargs])
+            values = tuple(kwargs.values())
+        else:
+            params = ', '.join(['%s'] * len(args))
+            values = args
+        cursor = await self.aexecute_query(f"SELECT * FROM {fct_name}({params})", values)
+        return await cursor.fetchall()
+
+    async def acall_procedure(self, proc_name, *args, **kwargs):
+        """Async version of :meth:`call_procedure`. *Executes SQL.*
+
+        Args:
+            proc_name (str): fully qualified procedure name.
+            *args: positional parameters.
+            **kwargs: named parameters.
+
+        Returns:
+            list[dict] | None: rows if the procedure returns a result set,
+            otherwise ``None``.
+
+        Raises:
+            RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+        """
+        if bool(args) and bool(kwargs):
+            raise RuntimeError("You can't mix args and kwargs with the acall_procedure method!")
+        if kwargs:
+            params = ', '.join([f'{key} => %s' for key in kwargs])
+            values = tuple(kwargs.values())
+        else:
+            params = ', '.join(['%s' for _ in range(len(args))])
+            values = args
+        cursor = await self.aexecute_query(f'call {proc_name}({params})', values)
+        try:
+            return await cursor.fetchall()
+        except psycopg.ProgrammingError:
+            return None
+
     def has_relation(self, qtn: str) -> bool:
         """Return ``True`` if the relation exists in the database.
 
