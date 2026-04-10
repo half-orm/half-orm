@@ -85,6 +85,37 @@ These methods execute SQL directly. Prefer the
 
 ---
 
+## Async raw SQL
+
+Async counterparts of the raw SQL methods. Require an async connection
+opened with `await model.aconnect()`.
+
+::: half_orm.model.Model.aexecute_query
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+*Sync counterpart: [execute_query](#half_orm.model.Model.execute_query)*
+
+::: half_orm.model.Model.aexecute_function
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+*Sync counterpart: [execute_function](#half_orm.model.Model.execute_function)*
+
+::: half_orm.model.Model.acall_procedure
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+*Sync counterpart: [call_procedure](#half_orm.model.Model.call_procedure)*
+
+---
+
 ## Inspection
 
 ::: half_orm.model.Model.has_relation
