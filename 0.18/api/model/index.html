@@ -709,6 +709,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-raw-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async raw SQL
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Async raw SQL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.aexecute_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aexecute_query
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.aexecute_function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aexecute_function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.acall_procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        acall_procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#inspection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -799,6 +849,34 @@
     
   
     Relation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field
   
 
     
@@ -1270,6 +1348,56 @@
     <span class="md-ellipsis">
       
         call_procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-raw-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async raw SQL
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Async raw SQL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.aexecute_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aexecute_query
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.aexecute_function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aexecute_function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model.Model.acall_procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        acall_procedure
       
     </span>
   </a>
@@ -2138,6 +2266,301 @@ directly into the query string.</p>
     </div>
 
 </div><hr />
+<h2 id="async-raw-sql">Async raw SQL<a class="headerlink" href="#async-raw-sql" title="Permanent link">&para;</a></h2>
+<p>Async counterparts of the raw SQL methods. Require an async connection
+opened with <code>await model.aconnect()</code>.</p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.model.Model.aexecute_query" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aexecute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.model.Model.aexecute_query" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Executes a raw SQL query using the async connection.</p>
+
+
+    </div>
+
+</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.execute_query">execute_query</a></em></p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.model.Model.aexecute_function" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aexecute_function</span><span class="p">(</span><span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.model.Model.aexecute_function" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async version of :meth:<code>execute_function</code>. <em>Executes SQL.</em></p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fct_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>fully qualified function name (<code>'schema.function'</code>).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>*args</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>positional parameters.</p>
+              </div>
+            </td>
+            <td>
+                  <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>named parameters (<code>name =&gt; value</code> syntax).</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="tuple">tuple</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[dict]: rows returned by the function.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.execute_function">execute_function</a></em></p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.model.Model.acall_procedure" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">acall_procedure</span><span class="p">(</span><span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.model.Model.acall_procedure" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async version of :meth:<code>call_procedure</code>. <em>Executes SQL.</em></p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>proc_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>fully qualified procedure name.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>*args</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>positional parameters.</p>
+              </div>
+            </td>
+            <td>
+                  <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>named parameters.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[dict] | None: rows if the procedure returns a result set,</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>otherwise <code>None</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.call_procedure">call_procedure</a></em></p>
+<hr />
 <h2 id="inspection">Inspection<a class="headerlink" href="#inspection" title="Permanent link">&para;</a></h2>
 
 
@@ -2369,7 +2792,7 @@ the custom subclass instead of the generated base class, making
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 27, 2026 10:12:18 UTC">March 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 10, 2026 15:33:00 UTC">April 10, 2026</span>
   </span>
 
     
