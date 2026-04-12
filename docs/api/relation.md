@@ -179,6 +179,24 @@ asyncio.run(main())
 
 ---
 
+## Bulk load
+
+::: half_orm.relation.Relation.ho_copy
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+::: half_orm.relation.Relation.ho_acopy
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+*Sync counterpart: [ho_copy](#half_orm.relation.Relation.ho_copy)*
+
+---
+
 ## Introspection
 
 These methods inspect or assert on the predicate **without executing SQL**.
