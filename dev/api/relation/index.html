@@ -18,7 +18,7 @@
         <link rel="prev" href="../model/">
       
       
-        <link rel="next" href="../fkey/">
+        <link rel="next" href="../field/">
       
       
         
@@ -753,6 +753,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bulk-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk load
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bulk load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_copy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_acopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_acopy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#introspection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -878,6 +917,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1357,6 +1424,45 @@
     <span class="md-ellipsis">
       
         ho_adelete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bulk-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk load
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bulk load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_copy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_acopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_acopy
       
     </span>
   </a>
@@ -2485,6 +2591,191 @@ cursor can be closed before returning to the caller.</p>
 
 </div><p><em>Sync counterpart: <a href="#half_orm.relation.Relation.ho_delete">ho_delete</a></em></p>
 <hr />
+<h2 id="bulk-load">Bulk load<a class="headerlink" href="#bulk-load" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_copy" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_copy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_copy" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Load rows into the table using PostgreSQL <code>COPY FROM</code>. <em>Executes SQL.</em></p>
+<p>Much faster than repeated :meth:<code>ho_insert</code> calls for bulk loads.
+No <code>RETURNING</code> is supported — the number of inserted rows is returned
+instead.</p>
+<p><em>New in version 0.18.12.</em></p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>data</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>either a <code>list[dict]</code> (column names are taken from the keys
+of the first dict) or a file-like object opened in text mode
+(CSV with a header row, or headerless if <code>columns</code> is given).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>columns</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>explicit column list. Required when
+<em>data</em> is a headerless file-like object; ignored when <em>data</em> is
+a <code>list[dict]</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>int</code></td>            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>number of rows inserted.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ReadOnlyRelationError">ReadOnlyRelationError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if the relation is a view or other
+non-writable kind.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if <em>data</em> is empty or <em>columns</em> is required but missing.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>From a list of dicts:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">n</span> <span class="o">=</span> <span class="n">Author</span><span class="o">.</span><span class="n">ho_copy</span><span class="p">([</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="p">{</span><span class="s1">&#39;first_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;last_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Martin&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>     <span class="s1">&#39;birth_date&#39;</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="mi">1980</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)},</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">{</span><span class="s1">&#39;first_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Eve&#39;</span><span class="p">,</span> <span class="s1">&#39;last_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Dupont&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>     <span class="s1">&#39;birth_date&#39;</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">12</span><span class="p">)},</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">])</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># 2</span>
+</code></pre></div></p>
+<p>From a CSV file (with header row):
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;authors.csv&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">n</span> <span class="o">=</span> <span class="n">Author</span><span class="o">.</span><span class="n">ho_copy</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</code></pre></div></p>
+<p>From a headerless CSV file:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;authors_no_header.csv&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">n</span> <span class="o">=</span> <span class="n">Author</span><span class="o">.</span><span class="n">ho_copy</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>        <span class="n">f</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">,</span> <span class="s1">&#39;last_name&#39;</span><span class="p">,</span> <span class="s1">&#39;birth_date&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="p">)</span>
+</code></pre></div></p>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_acopy" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_acopy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_acopy" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of :meth:<code>ho_copy</code>. <em>Executes SQL.</em></p>
+<p>Requires an async connection opened with <code>await model.aconnect()</code>.</p>
+<p><em>New in version 0.18.12.</em></p>
+
+
+    </div>
+
+</div><p><em>Sync counterpart: <a href="#half_orm.relation.Relation.ho_copy">ho_copy</a></em></p>
+<hr />
 <h2 id="introspection">Introspection<a class="headerlink" href="#introspection" title="Permanent link">&para;</a></h2>
 <p>These methods inspect or assert on the predicate <strong>without executing SQL</strong>.</p>
 
@@ -2876,7 +3167,7 @@ inner method rolls back only that inner scope.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 31, 2026 12:32:56 UTC">March 31, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 12, 2026 07:07:08 UTC">April 12, 2026</span>
   </span>
 
     
@@ -2940,13 +3231,13 @@ inner method rolls back only that inner scope.</p>
         
         
           
-          <a href="../fkey/" class="md-footer__link md-footer__link--next" aria-label="Next: FKey">
+          <a href="../field/" class="md-footer__link md-footer__link--next" aria-label="Next: Field">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                FKey
+                Field
               </div>
             </div>
             <div class="md-footer__button md-icon">
