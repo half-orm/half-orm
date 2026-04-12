@@ -3,6 +3,7 @@
 
 """This module provides the Field class. It is used by the `relation <#module-half_orm.relation>`_ module."""
 
+import re
 import sys
 import typing
 from collections.abc import Iterable
@@ -10,9 +11,67 @@ from half_orm.null import NULL
 from half_orm.sql_adapter import SQL_ADAPTER
 from half_orm.sql_ast import FieldExpr
 
+
+class Expr:
+    """A raw SQL expression for use with :meth:`Field.set`.
+
+    Quoted column identifiers (``"col"``) are automatically prefixed with
+    the relation alias in SELECT queries.  String literals use single quotes
+    in SQL, so double-quoted tokens are unambiguously column references.
+
+    Use this when you need arithmetic or any SQL expression that
+    column-to-column :meth:`Field.set` cannot express::
+
+        from half_orm.field import Expr
+
+        p = Post()
+        p.views.set(('>=', Expr('2 * "likes"')))       # views >= 2 * likes
+        p.score.set(Expr('"likes" * 10 + "views"'))    # score = likes*10 + views
+    """
+
+    def __init__(self, sql: str):
+        self.sql = sql
+
+    def _render(self, query, ho_id):
+        """Return the SQL fragment, prefixing quoted identifiers with the table alias."""
+        if query != 'select':
+            return self.sql
+        alias = f'r{ho_id}'
+        return re.sub(r'"([^"]+)"', lambda m: f'{alias}."{m.group(1)}"', self.sql)
+
 class Field():
-    """The class Field is for Relation internal usage. It is called by
-    the RelationFactory metaclass for each field in the relation considered.
+    """A column attribute on a :class:`~half_orm.relation.Relation`.
+
+    ``Field`` instances are created automatically for every column in the
+    relation.  They are exposed as attributes on relation instances and used
+    in two ways:
+
+    * **Read** — inspect the current constraint value or schema metadata
+      (``field.value``, ``field.name``, ``field.py_type``, ``field.is_set()``,
+      ``field.is_not_null()``).
+    * **Write** — constrain the field to filter rows
+      (``field.set(value)``, ``field.set((comp, value))``).
+
+    Constraints are set via keyword arguments when instantiating a relation,
+    or directly via :meth:`set`:
+
+    .. code-block:: python
+
+        # Equivalent ways to constrain last_name
+        Author(last_name='Martin')
+
+        author = Author()
+        author.last_name.set('Martin')
+
+    Column-to-column and arithmetic comparisons (same relation instance) are
+    supported by passing a sibling ``Field`` or an :class:`Expr`::
+
+        post = Post()
+        post.views.set(post.likes)                        # WHERE views = likes
+        post.views.set(('>', post.likes))                 # WHERE views > likes
+        post.views.set(('>=', Expr('2 * "likes"')))      # WHERE views >= 2 * likes
+
+    Setting a field to ``None`` removes the constraint.
     """
     def __init__(self, name, relation, metadata):
         self.__relation = relation
@@ -34,6 +93,17 @@ class Field():
 
     @property
     def py_type(self):
+        """The Python type that maps to this column's SQL type.
+
+        Array columns (PostgreSQL ``_type``) are returned as
+        ``typing.List[inner_type]``.  Unknown SQL types fall back to
+        ``typing.Any``.
+
+        Example::
+
+            Author().last_name.py_type   # <class 'str'>
+            Post().tags.py_type          # typing.List[str]  (if tags is text[])
+        """
         sql_type = self.__sql_type
         list_ = False
         if sql_type[0] == '_':
@@ -46,10 +116,26 @@ class Field():
 
     @property
     def name(self):
+        """The column name as it appears in the database."""
         return self.__name
 
     def is_set(self):
-        "Returns if the field is set or not."
+        """Return ``True`` if this field currently carries a constraint.
+
+        A field is *set* after a call to :meth:`set` with a non-``None``
+        value, or when the relation was instantiated with a keyword argument
+        for this column.  Setting the value back to ``None`` clears the
+        constraint.
+
+        Example::
+
+            a = Author()
+            a.last_name.is_set()              # False
+            a.last_name.set('Martin')
+            a.last_name.is_set()              # True
+            a.last_name.set(None)
+            a.last_name.is_set()              # False
+        """
         return self.__is_set
 
     def _is_part_of_pk(self):
@@ -67,7 +153,16 @@ class Field():
         return self.__metadata['uniq']
 
     def is_not_null(self):
-        "Returns True if the field is defined as not null."
+        """Return ``True`` if the column is declared ``NOT NULL`` in the schema.
+
+        This reflects the database constraint, not the current value.
+
+        Example::
+
+            Author().last_name.is_not_null()   # True  (declared NOT NULL)
+            Author().email.is_not_null()       # True
+            Post().content.is_not_null()       # False (nullable column)
+        """
         return bool(self.__metadata['notnull'])
 
     def __repr__(self):
@@ -114,6 +209,27 @@ class Field():
     def _where_expr(self, query, ho_id):
         """Returns a FieldExpr AST node for this field's WHERE condition."""
         comp_str = '%s'
+        # Expr (raw SQL expression): emit rendered fragment, no bound parameter
+        if isinstance(self.__value, Expr):
+            return FieldExpr(
+                column=self.__praf(query, ho_id),
+                comp=self._comp(),
+                placeholder='',
+                value=None,
+                col_ref=self.__value._render(query, ho_id),
+            )
+        # Field-to-field: emit column reference, no bound parameter
+        if isinstance(self.__value, Field):
+            target = self.__value
+            target_ho_id = target._relation.ho_id
+            col_ref = target.__praf(query, target_ho_id)
+            return FieldExpr(
+                column=self.__praf(query, ho_id),
+                comp=self._comp(),
+                placeholder='',
+                value=None,
+                col_ref=col_ref,
+            )
         isiterable = type(self.__value) in {tuple, list, set}
         col_is_array = self.__sql_type[0] == '_'
         comp = self._comp()
@@ -134,11 +250,62 @@ class Field():
 
     @property
     def value(self):
-        "Returns the value of the field object"
+        """The current constraint value, or ``None`` if the field is not set.
+
+        Use this to read back a value that was set on a row returned by
+        :meth:`~half_orm.relation.Relation.ho_get` or extracted from an
+        :meth:`~half_orm.relation.Relation.ho_select` result::
+
+            author = Author(last_name='Martin').ho_get()
+            author.last_name.value    # 'Martin'
+            author.first_name.value   # 'Alice'
+        """
         return self.__value
 
     def set(self, *args, unaccent:bool=False):
-        """Sets the value (and the comparator) associated with the field."""
+        """Constrain this field, optionally with a custom comparator.
+
+        Parameters
+        ----------
+        value :
+            The constraint value.  Pass ``None`` to *remove* the constraint.
+            Pass a ``(comparator, value)`` tuple to use an operator other than
+            ``=``.  Supported comparators: ``=``, ``!=``, ``<``, ``<=``,
+            ``>``, ``>=``, ``like``, ``ilike``, ``in``, ``is``, ``is not``,
+            and any other PostgreSQL operator accepted in a WHERE clause.
+
+            Pass a sibling ``Field`` of the **same** relation instance, or an
+            :class:`Expr` for arbitrary SQL expressions, to compare columns of
+            the same table without bound parameters.
+
+        unaccent : bool
+            When ``True``, wraps both sides in PostgreSQL ``unaccent()``
+            before comparing.  Requires the ``unaccent`` extension.
+
+        Examples::
+
+            a = Author()
+            a.last_name.set('Martin')               # last_name = 'Martin'
+            a.last_name.set(('ilike', 'mar%'))       # last_name ILIKE 'mar%'
+            a.last_name.set(('ilike', 'mar%'), unaccent=True)
+                                                    # unaccent(last_name) ILIKE unaccent('mar%')
+
+            from half_orm.null import NULL
+            a.last_name.set(NULL)                   # last_name IS NULL
+            a.last_name.set(('is not', NULL))        # last_name IS NOT NULL
+
+            a.last_name.set(None)                   # removes the constraint
+
+            # Column-to-column (same relation instance)
+            p = Post()
+            p.views.set(p.likes)                              # views = likes
+            p.views.set(('>', p.likes))                       # views > likes
+
+            # Arbitrary SQL expression
+            from half_orm.field import Expr
+            p.views.set(('>=', Expr('2 * "likes"')))          # views >= 2 * likes
+            p.score.set(Expr('"likes" * 10 + "views"'))       # score = likes*10 + views
+        """
         self.__relation._ho_is_singleton = False
         value = args[0]
         if value is None:
@@ -155,6 +322,23 @@ class Field():
             comp, value = value
         if value is None:
             raise ValueError("Can't have a None value with a comparator!")
+        # Expr (raw SQL expression)
+        if isinstance(value, Expr):
+            self.__is_set = True
+            self.__value = value
+            self.__comp = comp or '='
+            return
+        # Field-to-field comparison (same relation instance → col-ref)
+        if isinstance(value, Field):
+            if value.__relation is self.__relation:
+                # Same relation: store the Field for column-to-column SQL
+                self.__is_set = True
+                self.__value = value
+                self.__comp = comp or '='
+                return
+            else:
+                # Different relation instance: extract the scalar value
+                value = value.value
         if value is NULL and comp is None:
             comp = 'is'
         elif comp is None:
@@ -185,7 +369,13 @@ class Field():
 
     @property
     def unaccent(self):
+        """Whether ``unaccent()`` is applied to this field's comparison.
+
+        Can also be set via the ``unaccent`` keyword argument of :meth:`set`.
+        Requires the PostgreSQL ``unaccent`` extension to be installed.
+        """
         return self.__unaccent
+
     @unaccent.setter
     def unaccent(self, value):
         if not isinstance(value, bool):

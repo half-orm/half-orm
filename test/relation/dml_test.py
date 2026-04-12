@@ -113,3 +113,60 @@ class Test(HoTestCase):
         # Pass Field objects inside a list → triggers the ANY() code path
         result = self.pers(last_name=[src_a.last_name, src_b.last_name]).ho_count()
         self.assertEqual(result, 2)
+
+    def test_column_to_column_equality(self):
+        "same-relation Field as value emits a column=column SQL condition (no bound parameter)."
+        # The test data has first_name = name(letter, 0) for all rows.
+        # last_name = first_name only when i == 0, giving 6 rows (one per letter).
+        pers = self.pers()
+        pers.last_name.set(pers.first_name)
+        self.assertEqual(pers.ho_count(), 6)
+
+    def test_column_to_column_with_comparator(self):
+        "same-relation Field with explicit comparator emits col op col SQL."
+        # last_name > first_name when i > 0 → 9 rows × 6 letters = 54 rows
+        pers = self.pers()
+        pers.last_name.set(('>', pers.first_name))
+        self.assertEqual(pers.ho_count(), 54)
+
+    def test_expr_col_equality(self):
+        "Expr('\"first_name\"') gives same result as field.set(other_field)."
+        from half_orm.field import Expr
+        pers = self.pers()
+        pers.last_name.set(Expr('"first_name"'))
+        self.assertEqual(pers.ho_count(), 6)
+
+    def test_expr_with_comparator(self):
+        "Expr supports arbitrary comparators."
+        from half_orm.field import Expr
+        pers = self.pers()
+        pers.last_name.set(('>', Expr('"first_name"')))
+        self.assertEqual(pers.ho_count(), 54)
+
+    def test_expr_no_bound_param(self):
+        "SQL from Expr should contain no %s placeholder."
+        from half_orm.field import Expr
+        pers = self.pers()
+        pers.last_name.set(Expr('"first_name"'))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            pers.ho_mogrify()
+            list(pers.ho_select())
+        sql = buf.getvalue()
+        self.assertNotIn('%s', sql)
+        self.assertIn('"first_name"', sql)
+
+    def test_column_to_column_no_bound_param(self):
+        "col-ref comparison should produce no %s placeholder in the SQL."
+        pers = self.pers()
+        pers.last_name.set(pers.first_name)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            pers.ho_mogrify()
+            list(pers.ho_select())
+        sql = buf.getvalue()
+        # The WHERE clause should reference two columns, not a bound value
+        self.assertIn('"last_name"', sql)
+        self.assertIn('"first_name"', sql)
+        # No %s placeholder should remain in the emitted SQL
+        self.assertNotIn('%s', sql)

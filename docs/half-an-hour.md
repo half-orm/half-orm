@@ -33,6 +33,8 @@ create table blog.post (
     id        serial primary key,
     title     text not null,
     content   text,
+    views     integer not null default 0,
+    likes     integer not null default 0,
     author_id integer references blog.author(id) on delete cascade
 );
 
@@ -199,6 +201,31 @@ from half_orm.null import NULL
 Post(content=NULL)                       # set where content IS NULL
 Post(content=('is not', NULL))           # set where content IS NOT NULL
 ```
+
+### Column-to-column comparisons
+
+Pass a field of the **same** object as the value to compare two columns of
+the same table — no external import needed:
+
+```python
+post = Post()
+post.views.set(post.likes)              # WHERE views = likes
+post.views.set(('>', post.likes))       # WHERE views > likes
+```
+
+halfORM emits a pure column reference with **no bound parameter**.
+
+For arithmetic or more complex expressions, use `Expr`:
+
+```python
+from half_orm.field import Expr
+
+post.views.set(('>=', Expr('2 * "likes"')))       # WHERE views >= 2 * likes
+post.score.set(Expr('"likes" * 10 + "views"'))    # WHERE score = likes*10 + views
+```
+
+Column names in `Expr` must be double-quoted (`"col"`). halfORM adds the
+table alias automatically.
 
 ---
 

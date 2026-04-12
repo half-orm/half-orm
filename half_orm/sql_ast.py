@@ -62,8 +62,12 @@ class FieldExpr(Expr):
     value: object
     unaccent: bool = False
     array_any: bool = False
+    col_ref: str = None  # column-to-column comparison (no bound parameter)
 
     def to_sql(self) -> Tuple[str, list]:
+        # Column-to-column: e.g. r42."views" > r42."likes"
+        if self.col_ref is not None:
+            return f"{self.column} {self.comp} {self.col_ref}", []
         # IS NULL / IS NOT NULL: embed literal NULL, no bound parameter
         if self.comp in ('is', 'is not'):
             return f"{self.column} {self.comp} NULL", []

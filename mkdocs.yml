@@ -159,6 +159,7 @@ nav:
   - API Reference:
     - Model: api/model.md
     - Relation: api/relation.md
+    - Field: api/field.md
     - FKey: api/fkey.md
     - Transaction: api/transaction.md
   - Extensions:
