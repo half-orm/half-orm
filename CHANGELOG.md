@@ -1,3 +1,11 @@
+# 0.18.12 (2026-04-12)
+
+* feat(field): add Expr class and column-to-column comparisons (7286e79)
+* feat(relation): add ho_copy/ho_acopy bulk load methods (700e0eb)
+* ci(block-merge): set explicit empty permissions on GITHUB_TOKEN (645dd18)
+* docs(api): document async raw SQL methods in model.md (0168695)
+* feat(model): add aexecute_function and acall_procedure async methods (f570995)
+
 # 0.18.11 (2026-04-04)
 
 * fix(relation): prevent silent mass-delete/update when using FK navigation (8973324)
