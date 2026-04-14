@@ -1,3 +1,7 @@
+# 0.17.11 (2026-04-14)
+
+* fix(relation): use UNION/EXCEPT SQL for | and - when FK joins are present (373b9b2)
+
 # 0.17.10 (2026-04-04)
 
 * fix(relation): prevent silent mass-delete/update when using FK navigation (d3380c3)
