@@ -290,6 +290,8 @@ class Relation:
         self._ho_fkeys = OrderedDict()
         self._ho_fkeys_attr = set()
         self._ho_join_to = {}
+        self._ho_union_branches = None   # set by __or__ when FK joins require UNION
+        self._ho_except_branches = None  # set by __sub__ when FK joins require EXCEPT
         self._ho_is_singleton = False
         self._ho_only = False
         self._ho_neg = False
@@ -948,10 +950,76 @@ Fkeys = {"""
         where_expr = self.__walk_op(rel_id_)
         return what, where_expr
 
+    def _ho_prep_union_select(self, *args,
+        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
+        """Generate UNION SQL for | when FK joins make JOIN+WHERE incorrect.
+
+        Each branch is rendered independently so that incompatible JOIN
+        structures (different FK paths or different constraints on the same
+        table) are kept separate.  UNION (without ALL) deduplicates rows
+        across branches.
+        """
+        def collect_branches(rel):
+            """Flatten nested UNION trees into a flat list of leaf branches."""
+            if rel._ho_union_branches is None:
+                return [rel]
+            left, right = rel._ho_union_branches
+            return collect_branches(left) + collect_branches(right)
+
+        branches = collect_branches(self)
+        parts = []
+        values = []
+        for branch in branches:
+            branch._ho_query_type = 'select'
+            sql, vals = branch._ho_prep_select(*args)
+            parts.append(f"({sql})")
+            values.extend(vals)
+        union_sql = "\nunion\n".join(parts)
+        if order_by:
+            union_sql += f" order by {order_by}"
+        if limit is not None:
+            union_sql += f" limit {limit}"
+        if offset is not None:
+            union_sql += f" offset {offset}"
+        return union_sql, values
+
+    def _ho_prep_except_select(self, *args,
+        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
+        """Generate EXCEPT SQL for - when FK joins make JOIN+WHERE incorrect.
+
+        Each side is rendered independently so incompatible JOIN structures
+        are kept separate.  EXCEPT eliminates rows from the left that appear
+        in the right (set difference).
+        """
+        left, right = self._ho_except_branches
+        left._ho_query_type = 'select'
+        right._ho_query_type = 'select'
+        l_sql, l_vals = left._ho_prep_select(*args)
+        r_sql, r_vals = right._ho_prep_select(*args)
+        sql = f"({l_sql})\nexcept\n({r_sql})"
+        values = l_vals + r_vals
+        if order_by:
+            sql += f" order by {order_by}"
+        if limit is not None:
+            sql += f" limit {limit}"
+        if offset is not None:
+            sql += f" offset {offset}"
+        return sql, values
+
     #@utils.trace
     def _ho_prep_select(self, *args,
         distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
         from half_orm.fkey import FKey
+
+        if self._ho_except_branches is not None:
+            return self._ho_prep_except_select(
+                *args, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
+
+        if self._ho_union_branches is not None:
+            return self._ho_prep_union_select(
+                *args, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
 
         # Initialize state
         self._ho_ast_joins = []
@@ -1149,12 +1217,37 @@ Fkeys = {"""
         return self
 
     def __or__(self, right):
+        # If either side carries FK joins (or is itself already a UNION),
+        # the standard JOIN+WHERE approach would merge incompatible join
+        # structures.  Fall back to a true UNION instead.
+        if (self._ho_join_to or right._ho_join_to or
+                self._ho_union_branches is not None or
+                right._ho_union_branches is not None):
+            new = self()   # unconstrained container of the same type
+            new._ho_union_branches = (self, right)
+            # Keep _ho_set_operators populated so ho_is_set() stays correct.
+            new._ho_set_operators.left = self
+            new._ho_set_operators.operator = 'or'
+            new._ho_set_operators.right = right
+            return new
         return self.__set__op__("or", right)
+
     def __ior__(self, right):
         self = self | right
         return self
 
     def __sub__(self, right):
+        if (self._ho_join_to or right._ho_join_to or
+                self._ho_union_branches is not None or
+                self._ho_except_branches is not None or
+                right._ho_union_branches is not None or
+                right._ho_except_branches is not None):
+            new = self()   # unconstrained container of the same type
+            new._ho_except_branches = (self, right)
+            new._ho_set_operators.left = self
+            new._ho_set_operators.operator = 'and not'
+            new._ho_set_operators.right = right
+            return new
         return self.__set__op__("and not", right)
     def __isub__(self, right):
         self = self - right
