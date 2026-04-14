@@ -134,6 +134,9 @@ class DC_Relation: # pragma: no cover
     async def ho_ainsert(self, *args) -> dict:
         """Async variant of ho_insert. *Executes SQL.*"""
         ...
+    async def ho_aget(self, *args) -> dict:
+        """Async variant of ho_get. *Executes SQL.*"""
+        ...
     async def ho_aselect(self, *args,
         distinct:bool=False, order_by:str=None, limit:int=None, offset:int=None):
         """Async variant of ho_select. Returns a list of dicts. *Executes SQL.*"""
@@ -597,6 +600,7 @@ class Relation:
 
         Guarantees that the predicate matches exactly one row and returns it as
         a plain ``dict`` mapping column names to their Python values.
+        Issues a single ``SELECT … LIMIT 2`` query.
 
         Args:
             *args: optional column names to select.  If omitted, all columns
@@ -621,12 +625,39 @@ class Relation:
         :exc:`MultipleRowsError` instead of the generic :exc:`ExpectedOneError`.
         """
         self._ho_check_colums(*args)
-        _count = self.ho_count()
-        if _count == 0:
+        rows = list(self.ho_select(*args, limit=2))
+        if len(rows) == 0:
             raise relation_errors.NotFoundError(self)
-        if _count > 1:
-            raise relation_errors.MultipleRowsError(self, _count)
-        return next(self.ho_select(*args))
+        if len(rows) > 1:
+            raise relation_errors.MultipleRowsError(self)
+        return rows[0]
+
+    async def ho_aget(self, *args: str) -> dict:
+        """Async variant of ho_get. *Executes SQL.*
+
+        Issues a single ``SELECT … LIMIT 2`` query and returns the matching
+        row as a plain ``dict``.
+
+        Args:
+            *args: optional column names to select.  If omitted, all columns
+                are returned.
+
+        Returns:
+            dict: the matching row.
+
+        Raises:
+            NotFoundError: no row matches the predicate.
+            MultipleRowsError: more than one row matches the predicate.
+
+        *New in version 1.0.0.*
+        """
+        self._ho_check_colums(*args)
+        rows = await self.ho_aselect(*args, limit=2)
+        if len(rows) == 0:
+            raise relation_errors.NotFoundError(self)
+        if len(rows) > 1:
+            raise relation_errors.MultipleRowsError(self)
+        return rows[0]
 
     #@utils.trace
     def __fkey_where(self, where, values):

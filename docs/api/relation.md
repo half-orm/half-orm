@@ -13,8 +13,8 @@ Author(last_name='Martin')        # subset: "is an author named Martin"
 Author(last_name='Martin', id=42) # at most one row
 ```
 
-**Executors** (`ho_select`, `ho_insert`, `ho_update`, `ho_delete`, `ho_count`,
-`ho_is_empty`) execute SQL immediately and return results.
+**Executors** (`ho_select`, `ho_get`, `ho_insert`, `ho_update`, `ho_delete`,
+`ho_count`, `ho_is_empty`) execute SQL immediately and return results.
 **Introspection** methods (`ho_assert_is_singleton`, `ho_is_set`,
 `ho_where_display`, `ho_mogrify`) inspect or assert on the predicate without
 touching the database.
@@ -32,6 +32,30 @@ These methods execute SQL immediately and return results.
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+::: half_orm.relation.Relation.ho_get
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+!!! note "Exact-match guarantee"
+    `ho_get()` raises :exc:`~half_orm.relation_errors.NotFoundError` when no
+    row matches and :exc:`~half_orm.relation_errors.MultipleRowsError` when
+    more than one row matches.  Both inherit from
+    :exc:`~half_orm.relation_errors.ExpectedOneError` so existing
+    `except ExpectedOneError` clauses continue to work.
+
+    ```python
+    from half_orm.relation_errors import NotFoundError, MultipleRowsError
+
+    try:
+        row = Author(last_name='Martin').ho_get()
+    except NotFoundError:
+        print("no such author")
+    except MultipleRowsError as e:
+        print(f"ambiguous: {e.count} rows found")
+    ```
 
 ::: half_orm.relation.Relation.ho_select
     options:
@@ -136,6 +160,14 @@ asyncio.run(main())
       heading_level: 3
 
 *Sync counterpart: [ho_insert](#half_orm.relation.Relation.ho_insert)*
+
+::: half_orm.relation.Relation.ho_aget
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+*Sync counterpart: [ho_get](#half_orm.relation.Relation.ho_get)*
 
 ::: half_orm.relation.Relation.ho_aselect
     options:

@@ -25,11 +25,10 @@ class MultipleRowsError(ExpectedOneError):
     """More than one row matched the predicate passed to
     :meth:`~half_orm.relation.Relation.ho_get`.
     """
-    def __init__(self, relation, count):
+    def __init__(self, relation):
         self.rel = relation
-        self.count = count
         super().__init__(
-            f'{relation.__class__.__name__}: expected 1 row, got {count}'
+            f'{relation.__class__.__name__}: expected 1 row, got more than one'
         )
 
 class UnknownAttributeError(Exception):
