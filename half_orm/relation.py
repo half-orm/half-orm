@@ -38,6 +38,7 @@ from half_orm.sql_ast import (
     Delete as ASTDelete, Join as ASTJoin, Raw as ASTRaw,
     Returning as ASTReturning,
     And as ASTAnd, Not as ASTNot, Group as ASTGroup, SetOp as ASTSetOp,
+    CompoundSelect as ASTCompoundSelect,
 )
 
 class _SetOperators:
@@ -1166,76 +1167,18 @@ Fkeys = {"""
         where_expr = self.__walk_op(rel_id_)
         return what, where_expr
 
-    def _ho_prep_union_select(self, *args,
-        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
-        """Generate UNION SQL for | when FK joins make JOIN+WHERE incorrect.
+    def _ho_build_select_ast(self, *args,
+        distinct: str = '', order_by: str = None,
+        limit: int = None, offset: int = None) -> ASTSelect:
+        """Build and return an :class:`~half_orm.sql_ast.Select` node.
 
-        Each branch is rendered independently so that incompatible JOIN
-        structures (different FK paths or different constraints on the same
-        table) are kept separate.  UNION (without ALL) deduplicates rows
-        across branches.
+        This is the counterpart of :meth:`_ho_prep_select` for use in compound
+        statements (UNION, EXCEPT) where each branch must remain an independent
+        ``Select`` node that :class:`~half_orm.sql_ast.CompoundSelect` can
+        assemble.  Callers that only need the final SQL string should use
+        :meth:`_ho_prep_select` instead.
         """
-        def collect_branches(rel):
-            """Flatten nested UNION trees into a flat list of leaf branches."""
-            if rel._ho_union_branches is None:
-                return [rel]
-            left, right = rel._ho_union_branches
-            return collect_branches(left) + collect_branches(right)
-
-        branches = collect_branches(self)
-        parts = []
-        values = []
-        for branch in branches:
-            branch._ho_query_type = 'select'
-            sql, vals = branch._ho_prep_select(*args)
-            parts.append(f"({sql})")
-            values.extend(vals)
-        union_sql = "\nunion\n".join(parts)
-        if order_by:
-            union_sql += f" order by {order_by}"
-        if limit is not None:
-            union_sql += f" limit {limit}"
-        if offset is not None:
-            union_sql += f" offset {offset}"
-        return union_sql, values
-
-    def _ho_prep_except_select(self, *args,
-        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
-        """Generate EXCEPT SQL for - when FK joins make JOIN+WHERE incorrect.
-
-        Each side is rendered independently so incompatible JOIN structures
-        are kept separate.  EXCEPT eliminates rows from the left that appear
-        in the right (set difference).
-        """
-        left, right = self._ho_except_branches
-        left._ho_query_type = 'select'
-        right._ho_query_type = 'select'
-        l_sql, l_vals = left._ho_prep_select(*args)
-        r_sql, r_vals = right._ho_prep_select(*args)
-        sql = f"({l_sql})\nexcept\n({r_sql})"
-        values = l_vals + r_vals
-        if order_by:
-            sql += f" order by {order_by}"
-        if limit is not None:
-            sql += f" limit {limit}"
-        if offset is not None:
-            sql += f" offset {offset}"
-        return sql, values
-
-    #@utils.trace
-    def _ho_prep_select(self, *args,
-        distinct:str='', order_by:str=None, limit:int=None, offset: int=None):
         from half_orm.fkey import FKey
-
-        if self._ho_except_branches is not None:
-            return self._ho_prep_except_select(
-                *args, distinct=distinct,
-                order_by=order_by, limit=limit, offset=offset)
-
-        if self._ho_union_branches is not None:
-            return self._ho_prep_union_select(
-                *args, distinct=distinct,
-                order_by=order_by, limit=limit, offset=offset)
 
         # Initialize state
         self._ho_ast_joins = []
@@ -1258,15 +1201,14 @@ Fkeys = {"""
                 )
 
         # Deduplicate joins by table alias
-        seen_tables = set()
+        seen_tables: set = set()
         unique_joins = []
         for j in self._ho_ast_joins:
             if j.table not in seen_tables:
                 seen_tables.add(j.table)
                 unique_joins.append(j)
 
-        # Build AST and render SQL
-        stmt = ASTSelect(
+        return ASTSelect(
             columns=[what],
             from_table=self._ho_sql_id(),
             only=bool(self._ho_only),
@@ -1277,7 +1219,78 @@ Fkeys = {"""
             limit=limit,
             offset=offset,
         )
-        return stmt.to_sql()
+
+    def _ho_prep_union_select(self, *args,
+        distinct: str = '', order_by: str = None,
+        limit: int = None, offset: int = None):
+        """Generate UNION SQL for ``|`` when FK joins make JOIN+WHERE incorrect.
+
+        Each branch is rendered as an independent :class:`~half_orm.sql_ast.Select`
+        node so that incompatible JOIN structures (different FK paths or different
+        constraints on the same table) are kept separate.  The branches are
+        combined by :class:`~half_orm.sql_ast.CompoundSelect` using ``UNION``
+        (which deduplicates rows across branches).
+        """
+        def collect_branches(rel):
+            """Flatten nested UNION trees into a flat list of leaf branches."""
+            if rel._ho_union_branches is None:
+                return [rel]
+            left, right = rel._ho_union_branches
+            return collect_branches(left) + collect_branches(right)
+
+        branch_asts = [
+            branch._ho_build_select_ast(*args, distinct=distinct)
+            for branch in collect_branches(self)
+        ]
+        return ASTCompoundSelect(
+            operator='UNION',
+            branches=branch_asts,
+            order_by=order_by,
+            limit=limit,
+            offset=offset,
+        ).to_sql()
+
+    def _ho_prep_except_select(self, *args,
+        distinct: str = '', order_by: str = None,
+        limit: int = None, offset: int = None):
+        """Generate EXCEPT SQL for ``-`` when FK joins make JOIN+WHERE incorrect.
+
+        Each side is rendered as an independent :class:`~half_orm.sql_ast.Select`
+        node so that incompatible JOIN structures are kept separate.
+        :class:`~half_orm.sql_ast.CompoundSelect` assembles them with ``EXCEPT``,
+        which eliminates rows of the left branch that appear in the right branch.
+        """
+        left, right = self._ho_except_branches
+        return ASTCompoundSelect(
+            operator='EXCEPT',
+            branches=[
+                left._ho_build_select_ast(*args, distinct=distinct),
+                right._ho_build_select_ast(*args, distinct=distinct),
+            ],
+            order_by=order_by,
+            limit=limit,
+            offset=offset,
+        ).to_sql()
+
+    #@utils.trace
+    def _ho_prep_select(self, *args,
+        distinct: str = '', order_by: str = None,
+        limit: int = None, offset: int = None):
+
+        if self._ho_except_branches is not None:
+            return self._ho_prep_except_select(
+                *args, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
+
+        if self._ho_union_branches is not None:
+            return self._ho_prep_union_select(
+                *args, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
+
+        return self._ho_build_select_ast(
+            *args, distinct=distinct,
+            order_by=order_by, limit=limit, offset=offset,
+        ).to_sql()
 
     def _ho_prep_json_agg_select(self, *args, json_agg,
         order_by=None, limit=None, offset=None):

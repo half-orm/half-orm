@@ -9,7 +9,7 @@ and values list.
 
 import unittest
 from half_orm.sql_ast import (
-    FieldExpr, And, Or, Not, Raw, Group, SetOp,
+    FieldExpr, And, Not, Raw, Group, SetOp,
     Join, Returning,
     Select, Insert, Update, Delete,
 )
@@ -76,17 +76,6 @@ class TestAnd(unittest.TestCase):
         ])
         sql, vals = expr.to_sql()
         self.assertEqual(sql, 'r1."a" = %s  and r1."b" > %s')
-        self.assertEqual(vals, [1, 2])
-
-
-class TestOr(unittest.TestCase):
-    def test_multiple(self):
-        expr = Or([
-            FieldExpr('r1."a"', "=", "%s", 1),
-            FieldExpr('r1."b"', "=", "%s", 2),
-        ])
-        sql, vals = expr.to_sql()
-        self.assertEqual(sql, 'r1."a" = %s or\n    r1."b" = %s')
         self.assertEqual(vals, [1, 2])
 
 

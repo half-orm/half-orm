@@ -101,22 +101,6 @@ class And(Expr):
 
 
 @dataclass
-class Or(Expr):
-    """Disjunction of child expressions."""
-    children: List[Expr]
-
-    def to_sql(self) -> Tuple[str, list]:
-        if not self.children:
-            return "", []
-        parts, vals = [], []
-        for child in self.children:
-            sql, v = child.to_sql()
-            parts.append(sql)
-            vals.extend(v)
-        return " or\n    ".join(parts), vals
-
-
-@dataclass
 class Not(Expr):
     """Negation wrapper."""
     child: Expr
@@ -420,3 +404,48 @@ class Delete:
             sql += self.returning.to_sql()
 
         return sql, vals
+
+
+# ---------------------------------------------------------------------------
+# Compound SELECT statements (UNION, EXCEPT, INTERSECT)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class CompoundSelect:
+    """A compound SELECT statement combining branches with a set operator.
+
+    Parameters
+    ----------
+    operator : str
+        SQL set operator: ``'UNION'``, ``'EXCEPT'``, or ``'INTERSECT'``.
+        ``UNION`` deduplicates rows across branches (equivalent to
+        ``UNION DISTINCT``).
+    branches : list[Select]
+        The SELECT statements to combine.  Each is rendered independently
+        and wrapped in parentheses.
+    order_by : str | None
+        Raw ORDER BY clause applied to the whole compound statement.
+    limit : int | None
+    offset : int | None
+    """
+    operator: str
+    branches: List[Select]
+    order_by: Optional[str] = None
+    limit: Optional[int] = None
+    offset: Optional[int] = None
+
+    def to_sql(self) -> Tuple[str, list]:
+        parts: List[str] = []
+        vals: list = []
+        for branch in self.branches:
+            sql, v = branch.to_sql()
+            parts.append(f"({sql})")
+            vals.extend(v)
+        result = f"\n{self.operator.lower()}\n".join(parts)
+        if self.order_by:
+            result += f" order by {self.order_by}"
+        if self.limit is not None:
+            result += f" limit {self.limit}"
+        if self.offset is not None:
+            result += f" offset {self.offset}"
+        return result, vals
