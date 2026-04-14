@@ -1665,14 +1665,36 @@ Fkeys = {"""
         return description or 'No description available'
 
     def ho_cast(self, qrn):
-        """Cast a relation into another relation.
+        """Cast a relation to a related relation in the PostgreSQL inheritance hierarchy.
 
-        TODO: check that qrn inherits self (or is inherited by self)?
+        The target ``qrn`` must either be an ancestor or a descendant of this
+        relation in the PostgreSQL table-inheritance hierarchy.  The check is
+        performed via the Python MRO, which :mod:`half_orm.relation_factory`
+        builds to mirror the PostgreSQL hierarchy.
+
+        Args:
+            qrn (str): qualified relation name of the target (e.g. ``'blog.event'``).
+
+        Returns:
+            Relation: a new instance of the target class carrying the same
+            field constraints and join state as ``self``.
+
+        Raises:
+            CastError: if ``qrn`` is not related to this relation by inheritance.
         """
-        new = self._ho_model._import_class(qrn)(**self.__to_dict_val_comp())
+        target_class = self._ho_model._import_class(qrn)
+        self_ancestors   = {cls._t_fqrn for cls in type(self).__mro__       if hasattr(cls, '_t_fqrn')}
+        target_ancestors = {cls._t_fqrn for cls in target_class.__mro__     if hasattr(cls, '_t_fqrn')}
+        if target_class._t_fqrn not in self_ancestors and self._t_fqrn not in target_ancestors:
+            raise relation_errors.CastError(self, qrn)
+        new = target_class(**self.__to_dict_val_comp())
         new._ho_id_cast = id(self)
         new._ho_join_to = self._ho_join_to
         new._ho_set_operators = self._ho_set_operators
+        new._ho_neg = self._ho_neg
+        new._ho_only = self._ho_only
+        new._ho_union_branches = self._ho_union_branches
+        new._ho_except_branches = self._ho_except_branches
         return new
 
     def __set__op__(self, operator=None, right=None):

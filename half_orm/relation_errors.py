@@ -61,6 +61,16 @@ class ReadOnlyRelationError(Exception):
             f"'{relation.__class__.__name__}' is a {relation._ho_kind} and does not support "
             "write operations (ho_insert, ho_update, ho_delete).")
 
+class CastError(Exception):
+    """Raised when :meth:`~half_orm.relation.Relation.ho_cast` is called with
+    a target relation that is not related by PostgreSQL table inheritance.
+    """
+    def __init__(self, relation, qrn):
+        super().__init__(
+            f"Cannot cast '{relation.__class__.__name__}' to '{qrn}': "
+            "no table-inheritance relationship between the two relations."
+        )
+
 class WrongFkeyError(Exception):
     "Raised when Fkeys contains a wrong name"
     def __init__(self, cls, value):

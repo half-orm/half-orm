@@ -107,10 +107,9 @@ class Test(TestCase):
         self.assertEqual(events.ho_count(), 1)
 
     def test_cast_error(self):
-        "it should raise an error if the set attributes are not known in the new relation"
-        with self.assertRaises(relation_errors.UnknownAttributeError) as exc:
+        "it should raise CastError when the target is not in the inheritance hierarchy"
+        with self.assertRaises(relation_errors.CastError):
             halftest.post_cls(title='coucou').ho_cast('actor.person')
-        self.assertEqual(str(exc.exception), "ERROR! Unknown attribute: title.")
 
     def test_field_aliases(self):
         "it should alias weird field names"
