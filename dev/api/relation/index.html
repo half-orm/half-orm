@@ -610,6 +610,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#half_orm.relation.Relation.ho_select" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -686,6 +697,17 @@
     <span class="md-ellipsis">
       
         ho_ainsert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_aget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_aget
       
     </span>
   </a>
@@ -1293,6 +1315,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#half_orm.relation.Relation.ho_select" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1369,6 +1402,17 @@
     <span class="md-ellipsis">
       
         ho_ainsert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_aget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_aget
       
     </span>
   </a>
@@ -1626,8 +1670,8 @@ executed</strong> until you call an executor method.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>        <span class="c1"># subset: &quot;is an author named Martin&quot;</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span> <span class="c1"># at most one row</span>
 </code></pre></div>
-<p><strong>Executors</strong> (<code>ho_select</code>, <code>ho_insert</code>, <code>ho_update</code>, <code>ho_delete</code>, <code>ho_count</code>,
-<code>ho_is_empty</code>) execute SQL immediately and return results.
+<p><strong>Executors</strong> (<code>ho_select</code>, <code>ho_get</code>, <code>ho_insert</code>, <code>ho_update</code>, <code>ho_delete</code>,
+<code>ho_count</code>, <code>ho_is_empty</code>) execute SQL immediately and return results.
 <strong>Introspection</strong> methods (<code>ho_assert_is_singleton</code>, <code>ho_is_set</code>,
 <code>ho_where_display</code>, <code>ho_mogrify</code>) inspect or assert on the predicate without
 touching the database.</p>
@@ -1743,6 +1787,143 @@ non-writable kind.</p>
     </div>
 
 </div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_get" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_get</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+
+<a href="#half_orm.relation.Relation.ho_get" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Fetch the single row matching this predicate from the database. <em>Executes SQL.</em></p>
+<p>Guarantees that the predicate matches exactly one row and returns it as
+a plain <code>dict</code> mapping column names to their Python values.
+Issues a single <code>SELECT … LIMIT 2</code> query.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>*args</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>optional column names to select.  If omitted, all columns
+are returned.</p>
+              </div>
+            </td>
+            <td>
+                  <code>()</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>dict</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the matching row.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="NotFoundError">NotFoundError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>no row matches the predicate.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="MultipleRowsError">MultipleRowsError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>more than one row matches the predicate.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>ho_get usage:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">row</span> <span class="o">=</span> <span class="n">Person</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Lagaffe&#39;</span><span class="p">,</span> <span class="n">first_name</span><span class="o">=</span><span class="s1">&#39;Gaston&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_get</span><span class="p">()</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">])</span>
+</code></pre></div></p>
+</details>        <p><em>Changed in version 1.0.0</em> <strong>(breaking)</strong>: returns a <code>dict</code> instead
+of a <code>Relation</code> object.  Raises :exc:<code>NotFoundError</code> or
+:exc:<code>MultipleRowsError</code> instead of the generic :exc:<code>ExpectedOneError</code>.</p>
+
+
+    </div>
+
+</div><div class="admonition note">
+<p class="admonition-title">Exact-match guarantee</p>
+<p><code>ho_get()</code> raises :exc:<code>~half_orm.relation_errors.NotFoundError</code> when no
+row matches and :exc:<code>~half_orm.relation_errors.MultipleRowsError</code> when
+more than one row matches.  Both inherit from
+:exc:<code>~half_orm.relation_errors.ExpectedOneError</code> so existing
+<code>except ExpectedOneError</code> clauses continue to work.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.relation_errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">NotFoundError</span><span class="p">,</span> <span class="n">MultipleRowsError</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">row</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">ho_get</span><span class="p">()</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">except</span> <span class="n">NotFoundError</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;no such author&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">except</span> <span class="n">MultipleRowsError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ambiguous: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2"> rows found&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -1971,27 +2152,27 @@ depends on the FK direction:</p>
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Reverse FK, non-unique — author → posts (list)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">alice</span><span class="o">.</span><span class="n">post_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>               <span class="c1"># join all posts</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]}):</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">])</span>     <span class="c1"># [{&#39;title&#39;: &#39;...&#39;}, ...]</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Direct FK — post → author (dict)</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>               <span class="c1"># join all authors</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;author_fk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]}):</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;author_fk&#39;</span><span class="p">])</span>    <span class="c1"># {&#39;last_name&#39;: &#39;Martin&#39;}</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Chained FK (A ← B → C) — aggregate the leaf relation&#39;s data</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># For each post, collect the persons who commented on it.</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1"># post ← comment → person  (comment is the junction)</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">comment</span> <span class="o">=</span> <span class="n">Comment</span><span class="p">()</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">comment</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>            <span class="c1"># chain: comment → person</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">post</span><span class="o">.</span><span class="n">comment_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;comment_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]}):</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;comment_rfk&#39;</span><span class="p">])</span>  <span class="c1"># [{&#39;last_name&#39;: &#39;...&#39;}, ...]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Reverse FK, non-unique — author → posts (list)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">alice</span><span class="o">.</span><span class="n">post_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>               <span class="c1"># join all posts</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">alice</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">])</span>     <span class="c1"># [{&#39;title&#39;: &#39;...&#39;}, ...]</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Direct FK — post → author (dict)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">post</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>               <span class="c1"># join all authors</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;author_fk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;author_fk&#39;</span><span class="p">])</span>    <span class="c1"># {&#39;last_name&#39;: &#39;Martin&#39;}</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Chained FK (A ← B → C) — aggregate the leaf relation&#39;s data</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># For each post, collect the persons who commented on it.</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="c1"># post ← comment → person  (comment is the junction)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="n">comment</span> <span class="o">=</span> <span class="n">Comment</span><span class="p">()</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">comment</span><span class="o">.</span><span class="n">author_fk</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>            <span class="c1"># chain: comment → person</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="n">post</span><span class="o">.</span><span class="n">comment_rfk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">ho_select</span><span class="p">(</span><span class="n">json_agg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;comment_rfk&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]}):</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;comment_rfk&#39;</span><span class="p">])</span>  <span class="c1"># [{&#39;last_name&#39;: &#39;...&#39;}, ...]</span>
 </code></pre></div>
 <p><em>Changed in version 0.18.7</em> <strong>(breaking)</strong>.</p>
 </div>
@@ -2426,25 +2607,25 @@ is <code>False</code>.</p>
 <p>Async counterparts of every executor. Require an async connection opened
 with <code>await model.aconnect()</code>. Return plain values (not generators) so the
 cursor can be closed before returning to the caller.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;blog&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">await</span> <span class="n">blog</span><span class="o">.</span><span class="n">aconnect</span><span class="p">()</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">Author</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">Post</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.post&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Author</span><span class="p">(</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_ainsert</span><span class="p">()</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">posts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="n">alice</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">ho_aselect</span><span class="p">()</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">n</span>     <span class="o">=</span> <span class="k">await</span> <span class="n">Post</span><span class="p">()</span><span class="o">.</span><span class="n">ho_acount</span><span class="p">()</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="k">await</span> <span class="n">blog</span><span class="o">.</span><span class="n">adisconnect</span><span class="p">()</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;blog&#39;</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">await</span> <span class="n">blog</span><span class="o">.</span><span class="n">aconnect</span><span class="p">()</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">Author</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">Post</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.post&#39;</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Author</span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s1">&#39;alice@example.com&#39;</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_ainsert</span><span class="p">()</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="n">posts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Post</span><span class="p">(</span><span class="n">author_id</span><span class="o">=</span><span class="n">alice</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">ho_aselect</span><span class="p">()</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    <span class="n">n</span>     <span class="o">=</span> <span class="k">await</span> <span class="n">Post</span><span class="p">()</span><span class="o">.</span><span class="n">ho_acount</span><span class="p">()</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    <span class="k">await</span> <span class="n">blog</span><span class="o">.</span><span class="n">adisconnect</span><span class="p">()</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
 
 
@@ -2470,6 +2651,120 @@ cursor can be closed before returning to the caller.</p>
     </div>
 
 </div><p><em>Sync counterpart: <a href="#half_orm.relation.Relation.ho_insert">ho_insert</a></em></p>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_aget" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_aget</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#half_orm.relation.Relation.ho_aget" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Async variant of ho_get. <em>Executes SQL.</em></p>
+<p>Issues a single <code>SELECT … LIMIT 2</code> query and returns the matching
+row as a plain <code>dict</code>.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>*args</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>optional column names to select.  If omitted, all columns
+are returned.</p>
+              </div>
+            </td>
+            <td>
+                  <code>()</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>dict</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the matching row.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="NotFoundError">NotFoundError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>no row matches the predicate.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="MultipleRowsError">MultipleRowsError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>more than one row matches the predicate.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p><em>New in version 1.0.0.</em></p>
+
+
+    </div>
+
+</div><p><em>Sync counterpart: <a href="#half_orm.relation.Relation.ho_get">ho_get</a></em></p>
 
 
 <div class="doc doc-object doc-function">
@@ -2900,15 +3195,15 @@ at least one operand is itself constrained.</p>
 <p><code>ho_is_set()</code> inspects the predicate structure only. When both operands
 of a set operator are constrained, it returns <code>True</code> even if the
 extension is semantically equivalent to the full table:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Post</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Post</span><span class="p">()</span>                             <span class="c1"># False — both operands unconstrained</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Post</span><span class="p">()</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>                    <span class="c1"># True  — right operand is constrained</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">))</span>   <span class="c1"># True  — but = all posts</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">Post</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Post</span><span class="p">()</span>                             <span class="c1"># False — both operands unconstrained</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">Post</span><span class="p">()</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>                    <span class="c1"># True  — right operand is constrained</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">))</span>   <span class="c1"># True  — but = all posts</span>
 </code></pre></div>
 <p>Because <code>ho_delete()</code> and <code>ho_update()</code> allow execution without
 <code>delete_all=True</code> / <code>update_all=True</code> when <code>ho_is_set()</code> is <code>True</code>,
 these predicates will silently operate on the <strong>entire table</strong>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Deletes ALL posts — no error raised</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">(</span><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)))</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Deletes ALL posts — no error raised</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="p">(</span><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;!=&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)))</span><span class="o">.</span><span class="n">ho_delete</span><span class="p">()</span>
 </code></pre></div>
 <p>Always verify the actual extension with <code>ho_count()</code> or <code>ho_mogrify()</code>
 before destructive operations on set-operator predicates.</p>
@@ -3167,7 +3462,7 @@ inner method rolls back only that inner scope.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 12, 2026 07:07:08 UTC">April 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 14, 2026 08:29:20 UTC">April 14, 2026</span>
   </span>
 
     
