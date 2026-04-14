@@ -189,13 +189,6 @@ class Relation:
         """The names of the arguments must correspond to the names of the columns in the relation.
         """
         module = __import__(self.__module__, globals(), locals(), ['FKEYS_PROPERTIES', 'FKEYS'], 0)
-        #TODO: remove in release 1.0.0
-        if hasattr(module, 'FKEYS_PROPERTIES') or hasattr(module, 'FKEYS'):
-            mod_fkeys = utils.Color.bold(module.__name__ + '.FKEYS')
-            err = f'''{mod_fkeys} variable is no longer supported!\n'''
-            err += f'''\tUse the "{utils.Color.bold(self.__class__.__name__ + '.Fkeys')}"''' + \
-                ''' class attribute instead.\n'''
-            raise DeprecationWarning(err)
         self._ho_fields = {}
         self._ho_fields_by_fieldnum = {}
         self._ho_pkey = {}
