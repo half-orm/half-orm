@@ -1,3 +1,7 @@
+# 0.18.13 (2026-04-14)
+
+* fix(relation): use UNION/EXCEPT SQL for | and - when FK joins are present (1e28437)
+
 # 0.18.12 (2026-04-12)
 
 * feat(field): add Expr class and column-to-column comparisons (7286e79)
