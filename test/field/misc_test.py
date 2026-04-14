@@ -143,7 +143,7 @@ class Test(TestCase):
         conn = model._connection
 
         # --- dump() with a non-null Field value ---
-        src = self.pers(last_name='aa').ho_get()
+        src = self.pers(**self.pers(last_name='aa').ho_get())
         field = src.last_name          # Field with value='aa'
         dumper = FieldDumper(type(field), conn)
         result = dumper.dump(field)    # raised AttributeError before fix
@@ -156,7 +156,7 @@ class Test(TestCase):
         # --- dump() with a NULL Field value ---
         # Use a fresh relation instance: last_name is an attribute,
         # so src.last_name is the same object every time on the same instance.
-        null_src = self.pers(last_name='ba').ho_get()
+        null_src = self.pers(**self.pers(last_name='ba').ho_get())
         null_field = null_src.last_name
         null_field.set(NULL)
         self.assertIsNone(dumper.dump(null_field))
@@ -170,7 +170,7 @@ class Test(TestCase):
         # UUIDs (16 raw bytes, not valid UTF-8), crashing PostgreSQL with
         # "invalid byte sequence for encoding UTF8".  PyFormat.TEXT is required.
         import uuid
-        uuid_src = self.pers(last_name='aa').ho_get()
+        uuid_src = self.pers(**self.pers(last_name='aa').ho_get())
         uuid_field = uuid_src.birth_date   # date field — any non-string type works
         # Manually inject a UUID value to simulate the real-world case
         uuid_field._Field__value = uuid.UUID('35c418a5-2faa-4970-94e3-d0eedbc2542b')

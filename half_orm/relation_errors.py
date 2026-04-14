@@ -1,12 +1,36 @@
 """This module provides the errors for the relation module."""
 
 class ExpectedOneError(Exception):
-    """This exception is raised when get count differs from 1."""
+    """Base exception raised by :meth:`~half_orm.relation.Relation.ho_get`
+    when the predicate does not match exactly one row.
+
+    Two concrete subclasses carry the specific cases:
+
+    * :exc:`NotFoundError` — no row matched (count == 0).
+    * :exc:`MultipleRowsError` — more than one row matched (count > 1).
+    """
+
+
+class NotFoundError(ExpectedOneError):
+    """No row matched the predicate passed to
+    :meth:`~half_orm.relation.Relation.ho_get`.
+    """
+    def __init__(self, relation):
+        self.rel = relation
+        self.count = 0
+        super().__init__(f'{relation.__class__.__name__}: no row found')
+
+
+class MultipleRowsError(ExpectedOneError):
+    """More than one row matched the predicate passed to
+    :meth:`~half_orm.relation.Relation.ho_get`.
+    """
     def __init__(self, relation, count):
         self.rel = relation
         self.count = count
-        self.plural = '' if count == 0 else 's'
-        Exception.__init__(self, f'Expected 1, got {self.count} tuple{self.plural}')
+        super().__init__(
+            f'{relation.__class__.__name__}: expected 1 row, got {count}'
+        )
 
 class UnknownAttributeError(Exception):
     """Unknown attribute error"""

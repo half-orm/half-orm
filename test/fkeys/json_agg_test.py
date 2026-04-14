@@ -16,7 +16,7 @@ class Test(TestCase):
         self.post = halftest.post_cls
         self.comment = halftest.comment_cls
         # Use existing person 'aa' (inserted by HalfTest fixture)
-        self.aa = self.person(last_name='aa').ho_get()
+        self.aa = self.person(**self.person(last_name='aa').ho_get())
         # Clean any leftover posts
         self.post(author_last_name='aa').ho_delete(delete_all=True)
 

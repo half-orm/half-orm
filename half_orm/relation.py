@@ -101,7 +101,7 @@ class DC_Relation: # pragma: no cover
     def ho_assert_is_singleton(self):
         """Assert that this predicate identifies exactly one row, without querying the database."""
         ...
-    def _ho_get(self, *args) -> 'Relation':
+    def ho_get(self, *args) -> dict:
         """Fetch the single row matching this predicate from the database. *Executes SQL.*"""
         ...
     def ho_is_set(self) -> bool:
@@ -592,41 +592,41 @@ class Relation:
             f"No unique identifier fully set with '=' on {self.__class__.__name__}.")
 
     #@utils.trace
-    def _ho_get(self, *args: List[str]) -> 'Relation':
-        """The get method allows you to fetch a singleton from the database.
-        It garantees that the constraint references one and only one tuple.
+    def ho_get(self, *args: str) -> dict:
+        """Fetch the single row matching this predicate from the database. *Executes SQL.*
+
+        Guarantees that the predicate matches exactly one row and returns it as
+        a plain ``dict`` mapping column names to their Python values.
 
         Args:
-            args (List[str]): list of fields names.\
-            If ommitted, all the values of the row retreived from the database\
-            are set for the self object.\
-            Otherwise, only the values listed in the `args` parameter are set.
+            *args: optional column names to select.  If omitted, all columns
+                are returned.
 
         Returns:
-            Relation: the object retreived from the database.
+            dict: the matching row.
 
         Raises:
-            ExpectedOneError: an exception is raised if no or more than one element is found.
+            NotFoundError: no row matches the predicate.
+            MultipleRowsError: more than one row matches the predicate.
 
         Example:
-            >>> gaston = Person(last_name='Lagaffe', first_name='Gaston')._ho_get()
-            >>> type(gaston) is Person
-            True
-            >>> gaston.id
-            (int4) NOT NULL (id = 1772)
-            >>> str(gaston.id)
-            '1772'
-            >>> gaston.id.value
-            1772
+            ho_get usage:
+                ```python
+                row = Person(last_name='Lagaffe', first_name='Gaston').ho_get()
+                print(row['id'], row['last_name'])
+                ```
+
+        *Changed in version 1.0.0* **(breaking)**: returns a ``dict`` instead
+        of a ``Relation`` object.  Raises :exc:`NotFoundError` or
+        :exc:`MultipleRowsError` instead of the generic :exc:`ExpectedOneError`.
         """
         self._ho_check_colums(*args)
         _count = self.ho_count()
-        if _count != 1:
-            raise relation_errors.ExpectedOneError(self, _count)
-        self._ho_is_singleton = True
-        ret = self(**(next(self.ho_select(*args))))
-        ret._ho_is_singleton = True
-        return ret
+        if _count == 0:
+            raise relation_errors.NotFoundError(self)
+        if _count > 1:
+            raise relation_errors.MultipleRowsError(self, _count)
+        return next(self.ho_select(*args))
 
     #@utils.trace
     def __fkey_where(self, where, values):
@@ -1811,10 +1811,6 @@ Fkeys = {"""
         return next(self.ho_select())
 
     # deprecated. To remove with release 1.0.0
-
-    @utils._ho_deprecated(replacement='@singleton decorator or _ho_get')
-    def ho_get(self, *args, **kwargs):
-        return self._ho_get(*args, **kwargs)
 
     @utils._ho_deprecated
     def select(self, *args): # pragma: no cover

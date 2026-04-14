@@ -41,7 +41,7 @@ class Test(HoTestCase):
     def test_insert_error(self):
         pers = self.pers(last_name='ba')
         self.assertEqual(pers.ho_count(), 1)
-        pers = pers.ho_get()
+        pers = pers(**pers.ho_get())
         self.assertRaises(psycopg.IntegrityError, pers.ho_insert)
 
     def test_select(self):
@@ -97,7 +97,7 @@ class Test(HoTestCase):
     def test_field_object_as_value(self):
         "passing a Field object directly as a value should use Field.value (not raise ProgrammingError)."
         # Reproduce: Relation(col=other_relation.col) where col is a Field, not a scalar.
-        src = self.pers(last_name='ba').ho_get()   # Field.value is now 'ba'
+        src = self.pers(**self.pers(last_name='ba').ho_get())   # Field.value is now 'ba'
         # src.last_name is a Field; pass it directly as the filter value
         result = self.pers(last_name=src.last_name).ho_count()
         self.assertEqual(result, 1)
@@ -108,8 +108,8 @@ class Test(HoTestCase):
         # so [Field(uuid)] was sent to psycopg as-is, causing either
         # FieldDumper to dump the UUID in binary format (invalid UTF-8 bytes)
         # or a ProgrammingError.
-        src_a = self.pers(last_name='aa').ho_get()
-        src_b = self.pers(last_name='ba').ho_get()
+        src_a = self.pers(**self.pers(last_name='aa').ho_get())
+        src_b = self.pers(**self.pers(last_name='ba').ho_get())
         # Pass Field objects inside a list → triggers the ANY() code path
         result = self.pers(last_name=[src_a.last_name, src_b.last_name]).ho_count()
         self.assertEqual(result, 2)
