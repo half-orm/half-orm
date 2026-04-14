@@ -110,20 +110,8 @@ class DC_Relation: # pragma: no cover
     def ho_mogrify(self):
         """Print the SQL SELECT that would be executed and return self."""
         ...
-    def ho_distinct(self, dist=True) -> 'Relation':
-        """Add DISTINCT to the next SELECT (deprecated: use ho_select(distinct=True))."""
-        ...
     def ho_unaccent(self, *fields_names) -> 'Relation':
         """Apply unaccent to the listed fields for the next SELECT."""
-        ...
-    def ho_order_by(self, _order_) -> 'Relation':
-        """Set ORDER BY for the next SELECT (deprecated: use ho_select(order_by=...))."""
-        ...
-    def ho_limit(self, _limit_) -> 'Relation':
-        """Set LIMIT for the next SELECT (deprecated: use ho_select(limit=...))."""
-        ...
-    def ho_offset(self, _offset_) -> 'Relation':
-        """Set OFFSET for the next SELECT (deprecated: use ho_select(offset=...))."""
         ...
     def ho_count(self, *args, distinct:bool=False) -> int:
         """Return the number of rows that satisfy the predicate. *Executes SQL.*"""
@@ -226,7 +214,7 @@ class Relation:
         self._ho_query_type = None
         self._ho_ast_joins = []
         self._ho_set_operators = _SetOperators(self)
-        self._ho_select_params = {}
+
         self._ho_id_cast = None
         self._ho_mogrify = False
         self._ho_check_colums(*kwargs.keys())
@@ -408,11 +396,7 @@ class Relation:
             raise ValueError(f"limit must be an integer, got {type(limit).__name__!r}")
         if offset is not None and not isinstance(offset, int):
             raise ValueError(f"offset must be an integer, got {type(offset).__name__!r}")
-        # TODO(1.0): remove fallback to _ho_select_params once deprecated methods are removed
-        order_by = order_by or self._ho_select_params.get('order_by')
-        limit = limit or self._ho_select_params.get('limit')
-        offset = offset or self._ho_select_params.get('offset')
-        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        distinct = 'distinct' if distinct else ''
         can_dedup = bool(self._ho_join_to) and self._ho_result_is_relation(*args)
         pk_names = list(self._ho_pkey.keys())
         query, values = self._ho_prep_select(
@@ -1466,51 +1450,12 @@ Fkeys = {"""
         )
         return stmt.to_sql()
 
-    @utils._ho_deprecated(replacement="use ho_select(distinct=...)")
-    def ho_distinct(self, dist=True):
-        """Set distinct in SQL select request."""
-        distinct = 'distinct'
-        if dist not in {True, False}:
-            raise ValueError('ho_distinct argument must be either True or False!')
-        if dist in {False, None}:
-            distinct = ''
-        self._ho_select_params['distinct'] = distinct
-        return self
-
     def ho_unaccent(self, *fields_names):
         "Sets unaccent for each field listed in fields_names"
         for field_name in fields_names:
             if not isinstance(self.__dict__[field_name], Field):
                 raise ValueError(f'{field_name} is not a Field!')
             self.__dict__[field_name].unaccent = True
-        return self
-
-    @utils._ho_deprecated(replacement="use ho_select(order_by=...)")
-    def ho_order_by(self, _order_):
-        """Set SQL order by according to the "order" string passed
-
-        @order string example :
-        "field1, field2 desc, field3, field4 desc"
-        """
-        self._ho_select_params['order_by'] = _order_
-        return self
-
-    @utils._ho_deprecated(replacement="use ho_select(limit=...)")
-    def ho_limit(self, _limit_):
-        """Set limit for the next SQL select request."""
-        if _limit_ is not None:
-            self._ho_select_params['limit'] = int(_limit_)
-        elif 'limit' in self._ho_select_params:
-            self._ho_select_params.pop('limit')
-        return self
-
-    @utils._ho_deprecated(replacement="use ho_select(offset=...)")
-    def ho_offset(self, _offset_):
-        """Set the offset for the next SQL select request."""
-        if _offset_ is not None:
-            self._ho_select_params['offset'] = int(_offset_)
-        elif 'offset' in self._ho_select_params:
-            self._ho_select_params.pop('offset')
         return self
 
     def ho_mogrify(self):
@@ -1544,7 +1489,7 @@ Fkeys = {"""
     def _ho_prep_count(self, *args, distinct=False):
         """Prepare a COUNT query. Returns (query, values)."""
         self._ho_query = "select"
-        distinct = 'distinct' if distinct or self._ho_select_params.get('distinct') else ''
+        distinct = 'distinct' if distinct else ''
         query, values = self._ho_prep_select(*args, distinct=distinct)
         query = f'select\n  count(*) from ({query}) as ho_count'
         return query, values
@@ -1828,68 +1773,12 @@ Fkeys = {"""
         return ((self - right) | (right - self)).ho_is_empty()
 
     def __iter__(self):
-        # TODO(1.0): remove _ho_select_params reads once deprecated methods are removed
-        # (ho_distinct, ho_order_by, ho_limit, ho_offset)
-        order_by = self._ho_select_params.get('order_by')
-        limit = self._ho_select_params.get('limit')
-        offset = self._ho_select_params.get('offset')
-        distinct = 'distinct' if self._ho_select_params.get('distinct') else ''
-        query, values = self._ho_prep_select(distinct=distinct, order_by=order_by, limit=limit, offset=offset)
+        query, values = self._ho_prep_select()
         for elt in self.__execute(query, values):
             yield elt
 
     def __next__(self):
         return next(self.ho_select())
-
-    # deprecated. To remove with release 1.0.0
-
-    @utils._ho_deprecated
-    def select(self, *args): # pragma: no cover
-        return self.ho_select(*args)
-
-    @utils._ho_deprecated
-    def insert(self, *args): # pragma: no cover
-        return self.ho_insert(*args)
-
-    @utils._ho_deprecated
-    def update(self, *args, update_all=False, **kwargs): # pragma: no cover
-        return self.ho_update(*args, update_all, **kwargs)
-
-    @utils._ho_deprecated
-    def delete(self, *args, delete_all=False): # pragma: no cover
-        return self.ho_delete(*args, delete_all)
-
-    @utils._ho_deprecated
-    def get(self, *args): # pragma: no cover
-        return self.ho_get(*args)
-
-    @utils._ho_deprecated
-    def unaccent(self, *fields_names): # pragma: no cover
-        return self.ho_unaccent(*fields_names)
-
-    @utils._ho_deprecated
-    def order_by(self, _order_): # pragma: no cover
-        return self.ho_order_by(_order_)
-
-    @utils._ho_deprecated
-    def limit(self, _limit_): # pragma: no cover
-        return self.ho_limit(_limit_)
-
-    @utils._ho_deprecated
-    def offset(self, _offset_): # pragma: no cover
-        return self.ho_offset(_offset_)
-
-    @utils._ho_deprecated
-    def _mogrify(self): # pragma: no cover
-        return self.ho_mogrify()
-
-    @utils._ho_deprecated
-    def count(self, *args): # pragma: no cover
-        return self.ho_count(*args)
-
-    @utils._ho_deprecated
-    def is_empty(self): # pragma: no cover
-        return self.ho_is_empty()
 
 def singleton(fct):
     """Decorator that enforces a singleton predicate before calling the method.
