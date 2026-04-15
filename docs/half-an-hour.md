@@ -361,6 +361,47 @@ class Comment(blog.get_relation_class('blog.comment')):
 !!! tip "Finding FK names"
     `print(Post())` lists all foreign keys with their internal names.
 
+### Fkeys on views
+
+PostgreSQL stores no FK metadata for views, so halfORM cannot discover
+navigation attributes automatically. Declare them explicitly with a dict-valued
+`Fkeys` entry:
+
+```python
+class PostComment(blog.get_relation_class('blog.view.post_comment')):
+    Fkeys = {
+        # direct FK  — key must start with fk_
+        'fk_author': {
+            'to':   'blog.author',
+            'join': [('author_id',), ('id',)],   # [(view cols,), (target cols,)]
+        },
+        # reverse FK — key must start with rfk_
+        'rfk_comments': {
+            'to':   'blog.comment',
+            'join': [('id',), ('post_id',)],
+        },
+        # composite FK (two columns)
+        'fk_address': {
+            'to':   'geo.address',
+            'join': [('country_code', 'city_code'), ('country', 'city')],
+        },
+    }
+```
+
+Rules:
+
+* The key **must** start with `fk_` (direct) or `rfk_` (reverse) — this prefix
+  determines the FK direction since there is no pg_catalog entry to derive it from.
+* `join` is always a two-element list: `[(source_cols,), (target_cols,)]`.
+  For a single-column FK, each inner tuple has one element.
+* Source columns are validated against the view's fields at instantiation time.
+* Everything else — `.set()`, `fkey()`, `json_agg` — works identically to
+  table-backed FKs.
+
+!!! note "Tables use a different format"
+    For regular tables, `Fkeys` values are strings (internal FK names printed
+    by `print(Post())`). The dict format is only for views and materialised views.
+
 ### [`fkey()`](api/fkey.md#half_orm.fkey.FKey.__call__) — extend the predicate into a related table
 
 Calling a FK attribute produces a new predicate on the related table, restricted

@@ -18,6 +18,50 @@ Two usage patterns:
 Print any relation instance to discover FK names (internal names to copy
 into `Fkeys`).
 
+---
+
+## Fkeys on views
+
+PostgreSQL stores no FK metadata for views, so halfORM cannot discover
+navigation attributes automatically. Use a **dict** as the `Fkeys` value
+instead of the internal FK name string:
+
+```python
+class PostComment(blog.get_relation_class('blog.view.post_comment')):
+    Fkeys = {
+        # direct FK: view.author_id → blog.author.id
+        'fk_author': {
+            'to':   'blog.author',
+            'join': [('author_id',), ('id',)],
+        },
+        # reverse FK: blog.comment.post_id → view.id
+        'rfk_comments': {
+            'to':   'blog.comment',
+            'join': [('id',), ('post_id',)],
+        },
+        # composite FK (two columns)
+        'fk_address': {
+            'to':   'geo.address',
+            'join': [('country_code', 'city_code'), ('country', 'city')],
+        },
+    }
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| key | `str` | Attribute name. **Must** start with `fk_` (direct) or `rfk_` (reverse). |
+| `to` | `str` | Target relation as `'schema.table'`. |
+| `join` | `list` | `[(source_cols,), (target_cols,)]` — view columns first, target columns second. |
+
+Source columns are validated against the view's fields at instantiation; a
+`ValueError` is raised immediately if a column is missing or the key prefix
+is absent.
+
+!!! note "Tables use a different format"
+    For tables, `Fkeys` values are strings (internal FK names shown by
+    `print(Post())`). The dict format is only needed for views and
+    materialised views.
+
 See [Learn halfORM in half an hour](../half-an-hour.md#8-foreign-keys-composing-predicates-across-tables-10-min)
 for a full walkthrough.
 
