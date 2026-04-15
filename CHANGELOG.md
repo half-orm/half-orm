@@ -1,3 +1,28 @@
+# 1.0.0rc1 (2026-04-15)
+
+## Breaking changes
+
+- **`ho_get()`** returns a `dict` directly and raises `NotFoundError` (0 rows)
+  or `MultipleRowsError` (> 1 row). The old behaviour (private method returning
+  a relation) is removed.
+- **Deprecated query builders removed** — `ho_limit`, `ho_offset`, `ho_order_by`,
+  `ho_distinct` no longer exist as property setters. Use keyword arguments to
+  `ho_select()` instead.
+- **`FKEYS_PROPERTIES` / `FKEYS`** class attributes removed. Use `Fkeys` only.
+- **`ho_cast()`** raises `CastError` if the target is not in the PostgreSQL
+  inheritance hierarchy.
+
+## Changes
+
+* docs(fkey): document explicit Fkeys dict format for views (3c86ed7)
+* feat(relation): add explicit Fkeys dict support for views (views-fkeys) (52977b2)
+* feat(relation): implement inheritance check in ho_cast + add CastError (6851336)
+* refactor(relation)!: remove FKEYS_PROPERTIES/FKEYS compatibility check (415831e)
+* refactor(relation)!: remove deprecated API and dead code for 1.0.0 (4944f83)
+* feat(relation)!: refactor ho_get to LIMIT 2 + add ho_aget (87ef8cb)
+* feat(relation)!: ho_get() returns dict and raises NotFoundError/MultipleRowsError (027870d)
+* refactor(sql_ast): complete AST integration for compound SELECT statements (9eb605f)
+
 # 0.18.13 (2026-04-14)
 
 * fix(relation): use UNION/EXCEPT SQL for | and - when FK joins are present (1e28437)
