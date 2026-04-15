@@ -916,13 +916,21 @@ class Relation:
             aliased_fkeys = set()
             if hasattr(self.__class__, 'Fkeys'):
                 for key, value in self.Fkeys.items():
-                    try:
-                        if key != '': # we skip empty keys
+                    if key == '':  # we skip empty keys
+                        continue
+                    if isinstance(value, dict):
+                        fkey = self._ho_build_view_fkey(key, value)
+                        self._ho_fkeys[key] = fkey
+                        setattr(self, key, fkey)
+                        self._ho_fkeys_attr.add(key)
+                        aliased_fkeys.add(key)
+                    else:
+                        try:
                             setattr(self, key, self._ho_fkeys[value])
                             self._ho_fkeys_attr.add(key)
                             aliased_fkeys.add(value)
-                    except KeyError as exp:
-                        raise relation_errors.WrongFkeyError(self, value) from exp
+                        except KeyError as exp:
+                            raise relation_errors.WrongFkeyError(self, value) from exp
             # Auto-expose non-aliased FK with fk_/rfk_ prefix
             for fkeyname, fkey in self._ho_fkeys.items():
                 if fkeyname in aliased_fkeys:
@@ -934,6 +942,58 @@ class Relation:
                 setattr(self, attr_name, fkey)
                 self._ho_fkeys_attr.add(attr_name)
         self._ho_fkeys_properties = True
+
+    def _ho_build_view_fkey(self, key, spec):
+        """Build a FKey from an explicit dict spec (for views and materialised views).
+
+        Args:
+            key (str): the Fkeys dict key; must start with ``'rfk_'`` (reverse)
+                or ``'fk_'`` (direct).
+            spec (dict): ``{'to': 'schema.table', 'join': [(src_cols,), (tgt_cols,)]}``.
+
+        Returns:
+            FKey: ready-to-use foreign key instance.
+
+        Raises:
+            ValueError: if *key* has no valid prefix, *join* is malformed, or a
+                source column does not exist in this relation.
+        """
+        #pylint: disable=import-outside-toplevel
+        from half_orm.fkey import FKey
+
+        if key.startswith('rfk_'):
+            is_reverse = True
+        elif key.startswith('fk_'):
+            is_reverse = False
+        else:
+            raise ValueError(
+                f"Fkeys key '{key}' must start with 'rfk_' or 'fk_' "
+                f"when the value is a dict (relation: {self._qrn})")
+
+        join = spec.get('join')
+        if not join or len(join) != 2:
+            raise ValueError(
+                f"Fkeys['{key}']['join'] must be [source_cols, target_cols], "
+                f"got {join!r}")
+
+        source_cols = list(join[0])
+        target_cols = list(join[1])
+
+        # Validate source columns exist in this relation
+        for col in source_cols:
+            if col not in self._ho_fields:
+                raise ValueError(
+                    f"Fkeys['{key}']: column '{col}' not found in {self._qrn}. "
+                    f"Available: {list(self._ho_fields.keys())}")
+
+        # Convert 'schema.table' → (dbname, schema, table)
+        to_qrn = spec['to']
+        schema, table = to_qrn.rsplit('.', 1)
+        fk_sfqrn = (self._dbname, schema, table)
+
+        return FKey(key, self, fk_sfqrn,
+                    fk_names=target_cols, fields=source_cols,
+                    is_reverse=is_reverse)
 
     @classmethod
     def _ho_dataclass_name(cls):
