@@ -8,7 +8,7 @@
 [![Coverage](https://coveralls.io/repos/github/half-orm/half-orm/badge.svg?branch=main)](https://coveralls.io/github/half-orm/half-orm?branch=main)
 [![Downloads](https://static.pepy.tech/badge/half_orm)](https://pepy.tech/project/half_orm)
 
-> ## ⚠️ BREAKING CHANGES in v1.0.0-a1
+> ## ⚠️ BREAKING CHANGES in v1.0.0
 >
 > **`ho_get()`** is now public and returns a `dict` directly. It raises
 > `NotFoundError` (0 rows) or `MultipleRowsError` (> 1 row) instead of
@@ -124,6 +124,12 @@ Author(id=alice['id']).ho_delete()
 
 - [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/dev/half-an-hour/)
 - [API Reference](https://half-orm.github.io/half-orm/dev/api/relation/)
+
+## Extensions
+
+| Extension | Description |
+|-----------|-------------|
+| [half-orm-dev](https://github.com/half-orm/half-orm-dev) | Development tools — `half_orm dev` project scaffolding, patch management, and schema synchronisation. |
 
 ## License
 

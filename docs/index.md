@@ -61,3 +61,10 @@ Author(id=alice['id']).ho_assert_is_singleton().ho_delete()
 
 - [Learn halfORM in half an hour](half-an-hour.md) — everything you need, in order
 - [API Reference](api/relation.md) — every method in detail
+
+## Extensions
+
+| Extension | Description |
+|-----------|-------------|
+| [half-orm-dev](https://github.com/half-orm/half-orm-dev) | Development tools — `half_orm dev` project scaffolding, patch management, and schema synchronisation. |
+
