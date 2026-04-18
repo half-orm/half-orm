@@ -1,3 +1,10 @@
+# 1.0.0rc2 (2026-04-18)
+
+* feat(release): check GitHub CI status before releasing (ce9aea4)
+* feat(release): add `make release` target with --dry-run and tests (841a0bd)
+* feat(migrations): expose breaking-changes dir for extensions + populate pyproject.toml (5e228bc)
+* docs: add Extensions section and update README for 1.0.0rc1 (283fcc6)
+
 # 1.0.0rc1 (2026-04-15)
 
 ## Breaking changes
