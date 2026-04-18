@@ -1,3 +1,6 @@
+release: test
+	@python3 scripts/do_release.py
+
 py_test:
 	export LC_MESSAGES=C PYTHONPATH=$$PWD HALFORM_CONF_DIR=$$PWD/.config && pytest -x -vv --assert=plain --cov-config=.coveragerc --cov=half_orm --cov-report html test
 	flake8 half_orm --count --select=E9,F63,F7,F82 --show-source --statistics
