@@ -17,9 +17,12 @@ Steps (normal mode):
 """
 
 import argparse
+import json
+import os
 import re
 import subprocess
 import sys
+import urllib.request
 from datetime import date
 from pathlib import Path
 
@@ -40,6 +43,48 @@ def git(*args, capture=True):
     return subprocess.run(
         ['git', *args], cwd=ROOT,
         capture_output=capture, text=True)
+
+
+def _github_repo() -> str:
+    """Return 'owner/repo' from the origin remote URL."""
+    r = git('remote', 'get-url', 'origin')
+    url = r.stdout.strip()
+    # https://github.com/owner/repo.git  or  git@github.com:owner/repo.git
+    m = re.search(r'github\.com[:/](.+?)(?:\.git)?$', url)
+    if not m:
+        sys.exit(f'ERROR: cannot parse GitHub repo from remote URL: {url}')
+    return m.group(1)
+
+
+def check_github_ci(sha: str):
+    """Abort if GitHub check-runs for *sha* have not all succeeded."""
+    repo = _github_repo()
+    url = f'https://api.github.com/repos/{repo}/commits/{sha}/check-runs'
+    req = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json'})
+    token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
+    if token:
+        req.add_header('Authorization', f'Bearer {token}')
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except Exception as exc:
+        sys.exit(f'ERROR: GitHub API request failed: {exc}')
+
+    runs = data.get('check_runs', [])
+    if not runs:
+        sys.exit(
+            f'ERROR: no CI check-runs found for {sha[:8]}.\n'
+            'Push the branch and wait for CI to complete before releasing.')
+
+    failed = [r for r in runs if r.get('conclusion') != 'success']
+    if failed:
+        names = ', '.join(r['name'] for r in failed)
+        sys.exit(
+            f'ERROR: CI has not fully passed for {sha[:8]}.\n'
+            f'Failing / pending checks: {names}')
+
+    print(f'CI OK ({len(runs)} check(s) passed for {sha[:8]})')
 
 
 def check_clean():
@@ -123,6 +168,8 @@ def main():
 
     if not dry:
         check_clean()
+        sha = git('rev-parse', 'HEAD').stdout.strip()
+        check_github_ci(sha)
 
     old = current_version()
     tag = last_tag()

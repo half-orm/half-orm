@@ -3,8 +3,11 @@
 
 """Tests for scripts/do_release.py."""
 
+import io
+import json
 import subprocess
 import sys
+import unittest.mock as mock
 from pathlib import Path
 from unittest import TestCase
 
@@ -14,6 +17,8 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 from scripts.do_release import (
     _clean_decoration,
+    _github_repo,
+    check_github_ci,
     parse_major_minor,
     generate_log,
     current_version,
@@ -108,3 +113,55 @@ class TestDryRun(TestCase):
     def test_dry_run_shows_dry_run_label(self):
         r = self._run_dry('1.0.0')
         self.assertIn('DRY RUN', r.stdout)
+
+
+class TestGithubRepo(TestCase):
+    def test_https_url(self):
+        with mock.patch('scripts.do_release.git') as mock_git:
+            mock_git.return_value = mock.Mock(
+                stdout='https://github.com/half-orm/half-orm.git\n')
+            self.assertEqual(_github_repo(), 'half-orm/half-orm')
+
+    def test_ssh_url(self):
+        with mock.patch('scripts.do_release.git') as mock_git:
+            mock_git.return_value = mock.Mock(
+                stdout='git@github.com:half-orm/half-orm.git\n')
+            self.assertEqual(_github_repo(), 'half-orm/half-orm')
+
+
+class TestCheckGithubCI(TestCase):
+    def _mock_response(self, runs):
+        payload = json.dumps({'check_runs': runs}).encode()
+        resp = mock.MagicMock()
+        resp.read.return_value = payload
+        resp.__enter__ = lambda s: s
+        resp.__exit__ = mock.Mock(return_value=False)
+        return resp
+
+    def test_all_success(self):
+        runs = [{'name': 'tests', 'conclusion': 'success'}]
+        with mock.patch('scripts.do_release._github_repo', return_value='o/r'), \
+             mock.patch('urllib.request.urlopen', return_value=self._mock_response(runs)):
+            check_github_ci('abc1234')  # should not raise
+
+    def test_failing_check_exits(self):
+        runs = [{'name': 'tests', 'conclusion': 'failure'}]
+        with mock.patch('scripts.do_release._github_repo', return_value='o/r'), \
+             mock.patch('urllib.request.urlopen', return_value=self._mock_response(runs)):
+            with self.assertRaises(SystemExit) as ctx:
+                check_github_ci('abc1234')
+            self.assertIn('tests', str(ctx.exception))
+
+    def test_pending_check_exits(self):
+        runs = [{'name': 'lint', 'conclusion': None}]
+        with mock.patch('scripts.do_release._github_repo', return_value='o/r'), \
+             mock.patch('urllib.request.urlopen', return_value=self._mock_response(runs)):
+            with self.assertRaises(SystemExit):
+                check_github_ci('abc1234')
+
+    def test_no_runs_exits(self):
+        with mock.patch('scripts.do_release._github_repo', return_value='o/r'), \
+             mock.patch('urllib.request.urlopen', return_value=self._mock_response([])):
+            with self.assertRaises(SystemExit) as ctx:
+                check_github_ci('abc1234')
+            self.assertIn('no CI', str(ctx.exception))
