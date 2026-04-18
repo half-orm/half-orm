@@ -1,3 +1,37 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "half_orm"
+version = "1.0.0rc1"
+description = "A database-first ORM for PostgreSQL"
+readme = "README.md"
+license = { text = "GPL-3.0" }
+requires-python = ">=3.8"
+dependencies = ["psycopg[binary]"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/half-orm/half-orm"
+Documentation = "https://half-orm.github.io/half-orm/"
+Changelog = "https://github.com/half-orm/half-orm/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["half_orm*"]
+
+[tool.setuptools.package-data]
+half_orm = ["migrations/*.md", "version.txt"]
