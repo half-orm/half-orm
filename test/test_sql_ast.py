@@ -301,6 +301,18 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(sql, 'insert into "public"."person" ("name", "age") values (%s, %s)')
         self.assertEqual(vals, ["Alice", 30])
 
+    def test_with_upsert(self):
+        stmt = Insert(
+            table='"public"."person"',
+            columns=['"name"', '"age"'],
+            placeholders=["%s", "%s"],
+            values=["Alice", 30],
+            upsert=True
+        )
+        sql, vals = stmt.to_sql()
+        self.assertEqual(sql, 'insert into "public"."person" ("name", "age") values (%s, %s) on conflict ("name", "age") do update set "name" = %s, "age" = %s')
+        self.assertEqual(vals, ["Alice", 30, "Alice", 30])
+
     def test_with_returning(self):
         stmt = Insert(
             table='"public"."person"',

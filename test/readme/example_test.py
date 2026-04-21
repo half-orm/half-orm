@@ -34,8 +34,7 @@ def main():
     # let's define a Person set (a singleton here) by instanciating a set with some constraints
     gaston = Person(last_name='Lagaffe', first_name='Gaston', birth_date='1957-02-28')
     gaston.ho_delete() # the delete method
-    if gaston.ho_is_empty(): # always true since we've just deleted gaston
-        gaston.ho_insert()
+    gaston.ho_insert(upsert=True)
     post_dct = gaston.add_post(title='Easy', content='halfORM is fun!')
     post = Post(**post_dct)
     gaston.add_comment(content='This is a comment on the newly created post.', post=post)

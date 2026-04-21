@@ -303,15 +303,21 @@ class Insert:
     columns: List[str]
     placeholders: List[str]
     values: list
+    upsert: Optional[bool] = False
     returning: Optional[Returning] = None
 
     def to_sql(self) -> Tuple[str, list]:
         cols = ", ".join(self.columns)
         phs = ", ".join(self.placeholders)
+        values = list(self.values)
         sql = f"insert into {self.table} ({cols}) values ({phs})"
+        if self.upsert:
+            cols_phs = f", ".join(f"{col} = %s" for col in self.columns)
+            sql += f" on conflict ({cols}) do update set {cols_phs}"
+            values += values
         if self.returning:
             sql += self.returning.to_sql()
-        return sql, list(self.values)
+        return sql, values
 
 
 @dataclass

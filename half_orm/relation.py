@@ -234,7 +234,7 @@ class Relation:
             from half_orm.relation_errors import ReadOnlyRelationError
             raise ReadOnlyRelationError(self)
 
-    def _ho_prep_insert(self, *args):
+    def _ho_prep_insert(self, *args, upsert=False):
         """Prepare an INSERT query. Returns (query, vals)."""
         self._ho_check_writable()
         _ = args and args != ('*',) and self._ho_check_colums(*args)
@@ -251,17 +251,19 @@ class Relation:
             columns=fields_names,
             placeholders=placeholders,
             values=values,
+            upsert=upsert,
             returning=ASTReturning(list(returning)),
         )
         query, vals = stmt.to_sql()
         return query, tuple(vals)
 
-    def ho_insert(self, *args) -> '[dict]':
+    def ho_insert(self, *args, upsert:Optional[bool]=False) -> '[dict]':
         """Insert the row described by this predicate. *Executes SQL.*
 
         Args:
             *args: column names to include in the returned dict. If omitted,
                 all columns are returned (equivalent to ``RETURNING *``).
+            upsert (bool): add ``ON CONFLICT DO UPDATE`` to the INSERT. Default: ``False``.
 
         Returns:
             dict: the inserted row.
@@ -280,7 +282,7 @@ class Relation:
                 alice['id']   # 1
                 ```
         """
-        query, vals = self._ho_prep_insert(*args)
+        query, vals = self._ho_prep_insert(*args, upsert=upsert)
         with self.__execute(query, vals) as cursor:
             res = cursor.fetchall() or [{}]
             return res[0]
@@ -1588,12 +1590,12 @@ Fkeys = {"""
 
     # --- Async variants of executor methods ---
 
-    async def ho_ainsert(self, *args) -> dict:
+    async def ho_ainsert(self, *args, upsert=False) -> dict:
         """Async variant of ho_insert. *Executes SQL.*
 
         *New in version 0.18.0.*
         """
-        query, vals = self._ho_prep_insert(*args)
+        query, vals = self._ho_prep_insert(*args, upsert=upsert)
         cursor = await self.__aexecute(query, vals)
         res = await cursor.fetchall() or [{}]
         return res[0]
