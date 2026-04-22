@@ -1685,7 +1685,7 @@ touching the database.</p>
 
 
 <h3 id="half_orm.relation.Relation.ho_insert" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">ho_insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#half_orm.relation.Relation.ho_insert" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1720,6 +1720,22 @@ all columns are returned (equivalent to <code>RETURNING *</code>).</p>
             </td>
             <td>
                   <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>upsert</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>add <code>ON CONFLICT DO UPDATE</code> to the INSERT. Default: <code>False</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
             </td>
           </tr>
       </tbody>
@@ -2633,7 +2649,7 @@ cursor can be closed before returning to the caller.</p>
 
 
 <h3 id="half_orm.relation.Relation.ho_ainsert" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ho_ainsert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">ho_ainsert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-async"><code>async</code></small>
