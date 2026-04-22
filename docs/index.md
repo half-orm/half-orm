@@ -6,9 +6,9 @@
 [![License](https://img.shields.io/pypi/l/half_orm?color=green)](https://pypi.org/project/half-orm/)
 [![Tests](https://github.com/half-orm/half-orm/actions/workflows/python-package.yml/badge.svg)](https://github.com/half-orm/half-orm/actions/workflows/python-package.yml)
 
-halfORM is a database-first ORM for PostgreSQL. You write the schema in SQL;
-halfORM introspects it at runtime and gives you Python objects to work with your
-data. No migrations, no code generation.
+halfORM is a database-first ORM for PostgreSQL. Your schema lives in the
+database; halfORM introspects it at runtime and gives you Python objects to work
+with your data. No migrations, no code generation.
 
 **The central idea:** a `Relation` object is a **predicate**. It describes the
 logical condition that rows must satisfy to belong to the relation. Its

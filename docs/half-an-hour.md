@@ -1,8 +1,8 @@
 # Learn halfORM in half an hour
 
-halfORM is a database-first ORM for PostgreSQL. You write the schema in SQL;
-halfORM introspects it at runtime and gives you Python objects to work with your
-data. No migrations, no code generation.
+halfORM is a database-first ORM for PostgreSQL. Your schema lives in the
+database; halfORM introspects it at runtime and gives you Python objects to work
+with your data. No migrations, no code generation.
 
 **The central idea:** a `Relation` object is a **predicate**. It describes the
 logical condition that rows must satisfy to belong to the relation. Its

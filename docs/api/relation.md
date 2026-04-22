@@ -49,12 +49,13 @@ These methods execute SQL immediately and return results.
     ```python
     from half_orm.relation_errors import NotFoundError, MultipleRowsError
 
+    last_name='Martin'
     try:
-        row = Author(last_name='Martin').ho_get()
+        row = Author(last_name=last_name).ho_get()
     except NotFoundError:
         print("no such author")
     except MultipleRowsError as e:
-        print(f"ambiguous: {e.count} rows found")
+        print(f"Ambiguous: more than one {last_name} found in authors")
     ```
 
 ::: half_orm.relation.Relation.ho_select
@@ -252,7 +253,7 @@ These methods inspect or assert on the predicate **without executing SQL**.
 
     ```python
     Post() & Post()                             # False — both operands unconstrained
-    Post() | Post(title='a')                    # True  — right operand is constrained
+    Post() | Post(title='a')                    # False  — right operand is unconstrained
     Post(title='a') | Post(title=('!=', 'a'))   # True  — but = all posts
     ```
 
