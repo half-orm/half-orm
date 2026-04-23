@@ -246,12 +246,14 @@ class Relation:
             placeholders += fk_query
             values += fk_values
         returning = args or ['*']
+        pk_cols = [f'"{n}"' for n in self._ho_pkey] if upsert else None
         stmt = ASTInsert(
             table=self._qrn,
             columns=fields_names,
             placeholders=placeholders,
             values=values,
             upsert=upsert,
+            pk_columns=pk_cols,
             returning=ASTReturning(list(returning)),
         )
         query, vals = stmt.to_sql()

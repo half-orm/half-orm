@@ -55,6 +55,7 @@ FIELDS:
 - first_name: (text) NOT NULL (first_name = Gaston)
 - last_name:  (text) NOT NULL (last_name = Lagaffe)
 - birth_date: (date) NOT NULL (birth_date <= 1970-01-01)
+- motto:      (text)
 
 PRIMARY KEY (first_name, last_name, birth_date)
 UNIQUE CONSTRAINT (id)
@@ -111,6 +112,7 @@ FOREIGN KEYS:
      - first_name: (text) NOT NULL (first_name = Gaston)
      - last_name:  (text) NOT NULL (last_name = Lagaffe)
      - birth_date: (date) NOT NULL (birth_date <= 1970-01-01)
+     - motto:      (text)
      
      PRIMARY KEY (first_name, last_name, birth_date)
      UNIQUE CONSTRAINT (id)

@@ -44,6 +44,13 @@ class Test(HoTestCase):
         pers = pers(**pers.ho_get())
         self.assertRaises(psycopg.IntegrityError, pers.ho_insert)
 
+    def test_upsert(self):
+        gaston = {'first_name': 'Gaston', 'last_name': 'Lagaffe', 'birth_date': '1957-02-28'}
+        gaston['motto'] = "M'enfin!"
+        self.pers(**gaston).ho_insert(upsert=True)
+        gaston['motto'] = 'Bof'
+        self.pers(**gaston).ho_insert(upsert=True)
+
     def test_select(self):
         n = 'abcdef'[randint(0, 5)]
         p = chr(ord('a') + range(10)[randint(0, 9)])

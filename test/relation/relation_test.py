@@ -21,6 +21,7 @@ FIELDS:
 - first_name: (text) NOT NULL
 - last_name:  (text) NOT NULL
 - birth_date: (date) NOT NULL
+- motto:      (text)
 
 PRIMARY KEY (first_name, last_name, birth_date)
 UNIQUE CONSTRAINT (id)
@@ -112,11 +113,11 @@ class Test(TestCase):
         self.assertEqual(pers.ho_count('birth_date'), 60)
 
     def test_keys(self):
-        self.assertEqual(list(self.pers.keys()), ['id', 'first_name', 'last_name', 'birth_date'])
+        self.assertEqual(list(self.pers.keys()), ['id', 'first_name', 'last_name', 'birth_date', 'motto'])
 
     def test_items(self):
         pers = self.pers(first_name='Gaston', last_name='Lagaffe')
-        self.assertEqual(list(pers.items()), [('id', None), ('first_name', 'Gaston'), ('last_name', 'Lagaffe'), ('birth_date', None)])
+        self.assertEqual(list(pers.items()), [('id', None), ('first_name', 'Gaston'), ('last_name', 'Lagaffe'), ('birth_date', None), ('motto', None)])
 
     def test_getitem(self):
         pers = self.pers(first_name='Gaston', last_name='Lagaffe')

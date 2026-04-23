@@ -304,6 +304,7 @@ class Insert:
     placeholders: List[str]
     values: list
     upsert: Optional[bool] = False
+    pk_columns: Optional[List[str]] = None
     returning: Optional[Returning] = None
 
     def to_sql(self) -> Tuple[str, list]:
@@ -312,9 +313,13 @@ class Insert:
         values = list(self.values)
         sql = f"insert into {self.table} ({cols}) values ({phs})"
         if self.upsert:
-            cols_phs = f", ".join(f"{col} = %s" for col in self.columns)
-            sql += f" on conflict ({cols}) do update set {cols_phs}"
-            values += values
+            conflict_target = ", ".join(self.pk_columns or self.columns)
+            non_pk = [c for c in self.columns if c not in (self.pk_columns or [])]
+            cols_phs = ", ".join(f"{col} = %s" for col in non_pk)
+            added_values = [v for c, v in zip(self.columns, values[:]) if c in non_pk]
+            if added_values:
+                values += added_values
+                sql += f" on conflict ({conflict_target}) do update set {cols_phs}"
         if self.returning:
             sql += self.returning.to_sql()
         return sql, values

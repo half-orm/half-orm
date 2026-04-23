@@ -60,7 +60,7 @@ HALFTEST_DESC = [
 ]
 
 GASTON = {
-    'last_name': 'Lagaffe', 'first_name': 'Gaston', 'birth_date': date.today()
+    'last_name': 'Lagaffe', 'first_name': 'Gaston', 'birth_date': '1957-02-28'
 }
 
 def name(letter, integer):

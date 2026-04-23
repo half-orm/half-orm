@@ -13,7 +13,8 @@ from half_orm import relation_errors, model
 class Test(TestCase):
     def setUp(self):
         self.gaston = halftest.gaston
-        self.gaston.ho_insert()
+        self.gaston.ho_delete()
+        self.gaston.ho_insert(upsert=True)
         self.gaston.post_rfk(title='Easy', content='bla').ho_insert()
         self.gaston.post_rfk(title='Super', content='bli').ho_insert()
         self.gaston.post_rfk(title='Super easy', content='blu').ho_insert()

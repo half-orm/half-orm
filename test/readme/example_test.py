@@ -32,9 +32,10 @@ class Person(halftest.get_relation_class('actor.person')):
 
 def main():
     # let's define a Person set (a singleton here) by instanciating a set with some constraints
-    gaston = Person(last_name='Lagaffe', first_name='Gaston', birth_date='1957-02-28')
+    d_gaston = {'first_name': 'Gaston', 'last_name': 'Lagaffe', 'birth_date': '1957-02-28'}
+    gaston = Person(**d_gaston)
     gaston.ho_delete() # the delete method
-    gaston.ho_insert(upsert=True)
+    gaston.ho_insert()
     post_dct = gaston.add_post(title='Easy', content='halfORM is fun!')
     post = Post(**post_dct)
     gaston.add_comment(content='This is a comment on the newly created post.', post=post)
@@ -43,7 +44,8 @@ def main():
 
 class Test(TestCase):
     def setUp(self):
-        self.gaston = Person(last_name='Lagaffe', first_name='Gaston', birth_date='1957-02-28')
+        d_gaston = {'first_name': 'Gaston', 'last_name': 'Lagaffe', 'birth_date': '1957-02-28'}
+        self.gaston = Person(**d_gaston)
 
     def tearDown(self):
         self.gaston.ho_delete()

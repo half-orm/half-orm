@@ -36,7 +36,7 @@ class Test(TestCase):
         field_names = set(self.pers._ho_fields.keys())
         self.assertEqual(
             field_names,
-            {'id', 'first_name', 'last_name', 'birth_date'})
+            {'id', 'first_name', 'last_name', 'birth_date', 'motto'})
 
     def test_relation_ref(self):
         first_name = self.pers.first_name
