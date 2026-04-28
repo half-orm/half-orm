@@ -2005,6 +2005,29 @@ executing. Default: <code>False</code>.</p>
 directly into the query string.</p>
 </details>
 
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="PermissionError">PermissionError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if <code>crud_only</code> is set in the connection configuration.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
     </div>
 
 </div>
@@ -2286,7 +2309,30 @@ opened with <code>await model.aconnect()</code>.</p>
 
     <div class="doc doc-contents first">
 
-        <p>Executes a raw SQL query using the async connection.</p>
+        <p>Execute a raw SQL query asynchronously. <em>Executes SQL.</em></p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="PermissionError">PermissionError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if <code>crud_only</code> is set in the connection configuration.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
