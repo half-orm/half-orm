@@ -1,3 +1,11 @@
+# 1.0.0rc3 (2026-04-28)
+
+* feat(model): add crud_only connection flag to restrict direct SQL execution (467ff08)
+* fix(field): handle 'not in' operator with != ALL for psycopg 3 compatibility (4b779eb)
+* fix(relation): Fix upsert in ho_insert. (6ccb197)
+* feat(docs): remove "You write the schema in SQL". (96886a3)
+* feat(relation): add upsert parameter to ho_insert (bf584c0)
+
 # 1.0.0rc2 (2026-04-18)
 
 * feat(release): check GitHub CI status before releasing (ce9aea4)
