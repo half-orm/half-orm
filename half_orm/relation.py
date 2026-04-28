@@ -802,7 +802,10 @@ class Relation:
                 Author(id=99).ho_assert_is_singleton().ho_delete()
 
                 # Delete all posts for a given author
-                Post(author_id=1).ho_delete(delete_all=True)
+                Post(author_id=1).ho_delete()
+
+                # Delete all posts
+                Post().ho_delete(delete_all=True)
                 ```
         """
         query, vals = self._ho_prep_delete(*args, delete_all=delete_all)
@@ -844,10 +847,10 @@ class Relation:
                 print(f"  File: {caller_info['filename']}:{caller_info['lineno']}")
                 print(f"  Function: {caller_info['function']}")
                 print(f"  Code: {caller_info['code_context']}")
-        return self._ho_model.execute_query(query, values, self._ho_mogrify)
+        return self._ho_model._execute_query(query, values, self._ho_mogrify)
 
     async def __aexecute(self, query, values):
-        return await self._ho_model.aexecute_query(query, values)
+        return await self._ho_model._aexecute_query(query, values)
 
     @property
     def ho_id(self):

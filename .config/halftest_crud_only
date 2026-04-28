@@ -1,0 +1,7 @@
+[database]
+name = halftest
+user = halftest
+password = halftest
+host = localhost
+port = 5432
+crud_only = true

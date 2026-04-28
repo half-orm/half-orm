@@ -120,6 +120,9 @@ class Model:
         self._production_mode = database.get('production', False)
         if self._production_mode == 'False': # production = False
             self._production_mode = False
+        self._crud_only = database.get('crud_only', False)
+        if self._crud_only == 'False':
+            self._crud_only = False
 
     def __connect(self, config_file: str=None, reload: bool=False):
         """Setup a new connection to the database.
@@ -272,8 +275,8 @@ class Model:
                 "No async connection. Call 'await model.aconnect()' first.")
         return self.__aconn
 
-    async def aexecute_query(self, query, values=None):
-        """Executes a raw SQL query using the async connection."""
+    async def _aexecute_query(self, query, values=None):
+        """Internal async query executor — no crud_only check. Called by Relation.__aexecute."""
         values = self._unwrap_values(values)
         cursor = self._aconnection.cursor(row_factory=dict_row)
         try:
@@ -285,6 +288,17 @@ class Model:
             utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
             raise exc
         return cursor
+
+    async def aexecute_query(self, query, values=None):
+        """Execute a raw SQL query asynchronously. *Executes SQL.*
+
+        Raises:
+            PermissionError: if ``crud_only`` is set in the connection configuration.
+        """
+        if self._crud_only:
+            raise PermissionError(
+                "Direct SQL execution is disabled (crud_only = true in connection config).")
+        return await self._aexecute_query(query, values)
 
     def _reload(self, config_file=None):
         """Reload metadata
@@ -373,22 +387,8 @@ class Model:
             return type(values)(unwrapped)
         return values
 
-    def execute_query(self, query, values=None, mogrify=False):
-        """Execute a raw SQL query. *Executes SQL.*
-
-        Args:
-            query (str): SQL query with ``%s`` placeholders.
-            values (tuple | None): query parameters.
-            mogrify (bool): if ``True``, print the interpolated query before
-                executing. Default: ``False``.
-
-        Returns:
-            cursor: psycopg cursor positioned on the result set.
-
-        Warning:
-            Always use ``%s`` placeholders — never interpolate user input
-            directly into the query string.
-        """
+    def _execute_query(self, query, values=None, mogrify=False):
+        """Internal query executor — no crud_only check. Called by Relation.__execute."""
         values = self._unwrap_values(values)
         cursor = self._connection.cursor(row_factory=dict_row)
         try:
@@ -408,6 +408,30 @@ class Model:
             utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
             raise exc
         return cursor
+
+    def execute_query(self, query, values=None, mogrify=False):
+        """Execute a raw SQL query. *Executes SQL.*
+
+        Args:
+            query (str): SQL query with ``%s`` placeholders.
+            values (tuple | None): query parameters.
+            mogrify (bool): if ``True``, print the interpolated query before
+                executing. Default: ``False``.
+
+        Returns:
+            cursor: psycopg cursor positioned on the result set.
+
+        Warning:
+            Always use ``%s`` placeholders — never interpolate user input
+            directly into the query string.
+
+        Raises:
+            PermissionError: if ``crud_only`` is set in the connection configuration.
+        """
+        if self._crud_only:
+            raise PermissionError(
+                "Direct SQL execution is disabled (crud_only = true in connection config).")
+        return self._execute_query(query, values, mogrify)
 
     def execute_function(self, fct_name, *args, **kwargs) -> typing.List[tuple]:
         """Call a PostgreSQL function and return its result set. *Executes SQL.*
