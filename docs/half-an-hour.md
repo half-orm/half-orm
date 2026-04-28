@@ -571,6 +571,31 @@ alice = Author(id=1)
 alice.publish('My post', 'Content here')   # @singleton verifies alice is a singleton predicate
 ```
 
+Use [`@transaction`](api/relation.md#half_orm.relation.transaction) to wrap a method in an atomic unit — equivalent to
+`with Transaction(model)` around the body, but declarative:
+
+```python
+from half_orm.relation import singleton, transaction
+
+@register
+class Author(blog.get_relation_class('blog.author')):
+    Fkeys = {
+        'post_rfk': '_reverse_fkey_blog_post_author_id',
+        'comment_rfk': '_reverse_fkey_blog_comment_author_id',
+    }
+
+    @singleton
+    @transaction
+    def publish(self, title: str, content: str):
+        """Insert a post and its opening comment atomically."""
+        post = self.post_rfk(title=title, content=content).ho_insert()
+        self.comment_rfk(post_id=post['id'], body='First!').ho_insert()
+        return post
+```
+
+If `publish` raises, both inserts are rolled back. Nested `@transaction`
+methods use savepoints automatically.
+
 ---
 
 ## Quick reference
