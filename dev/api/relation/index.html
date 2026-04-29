@@ -3241,7 +3241,17 @@ before destructive operations on set-operator predicates.</p>
 
     <div class="doc doc-contents first">
 
-        <p>Returns the SQL JOIN and WHERE clauses as a dict, or None if no constraint.</p>
+        <p>Returns the predicate as a (possibly nested) dict, or None if unconstrained.</p>
+
+
+<details class="for-a-simple-predicate" open>
+  <summary>For a simple predicate</summary>
+  <p><code>{'joins': [...], 'where': '...', 'values': [...]}</code></p>
+</details>        <p>For a compound set operation (<code>|</code>, <code>&amp;</code>, <code>-</code>):
+    <code>{'operator': 'or'|'and'|'and not', 'left': ..., 'right': ...}</code></p>
+<p>For a negation (<code>~</code>):
+    <code>{'operator': 'neg', 'operand': ...}</code></p>
+<p>The structures nest arbitrarily for complex expressions.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -3258,10 +3268,7 @@ before destructive operations on set-operator predicates.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>dict with keys:
-'joins'  : list of JOIN SQL strings (one per joined relation)
-'where'  : WHERE expression SQL string, or None
-'values' : list of string values (join values first, then where values)</p>
+                <p>dict | None: the predicate structure, or <code>None</code> if the relation</p>
               </div>
             </td>
           </tr>
@@ -3270,7 +3277,7 @@ before destructive operations on set-operator predicates.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>or None if the relation has no constraint set.</p>
+                <p>has no constraint set.</p>
               </div>
             </td>
           </tr>
