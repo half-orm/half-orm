@@ -1031,24 +1031,47 @@ class Relation:
                 self._ho_fields.items() if field.is_set()}
 
     def ho_where_display(self):
-        """Returns the SQL JOIN and WHERE clauses as a dict, or None if no constraint.
+        """Returns the predicate as a (possibly nested) dict, or None if unconstrained.
+
+        For a simple predicate:
+            ``{'joins': [...], 'where': '...', 'values': [...]}``
+
+        For a compound set operation (``|``, ``&``, ``-``):
+            ``{'operator': 'or'|'and'|'and not', 'left': ..., 'right': ...}``
+
+        For a negation (``~``):
+            ``{'operator': 'neg', 'operand': ...}``
+
+        The structures nest arbitrarily for complex expressions.
 
         Returns:
-            dict with keys:
-                'joins'  : list of JOIN SQL strings (one per joined relation)
-                'where'  : WHERE expression SQL string, or None
-                'values' : list of string values (join values first, then where values)
-            or None if the relation has no constraint set.
+            dict | None: the predicate structure, or ``None`` if the relation
+            has no constraint set.
 
         *New in version 0.18.0.*
         """
         if not self.ho_is_set():
             return None
+
+        op = self._ho_set_operators.operator
+        if op:
+            left = self._ho_set_operators.left
+            right = self._ho_set_operators.right
+            result = {
+                'operator': op,
+                'left': left.ho_where_display(),
+            }
+            if right is not None:
+                result['right'] = right.ho_where_display()
+            if self._ho_neg:
+                result = {'operator': 'neg', 'operand': result}
+            return result
+
         saved_qtype = getattr(self, '_ho_query_type', None)
         self._ho_query_type = 'select'
         try:
             self.__get_from()
-            expr = self.__walk_op(self.ho_id)
+            expr = self.__where_expr(self.ho_id)
         finally:
             self._ho_query_type = saved_qtype
         joins = []
