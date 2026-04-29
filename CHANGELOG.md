@@ -1,3 +1,10 @@
+# 1.0.0rc4 (2026-04-29)
+
+* feat(relation): make ho_where_display recursive for compound set operations (a647d26)
+* docs(half-an-hour): illustrate @transaction decorator (fc7f763)
+* fix(build): move classifiers back under [project] — was misplaced under [project.scripts] (1f56240)
+* chore(build): migrate setup.py metadata into pyproject.toml and remove setup.py (98e2f88)
+
 # 1.0.0rc3 (2026-04-28)
 
 * feat(model): add crud_only connection flag to restrict direct SQL execution (467ff08)
