@@ -12,13 +12,13 @@
         <meta name="author" content="half-orm">
       
       
-        <link rel="canonical" href="https://half-orm.github.io/dev/api/model/">
+        <link rel="canonical" href="https://half-orm.github.io/dev/api/testing/">
       
       
-        <link rel="prev" href="../../half-an-hour/">
+        <link rel="prev" href="../transaction/">
       
       
-        <link rel="next" href="../relation/">
+        <link rel="next" href="../../extensions/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Model - halfORM Documentation</title>
+        <title>Testing - halfORM Documentation</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#model" class="md-skip">
+        <a href="#testing-utilities" class="md-skip">
           Skip to content
         </a>
       
@@ -124,7 +124,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Model
+              Testing
             
           </span>
         </div>
@@ -278,7 +278,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../model/" class="md-tabs__link">
           
   
   
@@ -496,37 +496,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Model
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../model/" class="md-nav__link">
         
   
   
@@ -542,293 +515,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#connecting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Connecting
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Connecting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Model
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.get_relation_class" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        get_relation_class
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.ping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ping
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.disconnect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        disconnect
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#async-connection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Async connection
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Async connection">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aconnect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        aconnect
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.adisconnect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        adisconnect
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#executing-raw-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Executing raw SQL
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Executing raw SQL">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.execute_query" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execute_query
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.execute_function" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execute_function
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.call_procedure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        call_procedure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#async-raw-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Async raw SQL
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Async raw SQL">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aexecute_query" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        aexecute_query
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aexecute_function" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        aexecute_function
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.acall_procedure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        acall_procedure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inspection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inspection
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Inspection">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.has_relation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        has_relation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.sql_trace" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sql_trace
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decorator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decorator
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decorator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.relation_factory.register_class" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        register_class
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -950,10 +636,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../testing/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -969,6 +682,192 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-predicate-level-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why predicate-level tests?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assertion-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assertion helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assertion helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.assertConstraintsMatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        assertConstraintsMatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.assertInvolvesTables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        assertInvolvesTables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraints_match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraints_match
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.find_constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find_constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraint_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraint_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.is_unconstrained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_unconstrained
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.traversed_tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        traversed_tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraint_tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraint_tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.leaf_constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        leaf_constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraint_fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraint_fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraint_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraint_values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1238,22 +1137,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#connecting" class="md-nav__link">
+  <a href="#why-predicate-level-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Connecting
+        Why predicate-level tests?
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Connecting">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assertion-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assertion helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assertion helpers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model" class="md-nav__link">
+  <a href="#half_orm.testing.assertConstraintsMatch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model
+        assertConstraintsMatch
       
     </span>
   </a>
@@ -1261,32 +1171,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.get_relation_class" class="md-nav__link">
+  <a href="#half_orm.testing.assertInvolvesTables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_relation_class
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.ping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ping
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.disconnect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        disconnect
+        assertInvolvesTables
       
     </span>
   </a>
@@ -1299,22 +1187,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#async-connection" class="md-nav__link">
+  <a href="#query-helpers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Async connection
+        Query helpers
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Async connection">
+    <nav class="md-nav" aria-label="Query helpers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aconnect" class="md-nav__link">
+  <a href="#half_orm.testing.constraints_match" class="md-nav__link">
     <span class="md-ellipsis">
       
-        aconnect
+        constraints_match
       
     </span>
   </a>
@@ -1322,38 +1210,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.adisconnect" class="md-nav__link">
+  <a href="#half_orm.testing.find_constraints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        adisconnect
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#executing-raw-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Executing raw SQL
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Executing raw SQL">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.execute_query" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execute_query
+        find_constraints
       
     </span>
   </a>
@@ -1361,10 +1221,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.execute_function" class="md-nav__link">
+  <a href="#half_orm.testing.constraint_count" class="md-nav__link">
     <span class="md-ellipsis">
       
-        execute_function
+        constraint_count
       
     </span>
   </a>
@@ -1372,38 +1232,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.call_procedure" class="md-nav__link">
+  <a href="#half_orm.testing.is_unconstrained" class="md-nav__link">
     <span class="md-ellipsis">
       
-        call_procedure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#async-raw-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Async raw SQL
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Async raw SQL">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aexecute_query" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        aexecute_query
+        is_unconstrained
       
     </span>
   </a>
@@ -1411,10 +1243,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.aexecute_function" class="md-nav__link">
+  <a href="#half_orm.testing.traversed_tables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        aexecute_function
+        traversed_tables
       
     </span>
   </a>
@@ -1422,38 +1254,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.acall_procedure" class="md-nav__link">
+  <a href="#half_orm.testing.constraint_tables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        acall_procedure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inspection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inspection
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Inspection">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#half_orm.model.Model.has_relation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        has_relation
+        constraint_tables
       
     </span>
   </a>
@@ -1461,38 +1265,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#half_orm.model.Model.sql_trace" class="md-nav__link">
+  <a href="#half_orm.testing.leaf_constraints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        sql_trace
+        leaf_constraints
       
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decorator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decorator
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Decorator">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#half_orm.relation_factory.register_class" class="md-nav__link">
+  <a href="#half_orm.testing.constraint_fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        register_class
+        constraint_fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.testing.constraint_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        constraint_values
       
     </span>
   </a>
@@ -1524,36 +1322,58 @@
   
 
 
-<h1 id="model">Model<a class="headerlink" href="#model" title="Permanent link">&para;</a></h1>
-<p>:class:<code>Model</code> connects to a PostgreSQL database and acts as a factory for
-:class:<code>~half_orm.relation.Relation</code> subclasses. One <code>Model</code> instance per
-database is enough — it is shared across all relation classes.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;blog&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">Author</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)</span>
-</code></pre></div>
-<p>See <a href="../../half-an-hour/">Learn halfORM in half an hour</a> for a full walkthrough.</p>
+<h1 id="testing-utilities">Testing utilities<a class="headerlink" href="#testing-utilities" title="Permanent link">&para;</a></h1>
+<p><code>half_orm.testing</code> provides helpers for writing <strong>predicate-level tests</strong> —
+assertions on the structure and values of a query predicate without executing
+SQL or inserting test data.</p>
+<p>The helpers work with the dict returned by
+<a href="../relation/"><code>Relation.ho_where_display()</code></a>, which exposes the JOIN/WHERE
+tree built by your business methods.</p>
 <hr />
-<h2 id="connecting">Connecting<a class="headerlink" href="#connecting" title="Permanent link">&para;</a></h2>
+<h2 id="why-predicate-level-tests">Why predicate-level tests?<a class="headerlink" href="#why-predicate-level-tests" title="Permanent link">&para;</a></h2>
+<p>Business methods that traverse foreign keys (e.g. <code>Person.posts()</code>,
+<code>Post.commenters()</code>) build a predicate over multiple tables.
+You can verify that predicate without hitting the database:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">assertConstraintsMatch</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">myapp.actor.person</span><span class="w"> </span><span class="kn">import</span> <span class="n">Person</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_posts_carries_last_name</span><span class="p">():</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">assertConstraintsMatch</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">Person</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">posts</span><span class="p">(),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n">table</span><span class="o">=</span><span class="s1">&#39;actor.person&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s1">&#39;last_name&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_commenters_traverses_full_path</span><span class="p">():</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">assertInvolvesTables</span><span class="p">(</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">commenters</span><span class="p">(),</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="s1">&#39;blog.post&#39;</span><span class="p">,</span> <span class="s1">&#39;blog.comment&#39;</span><span class="p">,</span> <span class="s1">&#39;actor.person&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="p">)</span>
+</code></pre></div>
+<p>Tests pass or fail based on the <em>structure</em> of the query, making them
+fast, deterministic, and database-free.</p>
+<hr />
+<h2 id="assertion-helpers">Assertion helpers<a class="headerlink" href="#assertion-helpers" title="Permanent link">&para;</a></h2>
+<p>These functions raise :class:<code>AssertionError</code> with a diagnostic message on
+failure, following the <code>assert*</code> convention of :class:<code>unittest.TestCase</code>.</p>
 
 
-<div class="doc doc-object doc-class">
+<div class="doc doc-object doc-function">
 
 
+<h3 id="half_orm.testing.assertConstraintsMatch" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">assertConstraintsMatch</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<h3 id="half_orm.model.Model" class="doc doc-heading">
-            <code>Model</code>
-
-
-<a href="#half_orm.model.Model" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.assertConstraintsMatch" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-
-
-        <p>Connection to a PostgreSQL database.</p>
+        <p>Assert that at least one constraint in <em>relation</em>'s predicate matches
+all provided criteria.</p>
+<p>Raises :class:<code>AssertionError</code> with a diagnostic listing every leaf
+constraint that was actually found when no match exists — much more useful
+than the bare <code>AssertionError: False</code> produced by
+<code>assertTrue(constraints_match(...))</code>.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1569,23 +1389,13 @@ database is enough — it is shared across all relation classes.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>config_file</code>
+                <code>relation</code>
             </td>
             <td>
-                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>name of the connection file searched in
-<code>HALFORM_CONF_DIR</code> (env var, defaults to <code>/etc/half_orm</code>).
-File format:
-    [database]
-    name     = <db name>      # mandatory
-    user     = <user>
-    password = <password>
-    host     = <host>
-    port     = <port></p>
-<p><code>name</code> is the only mandatory key when using peer authentication.</p>
+                <p>a halfORM relation object.</p>
               </div>
             </td>
             <td>
@@ -1594,14 +1404,77 @@ File format:
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>scope</code>
+                <code>table</code>
             </td>
             <td>
                   <code><span title="str">str</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>package name used to resolve registered subclasses.</p>
+                <p><code>'schema.table'</code> to match.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>column name to match.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>comp</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>comparator (<code>'='</code>, <code>'&gt;'</code>, <code>'like'</code>, …).</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;=&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Python value to match.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>msg</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>custom message, overrides the generated one.</p>
               </div>
             </td>
             <td>
@@ -1623,61 +1496,25 @@ File format:
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="MissingConfigFile">MissingConfigFile</span></code>
+                  <code><span title="AssertionError">AssertionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>if the configuration file is not found.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="MalformedConfigFile">MalformedConfigFile</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if <code>name</code> is missing from the file.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="psycopg.OperationalError">OperationalError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if the database connection fails.</p>
+                <p>when no constraint satisfies all criteria.</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>from half_orm.testing import assertConstraintsMatch
 
+assertConstraintsMatch(
+    Person(last_name=&#39;Martin&#39;).posts(),
+    table=&#39;actor.person&#39;, field=&#39;last_name&#39;, value=&#39;Martin&#39;,
+)
+</code></pre></div>
 
-
-
-
-
-
-
-
-
-
-<div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-
-
-  </div>
 
     </div>
 
@@ -1686,15 +1523,19 @@ File format:
 <div class="doc doc-object doc-function">
 
 
-<h3 id="half_orm.model.Model.get_relation_class" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_relation_class</span><span class="p">(</span><span class="n">relation_name</span><span class="p">,</span> <span class="n">fields_aliases</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h3 id="half_orm.testing.assertInvolvesTables" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">assertInvolvesTables</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="n">tables</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#half_orm.model.Model.get_relation_class" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.assertInvolvesTables" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-        <p>Generate a :class:<code>~half_orm.relation.Relation</code> subclass for a table or view.</p>
+        <p>Return <code>True</code> if <em>all</em> given tables appear in the predicate tree,
+or raise :class:<code>AssertionError</code> with a diagnostic if any are missing.</p>
+<p>Includes tables that are only traversed via JOIN with no field constraint
+set on them, not just tables that carry a constraint.  To check only
+tables with constraints, use :func:<code>constraint_tables</code> directly.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1710,14 +1551,13 @@ File format:
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>relation_name</code>
+                <code>relation</code>
             </td>
             <td>
-                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>fully qualified name <code>'schema.relation'</code>.</p>
+                <p>a halfORM relation object.</p>
               </div>
             </td>
             <td>
@@ -1726,14 +1566,31 @@ File format:
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>fields_aliases</code>
+                <code>*tables</code>
             </td>
             <td>
-                  <code><span title="dict">dict</span> | None</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>optional mapping of field aliases.</p>
+                <p>one or more <code>'schema.table'</code> strings that must all
+be present.</p>
+              </div>
+            </td>
+            <td>
+                  <code>()</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>msg</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>custom message, overrides the generated diagnostic.</p>
               </div>
             </td>
             <td>
@@ -1742,91 +1599,6 @@ File format:
           </tr>
       </tbody>
     </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-<th>Name</th>          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-<td><code>type</code></td>            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>a class inheriting :class:<code>~half_orm.relation.Relation</code>.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="MissingSchemaInName">MissingSchemaInName</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if the schema part is missing from <code>relation_name</code>.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="UnknownRelation">UnknownRelation</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if the relation does not exist in the database.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>Generate a Relation class:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">Author</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Preferred: subclass and register</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nd">@register</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_post_author_id&#39;</span><span class="p">}</span>
-</code></pre></div></p>
-</details>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.ping" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ping</span><span class="p">()</span></code>
-
-<a href="#half_orm.model.Model.ping" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Check if the connection is alive, reconnecting if needed.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -1843,7 +1615,7 @@ File format:
             </td>
             <td>
               <div class="doc-md-description">
-                <p><code>True</code> if the connection is established.</p>
+                <p><code>True</code> when every table in <em>tables</em> is reached.</p>
               </div>
             </td>
           </tr>
@@ -1851,94 +1623,61 @@ File format:
     </table>
 
 
-    </div>
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="AssertionError">AssertionError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>with a list of missing tables and found tables when
+at least one expected table is absent.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>from half_orm.testing import assertInvolvesTables
 
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.disconnect" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">disconnect</span><span class="p">()</span></code>
-
-<a href="#half_orm.model.Model.disconnect" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Closes the current thread's connection to the database.</p>
-
-
-    </div>
-
-</div><hr />
-<h2 id="async-connection">Async connection<a class="headerlink" href="#async-connection" title="Permanent link">&para;</a></h2>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.aconnect" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">aconnect</span><span class="p">()</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.aconnect" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Setup an async connection to the database.</p>
-<p>Must be called explicitly before using any <code>ho_a*</code> method.
-The sync connection (used for metadata, <code>ho_select</code>, etc.) remains available.</p>
-<p><em>New in version 0.18.0.</em></p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.adisconnect" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">adisconnect</span><span class="p">()</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.adisconnect" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Closes the async connection to the database.</p>
-<p><em>New in version 0.18.0.</em></p>
+assertInvolvesTables(
+    Post(title=&#39;Hello&#39;).commenters(),
+    &#39;blog.post&#39;, &#39;blog.comment&#39;, &#39;actor.person&#39;,
+)
+</code></pre></div>
 
 
     </div>
 
 </div><hr />
-<h2 id="executing-raw-sql">Executing raw SQL<a class="headerlink" href="#executing-raw-sql" title="Permanent link">&para;</a></h2>
-<p>These methods execute SQL directly. Prefer the
-:class:<code>~half_orm.relation.Relation</code> methods for standard CRUD operations.</p>
+<h2 id="query-helpers">Query helpers<a class="headerlink" href="#query-helpers" title="Permanent link">&para;</a></h2>
+<p>These functions return data for use in custom assertions or for building
+more complex checks.</p>
 
 
 <div class="doc doc-object doc-function">
 
 
-<h3 id="half_orm.model.Model.execute_query" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mogrify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<h3 id="half_orm.testing.constraints_match" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">constraints_match</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#half_orm.model.Model.execute_query" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.constraints_match" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-        <p>Execute a raw SQL query. <em>Executes SQL.</em></p>
+        <p>Return <code>True</code> if at least one constraint in <em>relation</em>'s predicate
+matches all provided criteria.</p>
+<p>Takes a :class:<code>~half_orm.relation.Relation</code> object directly — calls
+:meth:<code>~half_orm.relation.Relation.ho_where_display</code> internally.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1954,14 +1693,13 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>query</code>
+                <code>relation</code>
             </td>
             <td>
-                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>SQL query with <code>%s</code> placeholders.</p>
+                <p>a halfORM relation object.</p>
               </div>
             </td>
             <td>
@@ -1970,14 +1708,14 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>values</code>
+                <code>table</code>
             </td>
             <td>
-                  <code><span title="tuple">tuple</span> | None</code>
+                  <code><span title="str">str</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>query parameters.</p>
+                <p><code>'schema.table'</code> to match.</p>
               </div>
             </td>
             <td>
@@ -1986,19 +1724,49 @@ The sync connection (used for metadata, <code>ho_select</code>, etc.) remains av
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>mogrify</code>
+                <code>field</code>
             </td>
             <td>
-                  <code><span title="bool">bool</span></code>
+                  <code><span title="str">str</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>if <code>True</code>, print the interpolated query before
-executing. Default: <code>False</code>.</p>
+                <p>column name to match.</p>
               </div>
             </td>
             <td>
-                  <code>False</code>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>comp</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>comparator (<code>'='</code>, <code>'&gt;'</code>, <code>'like'</code>, …).</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;=&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Python value to match.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -2015,25 +1783,140 @@ executing. Default: <code>False</code>.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-<td><code>cursor</code></td>            <td>
+<td><code>bool</code></td>            <td>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>psycopg cursor positioned on the result set.</p>
+                <p><code>True</code> if at least one constraint satisfies all criteria.</p>
               </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>from half_orm.testing import constraints_match
+
+posts = Person(last_name=&#39;Martin&#39;).posts()
+assert constraints_match(posts, table=&#39;actor.person&#39;,
+                         field=&#39;last_name&#39;, comp=&#39;=&#39;, value=&#39;Martin&#39;)
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.testing.find_constraints" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">find_constraints</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#half_orm.testing.find_constraints" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return constraints matching all provided criteria.</p>
+<p>All keyword arguments are optional; only the provided ones are used
+as filters (AND logic).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>node</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the value returned by <code>ho_where_display()</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'schema.table'</code> to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>column name to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>comp</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>comparator (<code>'='</code>, <code>'&gt;'</code>, <code>'like'</code>, …).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Python value to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
     </table>
 
 
-<details class="warning" open>
-  <summary>Warning</summary>
-  <p>Always use <code>%s</code> placeholders — never interpolate user input
-directly into the query string.</p>
-</details>
-
-<p><span class="doc-section-title">Raises:</span></p>
+    <p><span class="doc-section-title">Returns:</span></p>
     <table>
       <thead>
         <tr>
@@ -2044,11 +1927,310 @@ directly into the query string.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="PermissionError">PermissionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>if <code>crud_only</code> is set in the connection configuration.</p>
+                <p>list[dict]: matching constraint dicts.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>find_constraints(result, table=&#39;blog.comment_type&#39;, value=&#39;review&#39;)
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.testing.constraint_count" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">constraint_count</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#half_orm.testing.constraint_count" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return the number of constraints in <em>relation</em>'s predicate that match
+all provided criteria.</p>
+<p>All keyword arguments are optional; only the provided ones are used as
+filters (AND logic).  With no criteria, returns the total number of leaf
+constraints.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>relation</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>a halfORM relation object.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'schema.table'</code> to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>column name to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>comp</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>comparator (<code>'='</code>, <code>'&gt;'</code>, <code>'like'</code>, …).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>value</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Python value to filter on.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>int</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>number of matching constraints.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>from half_orm.testing import constraint_count
+
+# exactly one constraint on actor.person
+assert constraint_count(Person(last_name=&#39;Martin&#39;).posts(),
+                        table=&#39;actor.person&#39;) == 1
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.testing.is_unconstrained" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">is_unconstrained</span><span class="p">(</span><span class="n">relation</span><span class="p">)</span></code>
+
+<a href="#half_orm.testing.is_unconstrained" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return <code>True</code> if <em>relation</em> has no constraint at all.</p>
+<p>Equivalent to <code>relation.ho_where_display() is None</code>, but names the
+intent explicitly.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>relation</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>a halfORM relation object.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>bool</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>True</code> when the relation is fully unconstrained.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Example::</p>
+<div class="highlight"><pre><span></span><code>from half_orm.testing import is_unconstrained
+
+assert is_unconstrained(Person())          # no fields set
+assert not is_unconstrained(Person(id=1))
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.testing.traversed_tables" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">traversed_tables</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
+
+<a href="#half_orm.testing.traversed_tables" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return the set of <em>all</em> <code>schema.table</code> names reached by the predicate,
+including tables that are only traversed via JOIN without any field constraint.</p>
+<p>Since <code>ho_where_display</code> pre-aggregates tables at every level,
+this is a direct read of <code>node['tables']</code> — no tree traversal needed.</p>
+<p>For tables with at least one constraint, use :func:<code>constraint_tables</code> instead.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>node</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the value returned by <code>ho_where_display()</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>set[str]: e.g. <code>{'blog.post', 'blog.comment', 'actor.person'}</code>.</p>
               </div>
             </td>
           </tr>
@@ -2063,15 +2245,15 @@ directly into the query string.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="half_orm.model.Model.execute_function" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">execute_function</span><span class="p">(</span><span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<h3 id="half_orm.testing.constraint_tables" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">constraint_tables</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
 
-<a href="#half_orm.model.Model.execute_function" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.constraint_tables" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-        <p>Call a PostgreSQL function and return its result set. <em>Executes SQL.</em></p>
+        <p>Return the set of all <code>schema.table</code> names present in the predicate tree.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2087,48 +2269,18 @@ directly into the query string.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>fct_name</code>
+                <code>node</code>
             </td>
             <td>
-                  <code><span title="str">str</span></code>
+                  <code><span title="dict">dict</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>fully qualified function name (<code>'schema.function'</code>).</p>
+                <p>the value returned by <code>ho_where_display()</code>.</p>
               </div>
             </td>
             <td>
                 <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>*args</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>positional parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>()</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>named parameters (<code>name =&gt; value</code> syntax).</p>
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
             </td>
           </tr>
       </tbody>
@@ -2146,34 +2298,10 @@ directly into the query string.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.List">List</span>[<span title="tuple">tuple</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>list[dict]: rows returned by the function.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="RuntimeError">RuntimeError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
+                <p>set[str]: e.g. <code>{'blog.post', 'blog.author'}</code>.</p>
               </div>
             </td>
           </tr>
@@ -2188,15 +2316,17 @@ directly into the query string.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="half_orm.model.Model.call_procedure" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">call_procedure</span><span class="p">(</span><span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<h3 id="half_orm.testing.leaf_constraints" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">leaf_constraints</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
 
-<a href="#half_orm.model.Model.call_procedure" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.leaf_constraints" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-        <p>Call a PostgreSQL procedure. <em>Executes SQL.</em></p>
+        <p>Return all constraints from a :meth:<code>ho_where_display</code> tree.</p>
+<p>Since <code>ho_where_display</code> pre-aggregates constraints at every level,
+this is a direct read of <code>node['constraints']</code> — no tree traversal needed.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2212,467 +2342,14 @@ directly into the query string.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>proc_name</code>
+                <code>node</code>
             </td>
             <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>fully qualified procedure name.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>*args</code>
-            </td>
-            <td>
+                  <code><span title="dict">dict</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>positional parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>()</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>named parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>list[dict] | None: rows if the procedure returns a result set,</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>otherwise <code>None</code>.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="RuntimeError">RuntimeError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div><hr />
-<h2 id="async-raw-sql">Async raw SQL<a class="headerlink" href="#async-raw-sql" title="Permanent link">&para;</a></h2>
-<p>Async counterparts of the raw SQL methods. Require an async connection
-opened with <code>await model.aconnect()</code>.</p>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.aexecute_query" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">aexecute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.aexecute_query" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Execute a raw SQL query asynchronously. <em>Executes SQL.</em></p>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="PermissionError">PermissionError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if <code>crud_only</code> is set in the connection configuration.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.execute_query">execute_query</a></em></p>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.aexecute_function" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">aexecute_function</span><span class="p">(</span><span class="n">fct_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.aexecute_function" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async version of :meth:<code>execute_function</code>. <em>Executes SQL.</em></p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>fct_name</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>fully qualified function name (<code>'schema.function'</code>).</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>*args</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>positional parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>()</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>named parameters (<code>name =&gt; value</code> syntax).</p>
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.List">List</span>[<span title="tuple">tuple</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>list[dict]: rows returned by the function.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="RuntimeError">RuntimeError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.execute_function">execute_function</a></em></p>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.acall_procedure" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">acall_procedure</span><span class="p">(</span><span class="n">proc_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.acall_procedure" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Async version of :meth:<code>call_procedure</code>. <em>Executes SQL.</em></p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>proc_name</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>fully qualified procedure name.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>*args</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>positional parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>()</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>**kwargs</code>
-            </td>
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>named parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>{}</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>list[dict] | None: rows if the procedure returns a result set,</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>otherwise <code>None</code>.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="RuntimeError">RuntimeError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if both <code>*args</code> and <code>**kwargs</code> are provided.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div><p><em>Sync counterpart: <a href="#half_orm.model.Model.call_procedure">call_procedure</a></em></p>
-<hr />
-<h2 id="inspection">Inspection<a class="headerlink" href="#inspection" title="Permanent link">&para;</a></h2>
-
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="half_orm.model.Model.has_relation" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">has_relation</span><span class="p">(</span><span class="n">qtn</span><span class="p">)</span></code>
-
-<a href="#half_orm.model.Model.has_relation" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>Return <code>True</code> if the relation exists in the database.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>qtn</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>qualified table name, e.g. <code>'public.person'</code>.</p>
+                <p>the value returned by <code>ho_where_display()</code>.</p>
               </div>
             </td>
             <td>
@@ -2694,11 +2371,19 @@ opened with <code>await model.aconnect()</code>.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>bool</p>
+                <p>list[dict]: flat list of constraint dicts, each with keys</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>relation</code>, <code>field</code>, <code>comp</code>, <code>value</code>.</p>
               </div>
             </td>
           </tr>
@@ -2710,46 +2395,18 @@ opened with <code>await model.aconnect()</code>.</p>
 
 </div>
 
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="half_orm.model.Model.sql_trace" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">sql_trace</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
-  </span>
-
-<a href="#half_orm.model.Model.sql_trace" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents first">
-
-        <p>bool: if <code>True</code>, every SQL query is printed to stdout before execution.</p>
-
-    </div>
-
-</div><hr />
-<h2 id="decorator">Decorator<a class="headerlink" href="#decorator" title="Permanent link">&para;</a></h2>
-
-
 <div class="doc doc-object doc-function">
 
 
-<h3 id="half_orm.relation_factory.register_class" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">register_class</span><span class="p">(</span><span class="n">relation_class</span><span class="p">)</span></code>
+<h3 id="half_orm.testing.constraint_fields" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">constraint_fields</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
 
-<a href="#half_orm.relation_factory.register_class" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#half_orm.testing.constraint_fields" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents first">
 
-        <p>Register a :class:<code>~half_orm.relation.Relation</code> subclass with its Model.</p>
-<p>After registration, FK navigation and factory calls return instances of
-the custom subclass instead of the generated base class, making
-<code>Fkeys</code> aliases and custom methods available throughout.</p>
+        <p>Return the set of all field names constrained in the predicate tree.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2765,14 +2422,14 @@ the custom subclass instead of the generated base class, making
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>relation_class</code>
+                <code>node</code>
             </td>
             <td>
+                  <code><span title="dict">dict</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>a class that subclasses the result of
-:meth:<code>~half_orm.model.Model.get_relation_class</code>.</p>
+                <p>the value returned by <code>ho_where_display()</code>.</p>
               </div>
             </td>
             <td>
@@ -2797,7 +2454,7 @@ the custom subclass instead of the generated base class, making
             </td>
             <td>
               <div class="doc-md-description">
-                <p>relation_class — the decorated class, unchanged.</p>
+                <p>set[str]: e.g. <code>{'id', 'comment_type'}</code>.</p>
               </div>
             </td>
           </tr>
@@ -2805,41 +2462,76 @@ the custom subclass instead of the generated base class, making
     </table>
 
 
-<p><span class="doc-section-title">Raises:</span></p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.testing.constraint_values" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">constraint_values</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
+
+<a href="#half_orm.testing.constraint_values" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return the list of all constraint values in the predicate tree.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
     <table>
       <thead>
         <tr>
+          <th>Name</th>
           <th>Type</th>
           <th>Description</th>
+          <th>Default</th>
         </tr>
       </thead>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="ValueError">ValueError</span></code>
+                <code>node</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>if <code>relation_class</code> is not a valid relation subclass.</p>
+                <p>the value returned by <code>ho_where_display()</code>.</p>
               </div>
+            </td>
+            <td>
+                <em>required</em>
             </td>
           </tr>
       </tbody>
     </table>
 
 
-<details class="example" open>
-  <summary>Example</summary>
-  <p>Register a class:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">register</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">&#39;blog&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nd">@register</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">Author</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">&#39;blog.author&#39;</span><span class="p">)):</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;post_rfk&#39;</span><span class="p">:</span> <span class="s1">&#39;_reverse_fkey_blog_post_author_id&#39;</span><span class="p">}</span>
-</code></pre></div></p>
-</details>
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>list</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>all <code>value</code> entries across every leaf constraint.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
 
     </div>
 
@@ -2866,7 +2558,7 @@ the custom subclass instead of the generated base class, making
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 10, 2026 15:33:00 UTC">April 10, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 30, 2026 07:06:20 UTC">April 30, 2026</span>
   </span>
 
     
@@ -2876,7 +2568,7 @@ the custom subclass instead of the generated base class, making
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 30, 2026 07:06:20 UTC">April 30, 2026</span>
   </span>
 
     
@@ -2913,7 +2605,7 @@ the custom subclass instead of the generated base class, making
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../half-an-hour/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Learn in half an hour">
+          <a href="../transaction/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transaction">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2923,20 +2615,20 @@ the custom subclass instead of the generated base class, making
                 Previous
               </span>
               <div class="md-ellipsis">
-                Learn in half an hour
+                Transaction
               </div>
             </div>
           </a>
         
         
           
-          <a href="../relation/" class="md-footer__link md-footer__link--next" aria-label="Next: Relation">
+          <a href="../../extensions/" class="md-footer__link md-footer__link--next" aria-label="Next: halfORM Extensions">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Relation
+                halfORM Extensions
               </div>
             </div>
             <div class="md-footer__button md-icon">

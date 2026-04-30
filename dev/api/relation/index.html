@@ -1028,6 +1028,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3241,17 +3269,21 @@ before destructive operations on set-operator predicates.</p>
 
     <div class="doc doc-contents first">
 
-        <p>Returns the predicate as a (possibly nested) dict, or None if unconstrained.</p>
-
-
-<details class="for-a-simple-predicate" open>
-  <summary>For a simple predicate</summary>
-  <p><code>{'joins': [...], 'where': '...', 'values': [...]}</code></p>
-</details>        <p>For a compound set operation (<code>|</code>, <code>&amp;</code>, <code>-</code>):
-    <code>{'operator': 'or'|'and'|'and not', 'left': ..., 'right': ...}</code></p>
-<p>For a negation (<code>~</code>):
-    <code>{'operator': 'neg', 'operand': ...}</code></p>
-<p>The structures nest arbitrarily for complex expressions.</p>
+        <p>Returns the predicate as a (possibly nested) dict, or <code>None</code> if unconstrained.</p>
+<p>Every node in the tree — leaf, compound, or negation — always carries:</p>
+<ul>
+<li><code>'tables'</code>: <code>set[str]</code> — all <code>schema.table</code> names involved
+  (leaf: derived from the SQL AST; compound/neg: union of children).</li>
+<li><code>'constraints'</code>: <code>list[dict]</code> — all leaf constraints, each with
+  keys <code>relation</code>, <code>field</code>, <code>comp</code>, <code>value</code>
+  (leaf: own fields; compound/neg: concatenation of children).</li>
+</ul>
+<p>A <strong>leaf</strong> node additionally has <code>'joins'</code>, <code>'where'</code>, <code>'values'</code>.</p>
+<p>A <strong>compound</strong> node (<code>|</code>, <code>&amp;</code>, <code>-</code>) additionally has
+<code>'operator'</code> (<code>'or'</code>, <code>'and'</code>, <code>'and not'</code>),
+<code>'left'</code>, and <code>'right'</code>.</p>
+<p>A <strong>negation</strong> node (<code>~</code>) additionally has <code>'operator': 'neg'</code>
+and <code>'operand'</code>.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
