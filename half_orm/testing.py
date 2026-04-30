@@ -193,6 +193,58 @@ def assertInvolvesTables(relation, *tables, msg=None):
     return True
 
 
+def assertTablePath(relation, *tables, msg=None):
+    """Assert that the FK traversal path of *relation* matches *tables* exactly.
+
+    The path lists tables in **navigation order** (the order you traverse
+    foreign keys to reach the result), which may differ from the SQL JOIN
+    order.  A table that is visited more than once (e.g. a self-referential
+    path) appears multiple times.
+
+    Unlike :func:`assertInvolvesTables` (which is order- and duplicate-free),
+    this function checks the *exact* ordered sequence including repetitions.
+
+    Only works on simple (non-compound) predicates; raises
+    :class:`AssertionError` if the relation uses ``|``, ``&``, or ``-``.
+
+    Args:
+        relation: a halfORM relation object.
+        *tables (str): expected ``'schema.table'`` sequence, in traversal order.
+        msg (str | None): custom message, overrides the generated diagnostic.
+
+    Raises:
+        AssertionError: when the path differs from *tables*, or the predicate
+            is compound / unconstrained.
+
+    Example::
+
+        from half_orm.testing import assertTablePath
+
+        assertTablePath(
+            Post(title='Hello').commenters(),
+            'blog.post', 'blog.comment', 'actor.person',
+        )
+    """
+    node = relation.ho_where_display()
+    if node is None:
+        raise AssertionError(msg or "relation is unconstrained — no table path")
+    if 'operator' in node:
+        raise AssertionError(
+            msg or "assertTablePath requires a simple (non-compound) predicate"
+        )
+    path = node.get('table_path', [])
+    expected = list(tables)
+    if path != expected:
+        raise AssertionError(
+            msg or (
+                f"table path differs:\n"
+                f"  expected: {expected}\n"
+                f"  found:    {path}"
+            )
+        )
+    return True
+
+
 def constraint_count(relation, *, table=None, field=None, comp=None, value=None):
     """Return the number of constraints in *relation*'s predicate that match
     all provided criteria.

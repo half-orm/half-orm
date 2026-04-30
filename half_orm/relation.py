@@ -1137,19 +1137,25 @@ class Relation:
             all_values.extend(w_vals)
         if not joins and where is None:
             return None
-        # Extract tables from the SQL AST — reliable even for unconstrained joins
+        # Extract tables from the SQL AST — reliable even for unconstrained joins.
+        # _ho_ast_joins is built with insert(0, ...) so it is in reverse traversal
+        # order; reversing it gives FK navigation order (source → result).
         _, schema, table = self._t_fqrn
-        tables = {f'{schema}.{table}'}
-        for join in self._ho_ast_joins:
+        self_table = f'{schema}.{table}'
+        table_path = []
+        for join in reversed(self._ho_ast_joins):
             m = re.match(r'"([^"]+)"\."([^"]+)"', join.table)
             if m:
-                tables.add(f'{m.group(1)}.{m.group(2)}')
+                table_path.append(f'{m.group(1)}.{m.group(2)}')
+        table_path.append(self_table)
+        tables = set(table_path)
         return {
             'joins':       joins,
             'where':       where,
             'values':      [str(v) for v in all_values],
             'constraints': self._ho_collect_constraints(),
             'tables':      tables,
+            'table_path':  table_path,
         }
 
     def __repr__(self):

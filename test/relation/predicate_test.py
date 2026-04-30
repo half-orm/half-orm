@@ -12,6 +12,7 @@ from unittest import TestCase
 
 from half_orm.testing import (
     assertConstraintsMatch, assertInvolvesTables, assertSamePredicate,
+    assertTablePath,
     constraint_count, constraint_tables, constraint_values, constraints_match,
     find_constraints, is_unconstrained, traversed_tables,
 )
@@ -241,3 +242,53 @@ class TestAssertSamePredicate(TestCase):
                 Person(last_name='Dupont').posts(),
                 msg='delegation broke')
         self.assertEqual(str(ctx.exception), 'delegation broke')
+
+
+class TestAssertTablePath(TestCase):
+    """assertTablePath() behaviour."""
+
+    def test_simple_fk_path(self):
+        "posts() goes person → post in navigation order."
+        assertTablePath(
+            Person(last_name='Martin').posts(),
+            'actor.person', 'blog.post')
+
+    def test_two_hop_path(self):
+        "commenters() traverses post → comment → person."
+        assertTablePath(
+            Post(title='Hello').commenters(),
+            'blog.post', 'blog.comment', 'actor.person')
+
+    def test_wrong_order_fails(self):
+        with self.assertRaises(AssertionError) as ctx:
+            assertTablePath(
+                Post(title='Hello').commenters(),
+                'actor.person', 'blog.comment', 'blog.post')
+        self.assertIn('expected', str(ctx.exception))
+        self.assertIn('found', str(ctx.exception))
+
+    def test_missing_table_fails(self):
+        with self.assertRaises(AssertionError):
+            assertTablePath(
+                Post(title='Hello').commenters(),
+                'blog.post', 'actor.person')
+
+    def test_raises_on_compound(self):
+        a = Person(last_name='Martin')
+        b = Person(last_name='Dupont')
+        with self.assertRaises(AssertionError) as ctx:
+            assertTablePath(a | b, 'actor.person')
+        self.assertIn('compound', str(ctx.exception))
+
+    def test_raises_on_unconstrained(self):
+        with self.assertRaises(AssertionError) as ctx:
+            assertTablePath(Person().posts(), 'actor.person', 'blog.post')
+        self.assertIn('unconstrained', str(ctx.exception))
+
+    def test_custom_message(self):
+        with self.assertRaises(AssertionError) as ctx:
+            assertTablePath(
+                Post(title='Hello').commenters(),
+                'blog.post', 'actor.person',
+                msg='wrong traversal path')
+        self.assertEqual(str(ctx.exception), 'wrong traversal path')
