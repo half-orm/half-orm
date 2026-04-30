@@ -70,6 +70,14 @@ class Person(MODEL.get_relation_class('actor.person', fields_aliases=fields_alia
         'event_rfk': '_reverse_fkey_halftest_blog_event_author_first_name_author_last_name_author_birth_date',
         'post_rfk': '_reverse_fkey_halftest_blog_post_author_first_name_author_last_name_author_birth_date'
     }
+
+    def posts(self):
+        "All posts written by this person."
+        return self.post_rfk()
+
+    def commented_posts(self):
+        "Posts this person has commented on."
+        return self.comment_rfk().post_fk()
     #<<< PLACE YOUR CODE ABOVE THIS LINE. DO NOT REMOVE THIS LINE!
     #pylint: disable=line-too-long, too-many-arguments, redefined-builtin, too-many-positional-arguments
     def __init__(self, id: 'int'=None, first_name: 'str'=None, last_name: 'str'=None, birth_date: 'date'=None, **kwargs):

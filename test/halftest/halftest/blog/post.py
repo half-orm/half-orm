@@ -67,6 +67,13 @@ class Post(MODEL.get_relation_class('blog.post', fields_aliases=fields_aliases))
         'author_fk': 'author',
     }
 
+    def comments(self):
+        "All comments on this post."
+        return self.comment_rfk()
+
+    def commenters(self):
+        "People who commented on this post."
+        return self.comment_rfk().author_fk()
     #<<< PLACE YOUR CODE ABOVE THIS LINE. DO NOT REMOVE THIS LINE!
     #pylint: disable=line-too-long, too-many-arguments, redefined-builtin, too-many-positional-arguments
     def __init__(self, id: 'int'=None, title: 'str'=None, content: 'str'=None, author_first_name: 'str'=None, author_last_name: 'str'=None, author_birth_date: 'date'=None, data: 'typing.Any'=None, **kwargs):

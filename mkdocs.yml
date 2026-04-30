@@ -162,6 +162,7 @@ nav:
     - Field: api/field.md
     - FKey: api/fkey.md
     - Transaction: api/transaction.md
+    - Testing: api/testing.md
   - Extensions:
     - extensions/index.md
   - Development Guides:

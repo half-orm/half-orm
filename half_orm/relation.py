@@ -22,6 +22,7 @@ Example:
 
 import inspect
 from dataclasses import dataclass
+import re
 from functools import wraps
 from collections import OrderedDict
 from typing import List, Generic, TypeVar, Dict, Optional
@@ -1030,19 +1031,52 @@ class Relation:
         return {key:(field._comp(), field.value) for key, field in
                 self._ho_fields.items() if field.is_set()}
 
+    def _ho_collect_constraints(self, seen=None):
+        """Collect set fields from self and all FK-joined relations recursively.
+
+        Returns a list of dicts::
+
+            {
+                'relation': ('schema.table', 'r<ho_id>'),
+                'field':    '<column_name>',
+                'comp':     '<comparator>',
+                'value':    <python_value>,
+            }
+        """
+        if seen is None:
+            seen = set()
+        if id(self) in seen:
+            return []
+        seen.add(id(self))
+        _, schema, table = self._t_fqrn
+        rel_id = (f'{schema}.{table}', f'r{self.ho_id}')
+        constraints = [
+            {'relation': rel_id, 'field': f.name, 'comp': f._comp(), 'value': f.value}
+            for f in self._ho_fields.values() if f.is_set()
+        ]
+        for fk_rel in self._ho_join_to.values():
+            constraints.extend(fk_rel._ho_collect_constraints(seen))
+        return constraints
+
     def ho_where_display(self):
-        """Returns the predicate as a (possibly nested) dict, or None if unconstrained.
+        """Returns the predicate as a (possibly nested) dict, or ``None`` if unconstrained.
 
-        For a simple predicate:
-            ``{'joins': [...], 'where': '...', 'values': [...]}``
+        Every node in the tree — leaf, compound, or negation — always carries:
 
-        For a compound set operation (``|``, ``&``, ``-``):
-            ``{'operator': 'or'|'and'|'and not', 'left': ..., 'right': ...}``
+        - ``'tables'``: ``set[str]`` — all ``schema.table`` names involved
+          (leaf: derived from the SQL AST; compound/neg: union of children).
+        - ``'constraints'``: ``list[dict]`` — all leaf constraints, each with
+          keys ``relation``, ``field``, ``comp``, ``value``
+          (leaf: own fields; compound/neg: concatenation of children).
 
-        For a negation (``~``):
-            ``{'operator': 'neg', 'operand': ...}``
+        A **leaf** node additionally has ``'joins'``, ``'where'``, ``'values'``.
 
-        The structures nest arbitrarily for complex expressions.
+        A **compound** node (``|``, ``&``, ``-``) additionally has
+        ``'operator'`` (``'or'``, ``'and'``, ``'and not'``),
+        ``'left'``, and ``'right'``.
+
+        A **negation** node (``~``) additionally has ``'operator': 'neg'``
+        and ``'operand'``.
 
         Returns:
             dict | None: the predicate structure, or ``None`` if the relation
@@ -1053,18 +1087,34 @@ class Relation:
         if not self.ho_is_set():
             return None
 
+        def _tables(node):
+            return node.get('tables', set()) if node else set()
+
+        def _constraints(node):
+            return node.get('constraints', []) if node else []
+
         op = self._ho_set_operators.operator
         if op:
-            left = self._ho_set_operators.left
-            right = self._ho_set_operators.right
+            left_node  = self._ho_set_operators.left.ho_where_display()
+            right_rel  = self._ho_set_operators.right
+            right_node = right_rel.ho_where_display() if right_rel is not None else None
+            tables      = _tables(left_node) | _tables(right_node)
+            constraints = _constraints(left_node) + _constraints(right_node)
             result = {
-                'operator': op,
-                'left': left.ho_where_display(),
+                'operator':    op,
+                'left':        left_node,
+                'tables':      tables,
+                'constraints': constraints,
             }
-            if right is not None:
-                result['right'] = right.ho_where_display()
+            if right_node is not None:
+                result['right'] = right_node
             if self._ho_neg:
-                result = {'operator': 'neg', 'operand': result}
+                result = {
+                    'operator':    'neg',
+                    'operand':     result,
+                    'tables':      tables,
+                    'constraints': constraints,
+                }
             return result
 
         saved_qtype = getattr(self, '_ho_query_type', None)
@@ -1087,7 +1137,20 @@ class Relation:
             all_values.extend(w_vals)
         if not joins and where is None:
             return None
-        return {'joins': joins, 'where': where, 'values': [str(v) for v in all_values]}
+        # Extract tables from the SQL AST — reliable even for unconstrained joins
+        _, schema, table = self._t_fqrn
+        tables = {f'{schema}.{table}'}
+        for join in self._ho_ast_joins:
+            m = re.match(r'"([^"]+)"\."([^"]+)"', join.table)
+            if m:
+                tables.add(f'{m.group(1)}.{m.group(2)}')
+        return {
+            'joins':       joins,
+            'where':       where,
+            'values':      [str(v) for v in all_values],
+            'constraints': self._ho_collect_constraints(),
+            'tables':      tables,
+        }
 
     def __repr__(self):
 
