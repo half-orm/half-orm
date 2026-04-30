@@ -266,6 +266,66 @@ def assertConstraintsMatch(relation, *, table=None, field=None, comp='=', value=
         )
 
 
+def _canonical(node):
+    """Return a normalised, alias-free representation of a ho_where_display node.
+
+    Used by :func:`assertSamePredicate` to compare predicates structurally,
+    ignoring relation aliases (``r{ho_id}``) and the left/right ordering of
+    commutative operators (``or``, ``and``).
+    """
+    if node is None:
+        return None
+    op = node.get('operator')
+    if op == 'neg':
+        return ('neg', _canonical(node['operand']))
+    if op:
+        left  = _canonical(node['left'])
+        right = _canonical(node.get('right'))
+        if op in ('or', 'and'):
+            return (op, *sorted([left, right], key=repr))
+        return (op, left, right)   # 'and not' is not commutative
+    tables = frozenset(node.get('tables', set()))
+    constraints = tuple(sorted(
+        (c['relation'][0], c['field'], c['comp'], str(c['value']))
+        for c in node.get('constraints', [])
+    ))
+    return (tables, constraints)
+
+
+def assertSamePredicate(rel1, rel2, msg=None):
+    """Assert that two relations produce the same logical predicate.
+
+    Compares predicates structurally, ignoring relation aliases (``r{ho_id}``)
+    which differ between object instances even for equivalent queries.
+    Commutative operators (``or``, ``and``) are normalised so that
+    ``A | B`` and ``B | A`` are considered equal; ``and not`` is not
+    commutative and is compared as-is.
+
+    Args:
+        rel1: first halfORM relation object.
+        rel2: second halfORM relation object.
+        msg (str | None): custom message, overrides the generated diagnostic.
+
+    Raises:
+        AssertionError: when the two predicates differ structurally.
+
+    Example::
+
+        from half_orm.testing import assertSamePredicate
+
+        assertSamePredicate(
+            post.reviewers(),
+            post.rfk_comments().author_fk(),
+        )
+    """
+    c1 = _canonical(rel1.ho_where_display())
+    c2 = _canonical(rel2.ho_where_display())
+    if c1 != c2:
+        raise AssertionError(
+            msg or f"predicates differ:\n  left:  {c1}\n  right: {c2}"
+        )
+
+
 def constraints_match(relation, *, table=None, field=None, comp='=', value=None):
     """Return ``True`` if at least one constraint in *relation*'s predicate
     matches all provided criteria.

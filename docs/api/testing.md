@@ -55,6 +55,12 @@ failure, following the `assert*` convention of :class:`unittest.TestCase`.
       show_source: false
       heading_level: 3
 
+::: half_orm.testing.assertSamePredicate
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
 ---
 
 ## Query helpers

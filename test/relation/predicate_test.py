@@ -11,9 +11,9 @@ values are carried — without inserting any data or executing SELECT queries.
 from unittest import TestCase
 
 from half_orm.testing import (
-    assertConstraintsMatch, assertInvolvesTables, constraint_count,
-    constraint_tables, constraint_values, constraints_match, find_constraints,
-    is_unconstrained, traversed_tables,
+    assertConstraintsMatch, assertInvolvesTables, assertSamePredicate,
+    constraint_count, constraint_tables, constraint_values, constraints_match,
+    find_constraints, is_unconstrained, traversed_tables,
 )
 from halftest.actor.person import Person
 from halftest.blog.post import Post
@@ -192,3 +192,52 @@ class TestAssertConstraintsMatch(TestCase):
                 Person(last_name='Martin').posts(),
                 field='title')
         self.assertIn('Found', str(ctx.exception))
+
+
+class TestAssertSamePredicate(TestCase):
+    """assertSamePredicate() behaviour."""
+
+    def test_identical_predicates_pass(self):
+        "Same relation constructed twice gives the same predicate."
+        assertSamePredicate(
+            Person(last_name='Martin').posts(),
+            Person(last_name='Martin').posts())
+
+    def test_different_values_fail(self):
+        with self.assertRaises(AssertionError):
+            assertSamePredicate(
+                Person(last_name='Martin').posts(),
+                Person(last_name='Dupont').posts())
+
+    def test_different_fields_fail(self):
+        with self.assertRaises(AssertionError):
+            assertSamePredicate(
+                Person(last_name='Martin').posts(),
+                Person(first_name='Martin').posts())
+
+    def test_or_is_commutative(self):
+        "A | B and B | A produce the same canonical predicate."
+        a = Person(last_name='Martin')
+        b = Person(last_name='Dupont')
+        assertSamePredicate(a | b, b | a)
+
+    def test_and_is_commutative(self):
+        "A & B and B & A produce the same canonical predicate."
+        a = Person(last_name='Martin')
+        b = Person(first_name='Jean')
+        assertSamePredicate(a & b, b & a)
+
+    def test_and_not_is_not_commutative(self):
+        "A - B and B - A are structurally different."
+        a = Person(last_name='Martin')
+        b = Person(first_name='Jean')
+        with self.assertRaises(AssertionError):
+            assertSamePredicate(a - b, b - a)
+
+    def test_custom_message(self):
+        with self.assertRaises(AssertionError) as ctx:
+            assertSamePredicate(
+                Person(last_name='Martin').posts(),
+                Person(last_name='Dupont').posts(),
+                msg='delegation broke')
+        self.assertEqual(str(ctx.exception), 'delegation broke')
