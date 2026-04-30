@@ -1,3 +1,9 @@
+# 1.0.0rc5 (2026-04-30)
+
+* feat(testing): add assertTablePath for ordered FK traversal verification (4bd2946)
+* feat(testing): add assertSamePredicate and rename assert helpers to camelCase (6638d84)
+* feat(testing): add half_orm.testing module with predicate-level test helpers (4fc880b)
+
 # 1.0.0rc4 (2026-04-29)
 
 * feat(relation): make ho_where_display recursive for compound set operations (a647d26)
