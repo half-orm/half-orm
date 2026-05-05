@@ -23,7 +23,8 @@ Example:
 import inspect
 from dataclasses import dataclass
 import re
-from functools import wraps
+import operator
+from functools import wraps, reduce
 from collections import OrderedDict
 from typing import List, Generic, TypeVar, Dict, Optional
 from keyword import iskeyword
@@ -1935,6 +1936,13 @@ Fkeys = {"""
         return self
 
     def __contains__(self, right):
+        if self._t_fqrn != right._t_fqrn:
+            _, ls, lt = self._t_fqrn
+            _, rs, rt = right._t_fqrn
+            raise TypeError(
+                f"'in <Relation>' requires both sides to be the same relation: "
+                f"{rs}.{rt} is not {ls}.{lt}"
+            )
         return (right - self).ho_count() == 0
 
     # Relation objects are not hashable: __eq__ executes SQL queries.
@@ -2020,3 +2028,45 @@ def transaction(fct):
         with Transaction(self._ho_model):
             return fct(self, *args, **kwargs)
     return wrapper
+
+
+def ho_list(*relations):
+    """Combine relations into a single OR predicate, avoiding N SQL queries.
+
+    The typical use-case is membership testing::
+
+        members = ho_list(Author(id=1), Author(id=2), Author(id=3))
+        if some_author in members:   # one query instead of three
+            ...
+
+    ``ho_list`` is equivalent to chaining ``|`` manually::
+
+        r1 | r2 | r3 | ...
+
+    **Set-membership semantics** — ``r in ho_list(...)`` calls
+    ``Relation.__contains__``, which computes
+    ``(r - ho_list(...)).ho_count() == 0``.  Two edge cases follow
+    directly from set theory:
+
+    * **∅ ⊆ S** — if *r* matches no rows (the empty set), it is
+      vacuously contained in every relation: ``r in ho_list(...)``
+      always returns ``True``.
+
+    * **Unconstrained operand** — if any element of *relations* is
+      unconstrained (``ho_is_set()`` returns ``False``), the OR
+      absorbs all rows (the universal set).  Any ``r in ho_list(...)``
+      then returns ``True``, which is almost certainly a bug at the
+      call site.
+
+    Args:
+        *relations: one or more :class:`Relation` objects of the same table.
+
+    Returns:
+        Relation: the union predicate ``r1 | r2 | ...``.
+
+    Raises:
+        ValueError: if called with no arguments.
+    """
+    if not relations:
+        raise ValueError("ho_list() requires at least one relation")
+    return reduce(operator.or_, relations)
