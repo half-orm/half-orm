@@ -2058,6 +2058,18 @@ def ho_list(*relations):
       then returns ``True``, which is almost certainly a bug at the
       call site.
 
+    **Alternative — existence check with** ``ho_is_empty``
+
+    When the intent is "does *r* have at least one row in common with
+    this list?" rather than strict set inclusion, prefer::
+
+        if not (r & ho_list(r1, r2, r3)).ho_is_empty():
+            ...
+
+    ``(r & union).ho_is_empty()`` computes the intersection first, so
+    it returns ``False`` when *r* matches no rows — avoiding the ∅ ⊆ S
+    edge case entirely.
+
     Args:
         *relations: one or more :class:`Relation` objects of the same table.
 

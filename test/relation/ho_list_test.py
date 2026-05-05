@@ -58,6 +58,17 @@ class TestHoList(TestCase):
         self.assertEqual(non_existent.ho_count(), 0)   # confirm ∅
         self.assertIn(non_existent, hl)
 
+    def test_intersection_alternative_avoids_empty_set_trap(self):
+        """not (r & ho_list(...)).ho_is_empty() returns False for ∅.
+
+        Unlike ``r in ho_list(...)``, the intersection-based check does not
+        suffer from the ∅ ⊆ S edge case: if *r* has no rows, the
+        intersection is empty and ho_is_empty() correctly returns True.
+        """
+        hl = ho_list(self.Person(last_name='aa'), self.Person(last_name='ab'))
+        non_existent = self.Person(last_name='zzz_does_not_exist')
+        self.assertTrue((non_existent & hl).ho_is_empty())
+
     # --- unconstrained-operand trap ------------------------------------------
 
     def test_unconstrained_operand_always_true(self):

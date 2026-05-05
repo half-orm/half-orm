@@ -18,6 +18,8 @@ Author(last_name='Martin', id=42) # at most one row
 **Introspection** methods (`ho_assert_is_singleton`, `ho_is_set`,
 `ho_where_display`, `ho_mogrify`) inspect or assert on the predicate without
 touching the database.
+The module-level helper `ho_list(*relations)` combines multiple relations
+into a single OR predicate for efficient membership testing.
 
 See [Learn halfORM in half an hour](../half-an-hour.md) for a full walkthrough.
 
@@ -310,3 +312,13 @@ These methods inspect or assert on the predicate **without executing SQL**.
       heading_level: 3
 
 See also: [Transaction](transaction.md) — the context manager equivalent.
+
+---
+
+## Utilities
+
+::: half_orm.relation.ho_list
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
