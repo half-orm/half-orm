@@ -1,3 +1,7 @@
+# 1.0.0rc8 (2026-05-05)
+
+* fix(relation): fix jsonb for DISTINCT support with json_agg (8081902)
+
 # 1.0.0rc7 (2026-05-05)
 
 * feat(relation): add 'distinct' key to json_agg spec for deduplicated aggregation (4f2181c)
