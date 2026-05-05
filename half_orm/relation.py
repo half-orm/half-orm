@@ -1478,7 +1478,6 @@ Fkeys = {"""
         """
         from half_orm.fkey import FKey
 
-        self._ho_ast_joins = []
         self._ho_query_type = 'select'
 
         what, where_expr = self.__where_args(*args)
@@ -1488,13 +1487,36 @@ Fkeys = {"""
                 f"ho_select(json_agg=...) requires the main relation to have a primary key "
                 f"({self._qrn} has none).")
 
-        # First pass: resolve FKeys, build JOINs, follow FK chains, collect per-entry info.
+        # Pre-validate all json_agg FKeys before touching _ho_join_to.
+        json_agg_resolved = {}  # fkey_attr → (fkey, spec, fk_rel)
+        for fkey_attr, spec in json_agg.items():
+            fkey = self.__dict__.get(fkey_attr)
+            if not isinstance(fkey, FKey):
+                raise RuntimeError(
+                    f"self.{fkey_attr} is not a FKey"
+                    + (f" (got {type(fkey).__name__})" if fkey is not None else " (not found)"))
+            fk_rel = self._ho_join_to.get(fkey)
+            if fk_rel is None:
+                raise RuntimeError(
+                    f"self.{fkey_attr} has not been set. Call self.{fkey_attr}.set(...) first.")
+            json_agg_resolved[fkey_attr] = (fkey, spec, fk_rel)
+
+        # Build constraint-chain INNER JOINs via __get_from(), temporarily removing
+        # the json_agg FKeys so they are not duplicated by the LEFT JOIN pass below.
+        saved_fkeys = {fkey: self._ho_join_to.pop(fkey)
+                       for _, (fkey, _, _) in json_agg_resolved.items()}
+        self.__get_from()   # resets _ho_ast_joins, then adds constraint-chain JOINs
+        self._ho_join_to.update(saved_fkeys)
+
+        # First pass: build LEFT JOINs for json_agg entries, follow FK chains,
+        # collect per-entry info.
         # Each entry records (is_list, leaf_rel, alias, obj_expr) where:
         #   is_list  — True when the result should be a JSON array (GROUP BY needed)
         #   leaf_rel — the last relation in the chain (whose columns are aggregated)
         entries = []
         has_reverse = False
         for fkey_attr, spec in json_agg.items():
+            fkey, spec, fk_rel = json_agg_resolved[fkey_attr]
             if isinstance(spec, dict):
                 alias = spec.get('alias', fkey_attr)
                 fields = spec.get('fields', [])
@@ -1502,18 +1524,7 @@ Fkeys = {"""
                 alias = fkey_attr
                 fields = list(spec)
 
-            fkey = self.__dict__.get(fkey_attr)
-            if not isinstance(fkey, FKey):
-                raise RuntimeError(
-                    f"self.{fkey_attr} is not a FKey"
-                    + (f" (got {type(fkey).__name__})" if fkey is not None else " (not found)"))
-
-            fk_rel = self._ho_join_to.get(fkey)
-            if fk_rel is None:
-                raise RuntimeError(
-                    f"self.{fkey_attr} has not been set. Call self.{fkey_attr}.set(...) first.")
-
-            # First JOIN: main relation → fk_rel
+            # LEFT JOIN: main relation → fk_rel (aggregation, not filtering)
             fk_rel._ho_query_type = 'select'
             fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
             self._ho_ast_joins.append(ASTJoin(
