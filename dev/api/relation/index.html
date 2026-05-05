@@ -2152,6 +2152,11 @@ a <code>LEFT JOIN</code> + <code>json_agg</code> + <code>GROUP BY</code> on the 
 <li><code>[field, ...]</code> — list of column names; alias = fkey attr name.</li>
 <li><code>{'fields': [...], 'alias': 'name'}</code> — explicit alias.</li>
 <li><code>[]</code> — empty list returns all columns via <code>row_to_json</code>.</li>
+<li><code>{'fields': [...], 'alias': 'name', 'distinct': True}</code> —
+  deduplicate aggregated rows using a correlated subquery
+  (<code>SELECT DISTINCT … FROM … WHERE join_cond</code>) instead of a
+  LEFT JOIN.  Avoids duplicates produced by intermediate JOIN
+  multiplications.  Default: <code>False</code>.</li>
 </ul>
 <p>The fkey must have been set via <code>.fk_attr.set(rel)</code> before
 calling <code>ho_select</code>.</p>
