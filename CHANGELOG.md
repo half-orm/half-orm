@@ -1,3 +1,7 @@
+# 1.0.0rc7 (2026-05-05)
+
+* feat(relation): add 'distinct' key to json_agg spec for deduplicated aggregation (4f2181c)
+
 # 1.0.0rc6 (2026-05-05)
 
 * fix(relation): restore constraint-chain JOINs in ho_select(json_agg=...) (14565d9)
