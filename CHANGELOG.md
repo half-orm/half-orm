@@ -1,3 +1,10 @@
+# 1.0.0rc6 (2026-05-05)
+
+* fix(relation): restore constraint-chain JOINs in ho_select(json_agg=...) (14565d9)
+* refactor(relation): use ho_is_empty() in __contains__ instead of ho_count() == 0 (7188df0)
+* docs(relation): document ho_list and not (r & ...).ho_is_empty() alternative (16c71fa)
+* feat(relation): add ho_list() and fix __contains__ cross-table guard (85c267e)
+
 # 1.0.0rc5 (2026-04-30)
 
 * feat(testing): add assertTablePath for ordered FK traversal verification (4bd2946)
