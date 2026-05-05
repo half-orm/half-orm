@@ -426,6 +426,11 @@ class Relation:
                 - ``[field, ...]`` — list of column names; alias = fkey attr name.
                 - ``{'fields': [...], 'alias': 'name'}`` — explicit alias.
                 - ``[]`` — empty list returns all columns via ``row_to_json``.
+                - ``{'fields': [...], 'alias': 'name', 'distinct': True}`` —
+                  deduplicate aggregated rows using a correlated subquery
+                  (``SELECT DISTINCT … FROM … WHERE join_cond``) instead of a
+                  LEFT JOIN.  Avoids duplicates produced by intermediate JOIN
+                  multiplications.  Default: ``False``.
 
                 The fkey must have been set via ``.fk_attr.set(rel)`` before
                 calling ``ho_select``.
@@ -1462,7 +1467,7 @@ Fkeys = {"""
 
     def _ho_prep_json_agg_select(self, *args, json_agg,
         order_by=None, limit=None, offset=None):
-        """Prepare a SELECT with LEFT JOIN + json_agg aggregation.
+        """Prepare a SELECT with json_agg aggregation.
 
         Parameters
         ----------
@@ -1472,9 +1477,14 @@ Fkeys = {"""
 
             * a **list** ``[*fields]``: the fkey attribute name is used as
               the output column name.
-            * a **dict** ``{'fields': [...], 'alias': 'name'}``: *alias* is
-              optional (defaults to the fkey attribute name); *fields* is an
-              optional subset of columns (empty = all fields via row_to_json).
+            * a **dict** with optional keys:
+
+              - ``'fields'`` — list of column names (empty = all via
+                ``row_to_json``).
+              - ``'alias'`` — output column name (default: fkey attr name).
+              - ``'distinct'`` — ``True`` to deduplicate aggregated rows via
+                a correlated subquery instead of a LEFT JOIN.  Default:
+                ``False``.
         """
         from half_orm.fkey import FKey
 
@@ -1508,9 +1518,13 @@ Fkeys = {"""
         self.__get_from()   # resets _ho_ast_joins, then adds constraint-chain JOINs
         self._ho_join_to.update(saved_fkeys)
 
-        # First pass: build LEFT JOINs for json_agg entries, follow FK chains,
-        # collect per-entry info.
-        # Each entry records (is_list, leaf_rel, alias, obj_expr) where:
+        # First pass: for each json_agg entry, either build a LEFT JOIN (default)
+        # or a correlated subquery (when spec contains 'distinct': True).
+        #
+        # LEFT JOIN entries are collected in `entries` for the second pass.
+        # Correlated-subquery entries produce their column expression immediately.
+        #
+        # Each LEFT JOIN entry records (is_list, leaf_rel, alias, obj_expr) where:
         #   is_list  — True when the result should be a JSON array (GROUP BY needed)
         #   leaf_rel — the last relation in the chain (whose columns are aggregated)
         entries = []
@@ -1520,53 +1534,106 @@ Fkeys = {"""
             if isinstance(spec, dict):
                 alias = spec.get('alias', fkey_attr)
                 fields = spec.get('fields', [])
+                use_distinct = spec.get('distinct', False)
             else:
                 alias = fkey_attr
                 fields = list(spec)
+                use_distinct = False
 
-            # LEFT JOIN: main relation → fk_rel (aggregation, not filtering)
             fk_rel._ho_query_type = 'select'
-            fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
-            self._ho_ast_joins.append(ASTJoin(
-                table=fk_rel._ho_sql_id(),
-                on=fkey._join_query(self),
-                where=fk_where_expr,
-                join_type='left join',
-            ))
             is_list = fkey.is_reverse and not fkey.is_singleton
 
-            # Follow chained FKs (e.g. A ← B → C): fk_rel may itself have FKs set.
-            leaf_rel = fk_rel
-            current_rel = fk_rel
-            while current_rel._ho_join_to:
-                if len(current_rel._ho_join_to) > 1:
-                    raise RuntimeError(
-                        f"json_agg: branching FK chains are not supported — "
-                        f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
-                chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
-                chained_rel._ho_query_type = 'select'
-                chained_where = chained_rel.__where_expr(chained_rel.ho_id)
+            if use_distinct:
+                # --- correlated subquery (DISTINCT) ----------------------------
+                # Build the subquery FROM/WHERE by following the FK chain.
+                # The first join condition references `self` (outer query alias),
+                # making the subquery correlated.
+                from_parts = [fk_rel._ho_sql_id()]
+                where_parts = [fkey._join_query(self)]
+                fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
+                if fk_where_expr:
+                    w_sql, _ = fk_where_expr.to_sql()
+                    where_parts.append(w_sql)
+
+                leaf_rel = fk_rel
+                current_rel = fk_rel
+                while current_rel._ho_join_to:
+                    if len(current_rel._ho_join_to) > 1:
+                        raise RuntimeError(
+                            f"json_agg: branching FK chains are not supported — "
+                            f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
+                    chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
+                    chained_rel._ho_query_type = 'select'
+                    from_parts.append(
+                        f'join {chained_rel._ho_sql_id()} on {chained_fkey._join_query(current_rel)}')
+                    chained_where = chained_rel.__where_expr(chained_rel.ho_id)
+                    if chained_where:
+                        w_sql, _ = chained_where.to_sql()
+                        where_parts.append(w_sql)
+                    if chained_fkey.is_reverse and not chained_fkey.is_singleton:
+                        is_list = True
+                    leaf_rel = chained_rel
+                    current_rel = chained_rel
+
+                rel_id = f'r{leaf_rel.ho_id}'
+                if fields:
+                    obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
+                    obj_expr = f'json_build_object({obj_pairs})'
+                else:
+                    obj_expr = f'row_to_json({rel_id})'
+
+                from_sql = ' '.join(from_parts)
+                where_sql = ' and '.join(where_parts)
+                if is_list:
+                    sub = (f'select distinct {obj_expr} as __obj'
+                           f' from {from_sql} where {where_sql}')
+                    col_expr = (f"coalesce((select json_agg(t.__obj)"
+                                f" from ({sub}) t), '[]'::json)")
+                else:
+                    col_expr = f'(select {obj_expr} from {from_sql} where {where_sql})'
+                columns.append(f'{col_expr} as "{alias}"')
+
+            else:
+                # --- LEFT JOIN (default) ---------------------------------------
+                fk_where_expr = fk_rel.__where_expr(fk_rel.ho_id)
                 self._ho_ast_joins.append(ASTJoin(
-                    table=chained_rel._ho_sql_id(),
-                    on=chained_fkey._join_query(self),
-                    where=chained_where,
+                    table=fk_rel._ho_sql_id(),
+                    on=fkey._join_query(self),
+                    where=fk_where_expr,
                     join_type='left join',
                 ))
-                if chained_fkey.is_reverse and not chained_fkey.is_singleton:
-                    is_list = True
-                leaf_rel = chained_rel
-                current_rel = chained_rel
 
-            rel_id = f'r{leaf_rel.ho_id}'
-            if fields:
-                obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                obj_expr = f'json_build_object({obj_pairs})'
-            else:
-                obj_expr = f'row_to_json({rel_id})'
+                leaf_rel = fk_rel
+                current_rel = fk_rel
+                while current_rel._ho_join_to:
+                    if len(current_rel._ho_join_to) > 1:
+                        raise RuntimeError(
+                            f"json_agg: branching FK chains are not supported — "
+                            f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
+                    chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
+                    chained_rel._ho_query_type = 'select'
+                    chained_where = chained_rel.__where_expr(chained_rel.ho_id)
+                    self._ho_ast_joins.append(ASTJoin(
+                        table=chained_rel._ho_sql_id(),
+                        on=chained_fkey._join_query(self),
+                        where=chained_where,
+                        join_type='left join',
+                    ))
+                    if chained_fkey.is_reverse and not chained_fkey.is_singleton:
+                        is_list = True
+                    leaf_rel = chained_rel
+                    current_rel = chained_rel
 
-            if is_list:
-                has_reverse = True
-            entries.append((is_list, leaf_rel, alias, obj_expr))
+                rel_id = f'r{leaf_rel.ho_id}'
+                if fields:
+                    obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
+                    obj_expr = f'json_build_object({obj_pairs})'
+                else:
+                    obj_expr = f'row_to_json({rel_id})'
+
+                if is_list:
+                    has_reverse = True
+                entries.append((is_list, leaf_rel, alias, obj_expr))
 
         # Second pass: build column expressions.
         # GROUP BY is required only when at least one entry produces a list.
