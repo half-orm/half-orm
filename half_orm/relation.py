@@ -1943,7 +1943,7 @@ Fkeys = {"""
                 f"'in <Relation>' requires both sides to be the same relation: "
                 f"{rs}.{rt} is not {ls}.{lt}"
             )
-        return (right - self).ho_count() == 0
+        return (right - self).ho_is_empty()
 
     # Relation objects are not hashable: __eq__ executes SQL queries.
     # Using a Relation as a dict key or in a set would be meaningless.
