@@ -1576,11 +1576,13 @@ Fkeys = {"""
                     current_rel = chained_rel
 
                 rel_id = f'r{leaf_rel.ho_id}'
+                # Use jsonb_build_object / to_jsonb so that DISTINCT has an
+                # equality operator to work with (json type has none).
                 if fields:
                     obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                    obj_expr = f'json_build_object({obj_pairs})'
+                    obj_expr = f'jsonb_build_object({obj_pairs})'
                 else:
-                    obj_expr = f'row_to_json({rel_id})'
+                    obj_expr = f'to_jsonb({rel_id})'
 
                 from_sql = ' '.join(from_parts)
                 where_sql = ' and '.join(where_parts)

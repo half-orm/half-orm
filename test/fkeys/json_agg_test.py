@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Tests for ho_select(json_agg=...) — LEFT JOIN + json_agg aggregation."""
+"""Tests for ho_select(json_agg=...) — LEFT JOIN and correlated-subquery aggregation."""
 
 from unittest import TestCase
 
@@ -330,3 +330,186 @@ class Test(TestCase):
         with self.assertRaises(RuntimeError) as ctx:
             list(p.ho_select(json_agg={'comment_rfk': []}))
         self.assertIn('branching', str(ctx.exception))
+
+
+class TestJsonAggDistinct(TestCase):
+    """Tests for ho_select(json_agg={..., 'distinct': True}).
+
+    When 'distinct': True is set in a spec dict, the LEFT JOIN + GROUP BY
+    strategy is replaced by a correlated subquery with SELECT DISTINCT,
+    which deduplicates aggregated rows that would otherwise appear multiple
+    times due to intermediate JOIN multiplications.
+    """
+
+    def setUp(self):
+        self.person = halftest.person_cls
+        self.post = halftest.post_cls
+        self.comment = halftest.comment_cls
+        self.aa = self.person(**self.person(last_name='aa').ho_get())
+        self.ab = self.person(**self.person(last_name='ab').ho_get())
+        self.post(author_last_name='aa').ho_delete(delete_all=True)
+
+    def tearDown(self):
+        self.post(author_last_name='aa').ho_delete(delete_all=True)
+
+    def _insert_post(self, title, content=''):
+        aa = self.aa
+        return self.post(
+            title=title,
+            content=content,
+            author_first_name=str(aa.first_name),
+            author_last_name=str(aa.last_name),
+            author_birth_date=aa.birth_date.value,
+        ).ho_insert()
+
+    def _insert_comment(self, post_id, content='comment', author_id=None):
+        if author_id is None:
+            author_id = self.aa['id']
+        self.comment(
+            post_id=post_id,
+            content=content,
+            author_id=author_id,
+        ).ho_insert()
+
+    # ------------------------------------------------------------------
+    # Basic correctness
+    # ------------------------------------------------------------------
+
+    def test_distinct_no_related_rows_returns_empty_array(self):
+        "distinct=True must return [] when the joined relation has no rows"
+        p = self.person(last_name='aa')
+        p.post_rfk.set(self.post())
+        rows = list(p.ho_select(json_agg={
+            'post_rfk': {'fields': ['title'], 'distinct': True}
+        }))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['post_rfk'], [])
+
+    def test_distinct_returns_correct_data(self):
+        "distinct=True must return the same data as non-distinct when rows are unique"
+        with Transaction(halftest.model):
+            self._insert_post('d_unique', 'content')
+            p = self.person(last_name='aa')
+            p.post_rfk.set(self.post())
+            rows = list(p.ho_select(json_agg={
+                'post_rfk': {'fields': ['title'], 'distinct': True}
+            }))
+            self.assertEqual(len(rows), 1)
+            posts = rows[0]['post_rfk']
+            self.assertEqual(len(posts), 1)
+            self.assertEqual(posts[0]['title'], 'd_unique')
+
+    def test_distinct_all_fields(self):
+        "distinct=True with empty fields list must return all columns via to_jsonb"
+        with Transaction(halftest.model):
+            row = self._insert_post('d_all_fields', 'c')
+            self._insert_comment(row['id'], 'hello')
+            p = self.post(title='d_all_fields')
+            p.comment_rfk.set(self.comment())
+            rows = list(p.ho_select(json_agg={
+                'comment_rfk': {'fields': [], 'distinct': True}
+            }))
+            comments = rows[0]['comment_rfk']
+            self.assertEqual(len(comments), 1)
+            self.assertIn('content', comments[0])
+            self.assertIn('id', comments[0])
+
+    def test_distinct_with_alias(self):
+        "distinct=True with an explicit alias must name the output column accordingly"
+        with Transaction(halftest.model):
+            row = self._insert_post('d_alias', 'c')
+            self._insert_comment(row['id'], 'hi')
+            p = self.post(title='d_alias')
+            p.comment_rfk.set(self.comment())
+            rows = list(p.ho_select(json_agg={
+                'comment_rfk': {'fields': ['content'], 'alias': 'remarks', 'distinct': True}
+            }))
+            self.assertIn('remarks', rows[0])
+            self.assertNotIn('comment_rfk', rows[0])
+
+    # ------------------------------------------------------------------
+    # Deduplication
+    # ------------------------------------------------------------------
+
+    def test_distinct_deduplicates_identical_objects(self):
+        """Two comments with the same content → 1 object with distinct, 2 without.
+
+        The DISTINCT is on the jsonb object built from the projected fields,
+        so two rows that produce the same json_build_object value collapse to one.
+        """
+        with Transaction(halftest.model):
+            row = self._insert_post('d_dup', 'c')
+            pid = row['id']
+            self._insert_comment(pid, content='same', author_id=self.aa['id'])
+            self._insert_comment(pid, content='same', author_id=self.ab['id'])
+
+            # without distinct: both identical objects appear
+            p = self.post(title='d_dup')
+            p.comment_rfk.set(self.comment())
+            rows = list(p.ho_select(json_agg={'comment_rfk': ['content']}))
+            self.assertEqual(len(rows[0]['comment_rfk']), 2)
+
+            # with distinct: deduplicated to one object
+            p2 = self.post(title='d_dup')
+            p2.comment_rfk.set(self.comment())
+            rows2 = list(p2.ho_select(json_agg={
+                'comment_rfk': {'fields': ['content'], 'distinct': True}
+            }))
+            self.assertEqual(len(rows2[0]['comment_rfk']), 1)
+            self.assertEqual(rows2[0]['comment_rfk'][0]['content'], 'same')
+
+    def test_distinct_preserves_unique_objects(self):
+        "distinct=True must keep distinct objects when their content differs"
+        with Transaction(halftest.model):
+            row = self._insert_post('d_uniq2', 'c')
+            pid = row['id']
+            self._insert_comment(pid, content='first',  author_id=self.aa['id'])
+            self._insert_comment(pid, content='second', author_id=self.ab['id'])
+
+            p = self.post(title='d_uniq2')
+            p.comment_rfk.set(self.comment())
+            rows = list(p.ho_select(json_agg={
+                'comment_rfk': {'fields': ['content'], 'distinct': True}
+            }))
+            contents = {obj['content'] for obj in rows[0]['comment_rfk']}
+            self.assertEqual(contents, {'first', 'second'})
+
+    # ------------------------------------------------------------------
+    # Chained FK
+    # ------------------------------------------------------------------
+
+    def test_distinct_chained_fk(self):
+        "distinct=True on a chained FK (post ← comment → person) must work"
+        with Transaction(halftest.model):
+            row = self._insert_post('d_chained', 'c')
+            self._insert_comment(row['id'], 'hello', author_id=self.aa['id'])
+
+            p = self.post(title='d_chained')
+            c = self.comment()
+            c.author_fk.set(self.person())
+            p.comment_rfk.set(c)
+            rows = list(p.ho_select(json_agg={
+                'comment_rfk': {'fields': ['last_name'], 'distinct': True}
+            }))
+            self.assertEqual(len(rows), 1)
+            persons = rows[0]['comment_rfk']
+            self.assertIsInstance(persons, list)
+            self.assertEqual(persons[0]['last_name'], 'aa')
+
+    # ------------------------------------------------------------------
+    # Direct FK (scalar)
+    # ------------------------------------------------------------------
+
+    def test_distinct_direct_fk_returns_dict(self):
+        "distinct=True on a direct FK must return a dict (scalar subquery)"
+        with Transaction(halftest.model):
+            self._insert_post('d_direct', 'c')
+            p = self.post(author_last_name='aa')
+            p.author_fk.set(self.person())
+            rows = list(p.ho_select(json_agg={
+                'author_fk': {'fields': ['last_name'], 'distinct': True}
+            }))
+            self.assertEqual(len(rows), 1)
+            author = rows[0]['author_fk']
+            self.assertIsInstance(author, dict)
+            self.assertEqual(author['last_name'], 'aa')
