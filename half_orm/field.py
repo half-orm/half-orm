@@ -6,6 +6,7 @@
 import re
 import sys
 import typing
+import yaml
 from collections.abc import Iterable
 from half_orm.null import NULL
 from half_orm.sql_adapter import SQL_ADAPTER
@@ -82,6 +83,7 @@ class Field():
         self.__value = None
         self.__unaccent = False
         self.__comp = '='
+        self.__json_schema = self.__parse_json_schema()
 
     @property
     def _relation(self): # pragma: no cover
@@ -165,13 +167,49 @@ class Field():
         """
         return bool(self.__metadata['notnull'])
 
+    def __parse_json_schema(self):
+        desc = self.__metadata.get('fielddescription') or ''
+        m = re.search(r'@json\s*```yaml\s*(.*?)(?:```|\Z)', desc, re.DOTALL)
+        if not m:
+            return None
+        try:
+            return yaml.safe_load(m.group(1))
+        except yaml.YAMLError:
+            return None
+
+    @property
+    def json_schema(self):
+        """Parsed structure from the ``@json`` block in the column comment, or ``None``.
+
+        Returns the YAML structure as a Python object (dict/list/str) when the
+        column comment contains an ``@json`` block::
+
+            @json
+            ```yaml
+            lang: text          # ISO 639-1
+            views: integer
+            tags: [text]
+            items:
+              - id: uuid
+                name: text
+            ```
+
+        Returns ``None`` when no ``@json`` block is present.
+        """
+        return self.__json_schema
+
     def __repr__(self):
         md_ = self.__metadata
         field_constraint = f"{md_['notnull'] and 'NOT NULL' or ''}"
         repr_ = f"({md_['fieldtype']}) {field_constraint}"
         if self.__is_set:
             repr_ = f"{repr_} ({self.__name} {self.__comp} {self.__value})"
-        return repr_.strip()
+        repr_ = repr_.strip()
+        if self.__json_schema is not None:
+            yaml_str = yaml.dump(self.__json_schema, default_flow_style=False, allow_unicode=True)
+            for line in yaml_str.rstrip('\n').splitlines():
+                repr_ += f'\n    {line}'
+        return repr_
 
     def __str__(self):
         return str(self.__value)

@@ -178,3 +178,30 @@ class Test(TestCase):
         self.assertIsInstance(result, (bytes, memoryview))
         # Must be valid UTF-8 (not raw binary bytes)
         bytes(result).decode('utf-8')
+
+class TestJsonSchema(TestCase):
+    """Field.json_schema — parsed @json block from column comment."""
+
+    def setUp(self):
+        self.post = halftest.post_cls()
+
+    def test_json_schema_parsed_for_annotated_column(self):
+        "blog.post.data has an @json comment — json_schema must return the parsed dict."
+        schema = self.post.data.json_schema
+        self.assertIsNotNone(schema)
+        self.assertIsInstance(schema, dict)
+        self.assertIn('lang', schema)
+        self.assertEqual(schema['lang'], 'text')
+        self.assertIn('views', schema)
+        self.assertEqual(schema['views'], 'integer')
+        self.assertIn('tags', schema)
+        self.assertEqual(schema['tags'], ['text'])
+        self.assertIn('items', schema)
+        self.assertIsInstance(schema['items'], list)
+        self.assertEqual(len(schema['items']), 1)
+        self.assertEqual(schema['items'][0], {'id': 'uuid', 'name': 'text'})
+
+    def test_json_schema_none_for_plain_column(self):
+        "Columns without an @json comment must return None."
+        self.assertIsNone(self.post.title.json_schema)
+        self.assertIsNone(self.post.id.json_schema)

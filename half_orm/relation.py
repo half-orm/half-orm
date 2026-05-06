@@ -30,7 +30,6 @@ from typing import List, Generic, TypeVar, Dict, Optional
 from keyword import iskeyword
 import psycopg
 from psycopg.rows import dict_row
-
 from half_orm import relation_errors
 from half_orm.transaction import Transaction
 from half_orm.field import Field

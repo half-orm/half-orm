@@ -675,3 +675,18 @@ ALTER TABLE ONLY half_orm_meta.hop_release_issue
 -- PostgreSQL database dump complete
 --
 
+COMMENT ON COLUMN blog.post.data IS
+'Post metadata.
+@json
+```yaml
+lang:  text    # ISO 639-1 language code
+views: integer
+tags:  [text]
+items:
+  - id:   uuid
+    name: text
+```
+';
+
+
+

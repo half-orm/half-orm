@@ -88,3 +88,55 @@ for a full walkthrough of filtering and comparators.
       show_root_heading: true
       show_source: false
       heading_level: 3
+
+---
+
+## JSON column schema
+
+For `json` / `jsonb` columns, the internal structure can be documented
+directly in the PostgreSQL column comment using an `@json` block.
+halfORM parses this block at load time and exposes it as
+[`Field.json_schema`](#half_orm.field.Field.json_schema).
+
+### Comment format
+
+The block uses a fenced YAML code block introduced by `@json`:
+
+````sql
+COMMENT ON COLUMN blog.post.data IS
+'Post metadata.
+@json
+```yaml
+lang:  text    # ISO 639-1 language code
+views: integer
+tags:  [text]
+items:
+  - id:   uuid
+    name: text
+```
+';
+````
+
+**Type notation inside the block:**
+
+| Syntax | Meaning |
+|---|---|
+| `field: text` | scalar — PostgreSQL type name |
+| `field: [text]` | array of scalars |
+| `field:` followed by `- key: type` | array of objects |
+| `field:` followed by `key: type` | nested object |
+
+YAML comments (`#`) are supported for inline documentation.
+
+The block is delimited by ` ```yaml ` and ` ``` `. If the closing
+` ``` ` is absent, the block extends to the end of the comment.
+
+This information is displayed by `repr()` under the field line, and is
+accessible programmatically via `Field.json_schema` for use in code
+generators (`ho_dataclasses`, `ho_typeddicts`).
+
+::: half_orm.field.Field.json_schema
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3

@@ -27,6 +27,13 @@ FIELDS:
 - author_last_name:  (text)
 - author_birth_date: (date)
 - data:              (jsonb)
+    items:
+    - id: uuid
+      name: text
+    lang: text
+    tags:
+    - text
+    views: integer
 
 PRIMARY KEY (id)
 UNIQUE CONSTRAINT (title, content)
@@ -91,6 +98,13 @@ FIELDS:
 - author_last_name:  (text)
 - author_birth_date: (date)
 - data:              (jsonb)
+    items:
+    - id: uuid
+      name: text
+    lang: text
+    tags:
+    - text
+    views: integer
 
 PRIMARY KEY (id)
 UNIQUE CONSTRAINT (title, content)
