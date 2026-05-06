@@ -63,6 +63,24 @@ class Test(TestCase):
             for obj in posts:
                 self.assertEqual(set(obj.keys()), {'id', 'title'})
 
+    def test_string_field_returns_scalar_list(self):
+        "json_agg with a string field returns a flat list of scalar values"
+        with Transaction(halftest.model):
+            self._insert_post('s1', 'c')
+            self._insert_post('s2', 'c')
+
+            p = self.person(last_name='aa')
+            p.post_rfk.set(self.post())
+
+            rows = list(p.ho_select(json_agg={'post_rfk': 'title'}))
+            self.assertEqual(len(rows), 1)
+            titles = rows[0]['post_rfk']
+            self.assertIsInstance(titles, list)
+            self.assertEqual(set(titles), {'s1', 's2'})
+            # elements must be scalars, not dicts
+            for t in titles:
+                self.assertNotIsInstance(t, dict)
+
     def test_all_fields(self):
         "json_agg with no field list must return all columns"
         with Transaction(halftest.model):
@@ -374,6 +392,26 @@ class TestJsonAggDistinct(TestCase):
     # ------------------------------------------------------------------
     # Basic correctness
     # ------------------------------------------------------------------
+
+    def test_distinct_string_field_returns_scalar_list(self):
+        "distinct=True with a string field returns a flat deduplicated list of scalars"
+        with Transaction(halftest.model):
+            row = self._insert_post('d_scalar1', 'c')
+            self._insert_post('d_scalar2', 'c')
+            # Two comments with the same content — distinct must deduplicate
+            self._insert_comment(row['id'], content='hello')
+            self._insert_comment(row['id'], content='hello', author_id=self.ab['id'])
+
+            p = self.post(title='d_scalar1')
+            p.comment_rfk.set(self.comment())
+            rows = list(p.ho_select(json_agg={
+                'comment_rfk': {'fields': 'content', 'distinct': True}
+            }))
+            self.assertEqual(len(rows), 1)
+            contents = rows[0]['comment_rfk']
+            self.assertIsInstance(contents, list)
+            # 'hello' appears twice but distinct collapses to one
+            self.assertEqual(contents, ['hello'])
 
     def test_distinct_no_related_rows_returns_empty_array(self):
         "distinct=True must return [] when the joined relation has no rows"

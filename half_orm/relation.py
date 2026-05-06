@@ -1538,8 +1538,13 @@ Fkeys = {"""
                 use_distinct = spec.get('distinct', False)
             else:
                 alias = fkey_attr
-                fields = list(spec)
+                fields = spec   # str → scalar list; list → dict list
                 use_distinct = False
+
+            # str fields → flat list of scalars (no column-name key in output)
+            scalar_mode = isinstance(fields, str)
+            if not scalar_mode:
+                fields = list(fields)
 
             fk_rel._ho_query_type = 'select'
             is_list = fkey.is_reverse and not fkey.is_singleton
@@ -1579,7 +1584,9 @@ Fkeys = {"""
                 rel_id = f'r{leaf_rel.ho_id}'
                 # Use jsonb_build_object / to_jsonb so that DISTINCT has an
                 # equality operator to work with (json type has none).
-                if fields:
+                if scalar_mode:
+                    obj_expr = f'{rel_id}."{fields}"'
+                elif fields:
                     obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
                     obj_expr = f'jsonb_build_object({obj_pairs})'
                 else:
@@ -1628,7 +1635,9 @@ Fkeys = {"""
                     current_rel = chained_rel
 
                 rel_id = f'r{leaf_rel.ho_id}'
-                if fields:
+                if scalar_mode:
+                    obj_expr = f'{rel_id}."{fields}"'
+                elif fields:
                     obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
                     # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
                     obj_expr = (
