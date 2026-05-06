@@ -1,3 +1,8 @@
+# 1.0.0rc9 (2026-05-06)
+
+* feat(json_agg): support string field for flat scalar lists (7b9b463)
+* fix(json_agg): use jsonb when distinct=True to avoid PostgreSQL equality error (5e2488a)
+
 # 1.0.0rc8 (2026-05-05)
 
 * fix(relation): fix jsonb for DISTINCT support with json_agg (8081902)
