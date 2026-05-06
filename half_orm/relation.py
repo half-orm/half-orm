@@ -482,7 +482,8 @@ class Relation:
         """
         if json_agg is not None:
             query, values = self._ho_prep_json_agg_select(
-                *args, json_agg=json_agg, order_by=order_by, limit=limit, offset=offset)
+                *args, json_agg=json_agg, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
             with self.__execute(query, values) as cursor:
                 yield from cursor
             return
@@ -1465,7 +1466,7 @@ Fkeys = {"""
             order_by=order_by, limit=limit, offset=offset,
         ).to_sql()
 
-    def _ho_prep_json_agg_select(self, *args, json_agg,
+    def _ho_prep_json_agg_select(self, *args, json_agg, distinct=False,
         order_by=None, limit=None, offset=None):
         """Prepare a SELECT with json_agg aggregation.
 
@@ -1589,8 +1590,8 @@ Fkeys = {"""
                 if is_list:
                     sub = (f'select distinct {obj_expr} as __obj'
                            f' from {from_sql} where {where_sql}')
-                    col_expr = (f"coalesce((select json_agg(t.__obj)"
-                                f" from ({sub}) t), '[]'::json)")
+                    col_expr = (f"coalesce((select jsonb_agg(t.__obj)"
+                                f" from ({sub}) t), '[]'::jsonb)")
                 else:
                     col_expr = f'(select {obj_expr} from {from_sql} where {where_sql})'
                 columns.append(f'{col_expr} as "{alias}"')
@@ -1629,9 +1630,13 @@ Fkeys = {"""
                 rel_id = f'r{leaf_rel.ho_id}'
                 if fields:
                     obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                    obj_expr = f'json_build_object({obj_pairs})'
+                    # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
+                    obj_expr = (
+                        f'jsonb_build_object({obj_pairs})' if distinct
+                        else f'json_build_object({obj_pairs})'
+                    )
                 else:
-                    obj_expr = f'row_to_json({rel_id})'
+                    obj_expr = f'to_jsonb({rel_id})' if distinct else f'row_to_json({rel_id})'
 
                 if is_list:
                     has_reverse = True
@@ -1640,6 +1645,8 @@ Fkeys = {"""
         # Second pass: build column expressions.
         # GROUP BY is required only when at least one entry produces a list.
         # Scalar entries (dict/None) need special treatment when GROUP BY is present.
+        agg_fn   = 'jsonb_agg' if distinct else 'json_agg'
+        empty_arr = "'[]'::jsonb" if distinct else "'[]'::json"
         for is_list, leaf_rel, alias, obj_expr in entries:
             is_scalar = not is_list
             if not is_scalar:
@@ -1651,11 +1658,11 @@ Fkeys = {"""
                     if fk_pk_fields else ''
                 )
                 columns.append(
-                    f"coalesce(json_agg({obj_expr}){filter_clause}, '[]'::json) as \"{alias}\""
+                    f"coalesce({agg_fn}({obj_expr}){filter_clause}, {empty_arr}) as \"{alias}\""
                 )
             else:
                 # scalar result: at most one leaf row → dict or NULL.
-                # When GROUP BY is present wrap in json_agg and extract element 0.
+                # When GROUP BY is present wrap in agg_fn and extract element 0.
                 if has_reverse:
                     rel_id = f'r{leaf_rel.ho_id}'
                     fk_pk_fields = list(leaf_rel._ho_pkey.keys())
@@ -1663,7 +1670,7 @@ Fkeys = {"""
                         f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
                         if fk_pk_fields else ''
                     )
-                    col_expr = f'(json_agg({obj_expr}){filter_clause})->0'
+                    col_expr = f'({agg_fn}({obj_expr}){filter_clause})->0'
                 else:
                     col_expr = obj_expr
                 columns.append(f"{col_expr} as \"{alias}\"")
@@ -1676,6 +1683,7 @@ Fkeys = {"""
             only=bool(self._ho_only),
             joins=self._ho_ast_joins,
             where=where_expr,
+            distinct=distinct,
             group_by=group_by,
             order_by=order_by,
             limit=limit,

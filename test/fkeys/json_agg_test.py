@@ -513,3 +513,63 @@ class TestJsonAggDistinct(TestCase):
             author = rows[0]['author_fk']
             self.assertIsInstance(author, dict)
             self.assertEqual(author['last_name'], 'aa')
+
+    # ------------------------------------------------------------------
+    # ho_select distinct=True is honoured alongside json_agg
+    # ------------------------------------------------------------------
+
+    def test_ho_select_distinct_honoured_with_json_agg(self):
+        """distinct=True on ho_select deduplicates rows created by a non-json_agg join.
+
+        The correlated-subquery branch (spec 'distinct': True) produces no GROUP BY,
+        so a regular comment_rfk join creates one outer row per comment authored by 'aa'.
+        distinct=True on ho_select must collapse those duplicate person rows to one.
+        """
+        with Transaction(halftest.model):
+            row1 = self._insert_post('d_outer1', 'c')
+            row2 = self._insert_post('d_outer2', 'c')
+            # Two comments authored by 'aa' → comment_rfk join gives 2 rows for person 'aa'
+            self._insert_comment(row1['id'])
+            self._insert_comment(row2['id'])
+
+            def make_rel():
+                p = self.person(last_name='aa')
+                p.comment_rfk.set(self.comment())   # regular join — creates duplicates
+                p.post_rfk.set(self.post())
+                return p
+
+            # Without outer distinct: 2 rows (one per comment)
+            rows_without = list(make_rel().ho_select(
+                json_agg={'post_rfk': {'fields': ['title'], 'distinct': True}},
+            ))
+            self.assertEqual(len(rows_without), 2)
+
+            # With outer distinct: deduplicated to 1 row
+            rows_with = list(make_rel().ho_select(
+                distinct=True,
+                json_agg={'post_rfk': {'fields': ['title'], 'distinct': True}},
+            ))
+            self.assertEqual(len(rows_with), 1)
+            titles = {obj['title'] for obj in rows_with[0]['post_rfk']}
+            self.assertEqual(titles, {'d_outer1', 'd_outer2'})
+
+    def test_ho_select_distinct_with_left_join_json_agg(self):
+        """distinct=True on ho_select does not raise with the LEFT JOIN branch.
+
+        The LEFT JOIN branch adds GROUP BY on the primary key, which already
+        deduplicates rows — distinct=True on ho_select is a no-op semantically,
+        but it must not raise a PostgreSQL error (jsonb columns are required for
+        the equality operator used by DISTINCT).
+        """
+        with Transaction(halftest.model):
+            self._insert_post('d_lj1', 'c')
+            self._insert_post('d_lj2', 'c')
+            p = self.person(last_name='aa')
+            p.post_rfk.set(self.post())
+            rows = list(p.ho_select(
+                distinct=True,
+                json_agg={'post_rfk': ['title']},
+            ))
+            self.assertEqual(len(rows), 1)
+            titles = {obj['title'] for obj in rows[0]['post_rfk']}
+            self.assertEqual(titles, {'d_lj1', 'd_lj2'})
