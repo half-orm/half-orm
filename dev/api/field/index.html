@@ -770,6 +770,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#json-column-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON column schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JSON column schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comment-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comment format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.field.Field.json_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1282,6 +1321,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#json-column-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON column schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JSON column schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comment-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comment format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.field.Field.json_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1606,6 +1684,95 @@ Requires the PostgreSQL <code>unaccent</code> extension to be installed.</p>
 
     </div>
 
+</div><hr />
+<h2 id="json-column-schema">JSON column schema<a class="headerlink" href="#json-column-schema" title="Permanent link">&para;</a></h2>
+<p>For <code>json</code> / <code>jsonb</code> columns, the internal structure can be documented
+directly in the PostgreSQL column comment using an <code>@json</code> block.
+halfORM parses this block at load time and exposes it as
+<a href="#half_orm.field.Field.json_schema"><code>Field.json_schema</code></a>.</p>
+<h3 id="comment-format">Comment format<a class="headerlink" href="#comment-format" title="Permanent link">&para;</a></h3>
+<p>The block uses a fenced YAML code block introduced by <code>@json</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">COMMENT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="p">.</span><span class="k">data</span><span class="w"> </span><span class="k">IS</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s1">&#39;Post metadata.</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s1">@json</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="s1">```yaml</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s1">lang:  text    # ISO 639-1 language code</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="s1">views: integer</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="s1">tags:  [text]</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="s1">items:</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="s1">  - id:   uuid</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="s1">    name: text</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="s1">```</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="s1">&#39;</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>Type notation inside the block:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Syntax</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>field: text</code></td>
+<td>scalar — PostgreSQL type name</td>
+</tr>
+<tr>
+<td><code>field: [text]</code></td>
+<td>array of scalars</td>
+</tr>
+<tr>
+<td><code>field:</code> followed by <code>- key: type</code></td>
+<td>array of objects</td>
+</tr>
+<tr>
+<td><code>field:</code> followed by <code>key: type</code></td>
+<td>nested object</td>
+</tr>
+</tbody>
+</table>
+<p>YAML comments (<code>#</code>) are supported for inline documentation.</p>
+<p>The block is delimited by <code>```yaml</code> and <code>```</code>. If the closing
+<code>```</code> is absent, the block extends to the end of the comment.</p>
+<p>This information is displayed by <code>repr()</code> under the field line, and is
+accessible programmatically via <code>Field.json_schema</code> for use in code
+generators (<code>ho_dataclasses</code>, <code>ho_typeddicts</code>).</p>
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="half_orm.field.Field.json_schema" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">json_schema</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#half_orm.field.Field.json_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Parsed structure from the <code>@json</code> block in the column comment, or <code>None</code>.</p>
+<p>Returns the YAML structure as a Python object (dict/list/str) when the
+column comment contains an <code>@json</code> block::</p>
+<div class="highlight"><pre><span></span><code>@json
+```yaml
+lang: text          # ISO 639-1
+views: integer
+tags: [text]
+items:
+  - id: uuid
+    name: text
+```
+</code></pre></div>
+<p>Returns <code>None</code> when no <code>@json</code> block is present.</p>
+
+    </div>
+
 </div>
 
 
@@ -1629,7 +1796,7 @@ Requires the PostgreSQL <code>unaccent</code> extension to be installed.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 12, 2026 09:00:06 UTC">April 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 6, 2026 09:01:57 UTC">May 6, 2026</span>
   </span>
 
     
