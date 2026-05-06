@@ -1,3 +1,8 @@
+# 1.0.0rc10 (2026-05-06)
+
+* chore(build): add pyyaml dependency to pyproject.toml (5b946e8)
+* feat(field): add Field.json_schema — parse @json YAML block from column comment (49db262)
+
 # 1.0.0rc9 (2026-05-06)
 
 * feat(json_agg): support string field for flat scalar lists (7b9b463)
