@@ -154,6 +154,14 @@ def update_changelog(new: str, log: str):
     path.write_text(entry + path.read_text())
 
 
+def update_codemeta(new: str):
+    path = ROOT / 'codemeta.json'
+    data = json.loads(path.read_text())
+    data['version'] = new
+    data['dateModified'] = date.today().strftime('%Y-%m-%dT%H:%M:%SZ')
+    path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + '\n')
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -207,6 +215,7 @@ def main():
         print(f'\n[DRY RUN] Would update:')
         print(f'  half_orm/version.txt  → {new}')
         print(f'  pyproject.toml        → version = "{new}"')
+        print(f'  codemeta.json         → version = "{new}"')
         print(f'  CHANGELOG.md          → prepend:\n')
         print(f'# {new} ({today})\n\n{log}\n')
         print(f'[DRY RUN] Would commit "[release] {new}" and tag "v{new}"')
@@ -214,16 +223,18 @@ def main():
 
     update_version_txt(new)
     update_pyproject(new)
+    update_codemeta(new)
     update_changelog(new, log)
 
     print(f'\nUpdated:')
     print(f'  half_orm/version.txt  → {new}')
     print(f'  pyproject.toml        → version = "{new}"')
+    print(f'  codemeta.json         → version = "{new}"')
     print(f'  CHANGELOG.md          → # {new} …')
 
     # --- Commit + tag ---------------------------------------------------------
     run('git', 'add',
-        'half_orm/version.txt', 'pyproject.toml', 'CHANGELOG.md',
+        'half_orm/version.txt', 'pyproject.toml', 'codemeta.json', 'CHANGELOG.md',
         capture=False)
     run('git', 'commit', '-m', f'[release] {new}', capture=False)
     run('git', 'tag', f'v{new}', capture=False)

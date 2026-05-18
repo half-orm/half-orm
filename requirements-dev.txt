@@ -1,5 +1,5 @@
 build
--e git+ssh://git@github.com/half-orm/half-orm@38eacd38e5d07b3a09f34ccac270ebb1c4fd864d#egg=half_orm
+-e .
 pylance
 pylint
 pytest
