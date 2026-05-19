@@ -1,3 +1,9 @@
+# 1.0.0rc11 (2026-05-19)
+
+* dependencies: add flake8 to requirements-dev. (d19edd6)
+* feat(relation)!: remove DC_Relation class. This is managed by half-orm-dev. (d820a9e)
+* feat(makefile): make release now updates codemeta.json (191a222)
+
 # 1.0.0rc10 (2026-05-06)
 
 * chore(build): add pyyaml dependency to pyproject.toml (5b946e8)
