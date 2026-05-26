@@ -1,3 +1,7 @@
+# 1.0.0rc13 (2026-05-26)
+
+* typing(pep561): add py.typed marker and fix Optional annotations (c0c4e1a)
+
 # 1.0.0rc12 (2026-05-26)
 
 * fix(releation): remove duplicates in json_agg using order by (bd9f568)
