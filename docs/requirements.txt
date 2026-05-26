@@ -3,3 +3,4 @@ mkdocs-material>=9.0.0
 mkdocstrings[python]>=0.20.0
 mkdocs-git-revision-date-localized-plugin>=1.2.0
 pymdown-extensions>=10.0.0
+griffe-sphinx>=0.1.0

@@ -341,6 +341,162 @@ class TestSecurityWarnings:
                             mock_trust.assert_called_once_with('half-orm-test', '0.16.0')
 
 
+class TestPreCheck:
+    """Test pre_check hook in the extension mechanism."""
+
+    def setup_method(self):
+        self.runner = CliRunner()
+
+    def _make_extensions(self, pre_check=None):
+        """Build a minimal mock extensions dict."""
+        return {
+            'half-orm-dummy': {
+                'module': Mock(),
+                'package_name': 'half-orm-dummy',
+                'version': '0.0.0',
+                'metadata': {'description': ''},
+                'display_name': 'dummy',
+                'pre_check': pre_check,
+            }
+        }
+
+    def test_pre_check_stored_when_defined(self):
+        """pre_check attribute is captured during discovery."""
+        import half_orm
+        real_version = half_orm.__version__
+
+        mock_ext = Mock()
+        mock_ext.__name__ = 'half_orm_dummy.cli_extension'
+        mock_ext.add_commands = Mock()
+
+        def pre_check_fn(ctx):
+            pass
+
+        mock_ext.pre_check = pre_check_fn
+
+        mock_dist = Mock()
+        mock_dist.metadata = {'Name': 'half-orm-dummy'}
+        mock_dist.version = real_version
+
+        import importlib
+        original = importlib.import_module
+
+        def fake_import(name):
+            if name == 'half_orm_dummy.cli_extension':
+                return mock_ext
+            return original(name)
+
+        import half_orm.cli
+        half_orm.cli._cached_extensions = None
+
+        with patch('half_orm.cli.distributions', return_value=[mock_dist]):
+            with patch('importlib.import_module', side_effect=fake_import):
+                with patch('half_orm.cli.is_official_extension', return_value=True):
+                    with patch('half_orm.cli_utils.get_extension_name_from_module', return_value='dummy'):
+                        with patch('half_orm.cli_utils.get_package_metadata', return_value={'description': ''}):
+                            exts = discover_extensions()
+
+        assert 'half-orm-dummy' in exts
+        assert exts['half-orm-dummy']['pre_check'] is pre_check_fn
+
+        half_orm.cli._cached_extensions = None
+
+    def test_pre_check_absent_when_not_defined(self):
+        """pre_check is None when the extension does not define it."""
+        import half_orm
+        real_version = half_orm.__version__
+
+        mock_ext = Mock(spec=['__name__', 'add_commands'])
+        mock_ext.__name__ = 'half_orm_dummy.cli_extension'
+        mock_ext.add_commands = Mock()
+
+        mock_dist = Mock()
+        mock_dist.metadata = {'Name': 'half-orm-dummy'}
+        mock_dist.version = real_version
+
+        import importlib
+        original = importlib.import_module
+
+        def fake_import(name):
+            if name == 'half_orm_dummy.cli_extension':
+                return mock_ext
+            return original(name)
+
+        import half_orm.cli
+        half_orm.cli._cached_extensions = None
+
+        with patch('half_orm.cli.distributions', return_value=[mock_dist]):
+            with patch('importlib.import_module', side_effect=fake_import):
+                with patch('half_orm.cli.is_official_extension', return_value=True):
+                    with patch('half_orm.cli_utils.get_extension_name_from_module', return_value='dummy'):
+                        with patch('half_orm.cli_utils.get_package_metadata', return_value={'description': ''}):
+                            exts = discover_extensions()
+
+        assert 'half-orm-dummy' in exts
+        assert exts['half-orm-dummy']['pre_check'] is None
+
+        half_orm.cli._cached_extensions = None
+
+    def test_pre_check_called_before_command_resolution(self):
+        """pre_check is invoked when a command is resolved."""
+        called = []
+
+        def pre_check_fn(ctx):
+            called.append(True)
+
+        exts = self._make_extensions(pre_check=pre_check_fn)
+
+        with patch('half_orm.cli.discover_extensions', return_value=exts):
+            result = self.runner.invoke(main, ['version'])
+
+        assert called, "pre_check was not called"
+        assert result.exit_code == 0
+
+    def test_pre_check_click_exception_aborts(self):
+        """A ClickException raised in pre_check aborts command execution."""
+        import click
+
+        def pre_check_fn(ctx):
+            raise click.ClickException("pre_check failed")
+
+        exts = self._make_extensions(pre_check=pre_check_fn)
+
+        with patch('half_orm.cli.discover_extensions', return_value=exts):
+            result = self.runner.invoke(main, ['version'])
+
+        assert result.exit_code != 0
+        assert 'pre_check failed' in result.output
+
+    def test_pre_check_generic_exception_wrapped(self):
+        """A non-Click exception raised in pre_check is wrapped in ClickException."""
+        def pre_check_fn(ctx):
+            raise RuntimeError("something went wrong")
+
+        exts = self._make_extensions(pre_check=pre_check_fn)
+
+        with patch('half_orm.cli.discover_extensions', return_value=exts):
+            result = self.runner.invoke(main, ['version'])
+
+        assert result.exit_code != 0
+        assert 'something went wrong' in result.output
+
+    def test_no_pre_check_does_not_break(self):
+        """Extensions without pre_check are unaffected by the new mechanism."""
+        exts = self._make_extensions(pre_check=None)
+        # Register a real dummy command so the CLI has something to resolve
+        import click as _click
+
+        @_click.command(name='dummy-cmd')
+        def _dummy():
+            _click.echo('ok')
+
+        with patch('half_orm.cli.discover_extensions', return_value=exts):
+            with patch.object(main, 'get_command', return_value=_dummy):
+                result = self.runner.invoke(main, ['dummy-cmd'])
+
+        assert result.exit_code == 0
+
+
 class TestIntegrationTests:
     """Integration tests for complete CLI workflows."""
     

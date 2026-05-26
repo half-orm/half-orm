@@ -155,6 +155,31 @@ EXTENSION_INFO = {
 }
 
 
+def pre_check(ctx):
+    """
+    Optional hook called before any command is resolved.
+
+    Implement this function to run environment or precondition checks
+    before halfORM searches for and executes any subcommand.  Raise a
+    ``click.ClickException`` (or any exception) to abort with an error
+    message; return normally to let execution continue.
+
+    Args:
+        ctx: The Click context of the top-level ``half_orm`` group.
+
+    Examples:
+        Check that the current directory is a halfORM project::
+
+            from pathlib import Path
+            if not Path('.half_orm').exists():
+                raise click.ClickException(
+                    "Not in a halfORM project directory. "
+                    "Run 'half_orm dev new <project>' first."
+                )
+    """
+    pass  # No preconditions for this example extension
+
+
 def add_commands(cli_group):
     """
     Required entry point for halfORM extensions.
@@ -191,6 +216,9 @@ def add_commands(cli_group):
     cli_group.add_command(extension_group)
 ```
 
+!!! tip "Le hook `pre_check` est optionnel"
+    Si l'extension ne définit pas `pre_check`, le comportement est identique à avant : aucune vérification préalable n'est effectuée. Le hook ne sera appelé que si la fonction est présente dans le module `cli_extension`.
+
 ### 4. Extension Package Initialization
 
 Update `half_orm_example/__init__.py`:
@@ -219,3 +247,55 @@ Create `requirements.txt`:
 half-orm>=0.16.0
 pytest>=6.0  # For testing
 ```
+
+## Extension Lifecycle Hooks
+
+### `pre_check(ctx)` — precondition hook
+
+halfORM automatically calls `pre_check(ctx)` **before any command is resolved**, for every extension that defines this function.
+
+| Aspect | Detail |
+|---|---|
+| **When** | Before the CLI searches for and executes any subcommand |
+| **Argument** | `ctx` — Click context of the top-level `half_orm` group |
+| **To abort** | Raise a `click.ClickException` (displayed cleanly) or any other exception (automatically wrapped in a `ClickException`) |
+| **To continue** | Return normally (`return` or `pass`) |
+| **Optional** | Yes — extensions that do not define `pre_check` are unaffected |
+
+**Typical use cases:**
+
+- Check that the current directory is a valid halfORM project
+- Verify the presence of a required configuration file
+- Validate an environment variable required by the extension
+- Check the availability of an external service
+
+**Example — project directory check:**
+
+```python
+from pathlib import Path
+import click
+
+def pre_check(ctx):
+    if not (Path.cwd() / '.half_orm').exists():
+        raise click.ClickException(
+            "Not in a halfORM project directory. "
+            "Run 'half_orm dev new <project>' first."
+        )
+```
+
+**Example — required environment variable:**
+
+```python
+import os
+import click
+
+def pre_check(ctx):
+    if not os.environ.get('MY_EXT_API_KEY'):
+        raise click.ClickException(
+            "MY_EXT_API_KEY environment variable is not set."
+        )
+```
+
+!!! warning "Performance"
+    `pre_check` is called on every CLI invocation, including `half_orm --help`.
+    Keep checks lightweight — avoid network calls or expensive I/O operations.

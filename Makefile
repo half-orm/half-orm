@@ -18,6 +18,15 @@ clean_coverage:
 clean_build:
 	rm -rf dist
 
+docs-deps:
+	pip install -r docs/requirements.txt
+
+docs: docs-deps
+	mkdocs build
+
+docs-serve: docs-deps
+	mkdocs serve
+
 check_publish_ready:
 	@git diff --quiet && git diff --cached --quiet || { echo "ERROR: repository is not clean."; exit 1; }
 	@git describe --tags --exact-match --match 'v[0-9]*.[0-9]*.[0-9]*' HEAD > /dev/null 2>&1 || { echo "ERROR: HEAD has no vX.Y.Z[-...] tag."; exit 1; }

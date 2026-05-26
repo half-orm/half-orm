@@ -43,6 +43,17 @@ class CustomGroup(click.Group):
 
     def resolve_command(self, ctx, args):
         """Override to show available commands when command not found."""
+        extensions = discover_extensions()
+        for ext_data in extensions.values():
+            pre_check = ext_data.get('pre_check')
+            if pre_check is not None:
+                try:
+                    pre_check(ctx)
+                except (click.ClickException, SystemExit):
+                    raise
+                except Exception as e:
+                    raise click.ClickException(str(e))
+
         try:
             return super().resolve_command(ctx, args)
         except click.UsageError as e:
@@ -253,7 +264,8 @@ def discover_extensions() -> Dict[str, Any]:
                     'package_name': package_name,
                     'version': current_version,
                     'metadata': pkg_metadata,  # Use auto-discovered metadata
-                    'display_name': display_name
+                    'display_name': display_name,
+                    'pre_check': getattr(extension_module, 'pre_check', None),
                 }
 
         except ImportError as exc:
