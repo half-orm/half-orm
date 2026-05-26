@@ -1,3 +1,8 @@
+# 1.0.0rc12 (2026-05-26)
+
+* fix(releation): remove duplicates in json_agg using order by (bd9f568)
+* feat(cli): add pre_check hook to extension lifecycle (8b9c5b6)
+
 # 1.0.0rc11 (2026-05-19)
 
 * dependencies: add flake8 to requirements-dev. (d19edd6)
