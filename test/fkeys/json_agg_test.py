@@ -591,6 +591,64 @@ class TestJsonAggDistinct(TestCase):
             titles = {obj['title'] for obj in rows_with[0]['post_rfk']}
             self.assertEqual(titles, {'d_outer1', 'd_outer2'})
 
+    def test_distinct_with_chain_multiplied_outer_rows_no_duplicates(self):
+        """Outer distinct=True + spec distinct: True must collapse outer rows
+        even when an external chain join multiplies them.
+
+        The correlated subquery's jsonb_agg must use ORDER BY so that two
+        evaluations for the same outer PK produce identical jsonb arrays —
+        otherwise outer SELECT DISTINCT cannot collapse the duplicates.
+
+        We verify this both structurally (SQL contains ORDER BY) and
+        behaviourally (result is deterministically sorted). The structural
+        check is the reliable one: behaviour can pass by coincidence when
+        PostgreSQL happens to choose sort-based DISTINCT internally.
+        """
+        p = self.post(title='multi_tag')
+        p.comment_rfk.set(self.comment())   # chain — multiplies outer rows
+
+        # Structural check: the generated SQL must contain ORDER BY inside
+        # the correlated subquery's jsonb_agg. This fails without the fix.
+        query, _ = p._ho_prep_json_agg_select(
+            json_agg={
+                'comment_rfk': {
+                    'fields': 'content',
+                    'distinct': True,
+                }
+            },
+            distinct=True,
+        )
+        self.assertIn(
+            'jsonb_agg(t.__obj order by t.__obj)', query.lower(),
+            msg=f"jsonb_agg must use ORDER BY for deterministic output.\nSQL:\n{query}",
+        )
+
+        # Behavioural check: end-to-end round-trip yields exactly one outer
+        # row and a sorted array (insertion order is non-alphabetical).
+        with Transaction(halftest.model):
+            row = self._insert_post('multi_tag', 'c')
+            pid = row['id']
+            for content in ('delta', 'bravo', 'alpha', 'charlie'):
+                self._insert_comment(pid, content=content)
+
+            p2 = self.post(title='multi_tag')
+            p2.comment_rfk.set(self.comment())  # chain — multiplies outer rows
+            rows = list(p2.ho_select(
+                distinct=True,
+                json_agg={
+                    'comment_rfk': {
+                        'fields': 'content',
+                        'distinct': True,
+                    }
+                },
+            ))
+
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(
+                rows[0]['comment_rfk'],
+                ['alpha', 'bravo', 'charlie', 'delta'],
+            )
+
     def test_ho_select_distinct_with_left_join_json_agg(self):
         """distinct=True on ho_select does not raise with the LEFT JOIN branch.
 

@@ -1525,7 +1525,11 @@ Fkeys = {"""
                 if is_list:
                     sub = (f'select distinct {obj_expr} as __obj'
                            f' from {from_sql} where {where_sql}')
-                    col_expr = (f"coalesce((select jsonb_agg(t.__obj)"
+                    # ORDER BY makes jsonb_agg deterministic so that duplicate
+                    # outer rows (from constraint-chain joins re-evaluating the
+                    # correlated subquery) produce identical arrays — required
+                    # for outer SELECT DISTINCT to collapse them.
+                    col_expr = (f"coalesce((select jsonb_agg(t.__obj order by t.__obj)"
                                 f" from ({sub}) t), '[]'::jsonb)")
                 else:
                     col_expr = f'(select {obj_expr} from {from_sql} where {where_sql})'
