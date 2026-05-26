@@ -40,4 +40,4 @@ where = ["."]
 include = ["half_orm*"]
 
 [tool.setuptools.package-data]
-half_orm = ["migrations/*.md", "version.txt"]
+half_orm = ["migrations/*.md", "version.txt", "py.typed"]

@@ -189,7 +189,7 @@ class Relation:
         query, vals = stmt.to_sql()
         return query, tuple(vals)
 
-    def ho_insert(self, *args, upsert:Optional[bool]=False) -> '[dict]':
+    def ho_insert(self, *args, upsert:Optional[bool]=False) -> 'dict':
         """Insert the row described by this predicate. *Executes SQL.*
 
         Args:
@@ -331,7 +331,8 @@ class Relation:
         return query, values, can_dedup, pk_names
 
     def ho_select(self, *args,
-        distinct:bool=False, order_by:str=None, limit:int=None, offset: int=None,
+        distinct:bool=False, order_by:Optional[str]=None,
+        limit:Optional[int]=None, offset: Optional[int]=None,
         json_agg=None):
         """Enumerate the extension of this predicate. *Executes SQL.*
 
@@ -1728,7 +1729,8 @@ Fkeys = {"""
         return res[0]
 
     async def ho_aselect(self, *args,
-        distinct: bool=False, order_by: str=None, limit: int=None, offset: int=None):
+        distinct: bool=False, order_by: Optional[str]=None,
+        limit: Optional[int]=None, offset: Optional[int]=None):
         """Async variant of ho_select. Returns a list of dicts (not a generator). *Executes SQL.*
 
         *New in version 0.18.0.*
