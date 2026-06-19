@@ -205,3 +205,21 @@ class TestJsonSchema(TestCase):
         "Columns without an @json comment must return None."
         self.assertIsNone(self.post.title.json_schema)
         self.assertIsNone(self.post.id.json_schema)
+
+
+class TestHasDefaultValue(TestCase):
+    """Field.has_default_value — default expression from pg_attrdef."""
+
+    def setUp(self):
+        self.pers = halftest.person_cls()
+
+    def test_fields_with_default(self):
+        "actor.person.id and motto have defaults — has_default_value must return the exact expression."
+        self.assertEqual(self.pers.id.has_default_value, "nextval('actor.id_person'::regclass)")
+        self.assertEqual(self.pers.motto.has_default_value, "''::text")
+
+    def test_fields_without_default(self):
+        "actor.person.first_name, last_name, birth_date have no default — has_default_value must be None."
+        self.assertIsNone(self.pers.first_name.has_default_value)
+        self.assertIsNone(self.pers.last_name.has_default_value)
+        self.assertIsNone(self.pers.birth_date.has_default_value)

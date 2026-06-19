@@ -111,7 +111,8 @@ SELECT
     cn_fk.confrelid AS fkeytableid,
     cn_fk.confkey AS fkeynum,
     cn_fk.confupdtype as fkey_confupdtype,
-    cn_fk.confdeltype as fkey_confdeltype
+    cn_fk.confdeltype as fkey_confdeltype,
+    pg_get_expr(d.adbin, d.adrelid) AS default_expr
 FROM
     pg_class c -- table
     LEFT JOIN pg_description tdesc ON
@@ -128,6 +129,9 @@ FROM
     adesc.objsubid = a.attnum
     JOIN pg_type pt ON
     a.atttypid = pt.oid
+    LEFT JOIN pg_attrdef d ON
+    d.adrelid = a.attrelid AND
+    d.adnum = a.attnum
     LEFT JOIN pg_constraint cn_uniq ON
     cn_uniq.contype = 'u' AND
     cn_uniq.conrelid = a.attrelid AND
@@ -175,7 +179,9 @@ GROUP BY
     cn_fk.confrelid,
     cn_fk.confkey,
     cn_fk.confupdtype,
-    cn_fk.confdeltype
+    cn_fk.confdeltype,
+    d.adbin,
+    d.adrelid
 ORDER BY
     n.nspname, c.relname, a.attnum
 """

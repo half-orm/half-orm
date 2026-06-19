@@ -167,6 +167,20 @@ class Field():
         """
         return bool(self.__metadata['notnull'])
 
+    @property
+    def has_default_value(self):
+        """The default expression for this column, or ``None`` if there is none.
+
+        Returns the PostgreSQL expression string as stored in ``pg_attrdef``,
+        e.g. ``"nextval('seq'::regclass)"``, ``"'active'::text"``, ``"now()"``.
+
+        Example::
+
+            Author().id.has_default_value        # "nextval('author_id_seq'::regclass)"
+            Author().last_name.has_default_value # None
+        """
+        return self.__metadata.get('default_expr')
+
     def __parse_json_schema(self):
         desc = self.__metadata.get('fielddescription') or ''
         m = re.search(r'@json\s*```yaml\s*(.*?)(?:```|\Z)', desc, re.DOTALL)
