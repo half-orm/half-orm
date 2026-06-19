@@ -1,3 +1,8 @@
+# 1.0.0rc14 (2026-06-19)
+
+* feat(field): add has_default_value property to Field (2fb7443)
+* Add my name in AUTHORS (d6da8a8)
+
 # 1.0.0rc13 (2026-05-26)
 
 * typing(pep561): add py.typed marker and fix Optional annotations (c0c4e1a)
