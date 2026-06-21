@@ -6,11 +6,15 @@
 import re
 import sys
 import typing
+import warnings
 import yaml
 from collections.abc import Iterable
 from half_orm.null import NULL
 from half_orm.sql_adapter import SQL_ADAPTER
 from half_orm.sql_ast import FieldExpr
+
+
+_TEXT_LIKE_TYPES = {'text', 'varchar', 'character varying', 'char', 'bpchar', 'name', 'citext'}
 
 
 class Expr:
@@ -252,7 +256,7 @@ class Field():
             cast = f'::{self.__sql_type}'
         if col_is_array and comp == '=':
             where_repr = f'{comp_str} = ANY({self.__praf(query, ho_id)})'
-        elif not self.unaccent:
+        elif not self.unaccent or not self._is_text_like:
             where_repr = f"{self.__praf(query, ho_id)} {comp} {comp_str}{cast}"
         else:
             where_repr = f"unaccent({self.__praf(query, ho_id)}) {comp} unaccent({comp_str}{cast})"
@@ -296,7 +300,7 @@ class Field():
             comp=comp,
             placeholder=f'{comp_str}{cast}',
             value=self,
-            unaccent=self.unaccent,
+            unaccent=self.unaccent and self._is_text_like,
             array_any=is_array_any,
         )
 
@@ -366,7 +370,7 @@ class Field():
             self.__comp = '='
             self.__unaccent = False
             return
-        self.__unaccent = unaccent
+        self.unaccent = unaccent
         comp = None
         if isinstance(value, tuple):
             if len(value) != 2:
@@ -428,10 +432,22 @@ class Field():
         """
         return self.__unaccent
 
+    @property
+    def _is_text_like(self):
+        base_type = self.__sql_type.lstrip('_')
+        return base_type in _TEXT_LIKE_TYPES
+
     @unaccent.setter
     def unaccent(self, value):
         if not isinstance(value, bool):
             raise RuntimeError('unaccent value must be True or False!')
+        if value and not self._is_text_like:
+            warnings.warn(
+                f"unaccent ignored: field '{self.__name}' has non-text type '{self.__sql_type}'",
+                UserWarning,
+                stacklevel=2,
+            )
+            value = False
         self.__unaccent = value
 
     def _comp(self):
