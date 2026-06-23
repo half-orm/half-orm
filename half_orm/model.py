@@ -41,6 +41,18 @@ CONF_DIR = os.path.abspath(environ.get('HALFORM_CONF_DIR', '/etc/half_orm'))
 
 # UUID is natively supported in psycopg 3
 
+_SQL_TO_JSON = {
+    'uuid': 'string', 'text': 'string', 'varchar': 'string', 'bpchar': 'string',
+    'int4': 'integer', 'int8': 'integer', 'int2': 'integer',
+    'float4': 'number', 'float8': 'number', 'numeric': 'number',
+    'bool': 'boolean',
+    'date': 'date', 'timestamp': 'datetime', 'timestamptz': 'datetime',
+    'jsonb': 'json', 'json': 'json',
+}
+def _sql_to_json_type(sql_type: str) -> str:
+    base = sql_type.lstrip('_')
+    return _SQL_TO_JSON.get(base, 'string')
+
 register = register_class
 
 class Model:
@@ -166,6 +178,106 @@ class Model:
             self.__deja_vu[self.__dbname] = self
 
     reconnect = __connect
+
+    def ho_meta(self) -> dict:
+        """Return a structured description of all relations visible in the database scope.
+
+        For each relation (table, view, materialized view…) the returned dict maps
+        ``'<schema>/<table>'`` keys to a metadata dict with the following structure::
+
+            {
+                'schema':      str,          # schema name
+                'table':       str,          # relation name
+                'kind':        str,          # 'r' table, 'v' view, 'm' matview, 'p' partition
+                'pk_fields':   list[str],    # primary-key column names
+                'fields': [
+                    {
+                        'name':        str,   # column name
+                        'sql_type':    str,   # PostgreSQL type (e.g. 'text', 'int4')
+                        'json_type':   str,   # JSON schema type (e.g. 'string', 'integer')
+                        'is_pk':       bool,
+                        'not_null':    bool,
+                        'has_default': bool,
+                    },
+                    ...
+                ],
+                'fk_deps': [              # outgoing foreign keys
+                    {
+                        'local_fields':  list[str],
+                        'remote_schema': str,
+                        'remote_table':  str,
+                        'remote_fields': list[str],
+                    },
+                    ...
+                ],
+                'reverse_fks': [          # incoming foreign keys
+                    {
+                        'local_fields':  list[str],
+                        'remote_schema': str,
+                        'remote_table':  str,
+                        'remote_fields': list[str],
+                        'is_singleton':  bool,
+                    },
+                    ...
+                ],
+            }
+
+        Returns:
+            dict: mapping ``'<schema>/<table>'`` → metadata dict (see above).
+
+        Example::
+
+            model = Model('halftest')
+            meta = model.ho_meta()
+            person = meta['actor/person']
+            print(person['kind'])        # 'r'
+            print(person['pk_fields'])   # ['id']
+            for f in person['fields']:
+                print(f['name'], f['sql_type'])
+        """
+        result = {}
+        for kind, sfqrn, _ in self.desc():
+            dbname, schema, table = sfqrn
+            key = f'{schema}/{table}'
+            fields_meta = self._fields_metadata(sfqrn)
+            fkeys_meta = self._fkeys_metadata(sfqrn)
+            pk_fields = self._pkey_constraint(sfqrn)
+
+            fields = []
+            for fname, fdata in fields_meta.items():
+                fields.append({
+                    'name': fname,
+                    'sql_type': fdata['fieldtype'],
+                    'json_type': _sql_to_json_type(fdata['fieldtype']),  # helper à ajouter
+                    'is_pk': bool(fdata.get('pkey')),
+                    'not_null': bool(fdata.get('notnull')),
+                    'has_default': fdata.get('default_expr') is not None,
+                })
+
+            fk_deps, reverse_fks = [], []
+            for fk_name, fk_data in fkeys_meta.items():
+                ftable_key, ffields, local_fields, upd, del_, is_reverse, is_singleton = fk_data
+                _, r_schema, r_table = ftable_key
+                entry = {
+                    'local_fields': local_fields,
+                    'remote_schema': r_schema,
+                    'remote_table': r_table,
+                    'remote_fields': ffields,
+                }
+                if is_reverse:
+                    entry['is_singleton'] = is_singleton
+                    reverse_fks.append(entry)
+                else:
+                    fk_deps.append(entry)
+
+            result[key] = {
+                'schema': schema, 'table': table, 'kind': kind,
+                'pk_fields': pk_fields,
+                'fields': fields,
+                'fk_deps': fk_deps,
+                'reverse_fks': reverse_fks,
+            }
+        return result
 
     def get_relation_class(self, relation_name: str, fields_aliases: typing.Dict=None): # -> Relation
         """Generate a :class:`~half_orm.relation.Relation` subclass for a table or view.

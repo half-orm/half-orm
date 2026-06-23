@@ -98,6 +98,7 @@ OFFICIAL_EXTENSIONS = {
     'half_orm_test_extension',
     'half_orm_inspect',
     'half_orm_dev',
+    'half_orm_gen'
 }
 
 def get_config_file():
