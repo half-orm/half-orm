@@ -1,3 +1,9 @@
+# 1.0.0rc15 (2026-06-23)
+
+* docs(model): add ho_meta docstring and unit tests (2cb730c)
+* add half-orm logo (ebbb7f3)
+* fix(field): restrict unaccent to text-like fields (d24b1ce)
+
 # 1.0.0rc14 (2026-06-19)
 
 * feat(field): add has_default_value property to Field (2fb7443)
