@@ -55,3 +55,23 @@ class Test(TestCase):
         with self.assertRaises(SystemExit) as cm:
             utils.error('coucou', 42)
         self.assertEqual(cm.exception.code, 42)
+
+    def test_error_show_caller(self):
+        f = io.StringIO()
+        with contextlib.redirect_stderr(f):
+            utils.error('boom', show_caller=True)
+        output = f.getvalue()
+        self.assertIn('\x1b[1mhalf-orm ERROR\x1b[0m:', output)
+        self.assertIn('misc_test.py', output)
+        self.assertIn('test_error_show_caller', output)
+        self.assertIn("utils.error('boom', show_caller=True)", output)
+
+    def test_warning_show_caller(self):
+        f = io.StringIO()
+        with contextlib.redirect_stderr(f):
+            utils.warning('coucou', show_caller=True)
+        output = f.getvalue()
+        self.assertIn('\x1b[1mhalf-orm WARNING\x1b[0m: coucou', output)
+        self.assertIn('misc_test.py', output)
+        self.assertIn('test_warning_show_caller', output)
+        self.assertIn("utils.warning('coucou', show_caller=True)", output)

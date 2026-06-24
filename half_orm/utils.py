@@ -45,15 +45,25 @@ def write(file_, data, mode='w'):
     with open(file_, mode=mode, encoding='utf-8') as text_io_wrapper:
         return text_io_wrapper.write(data)
 
-def error(msg: str, exit_code: int=None):
+def error(msg: str, exit_code: int=None, show_caller: bool=False):
     "Write error message on stderr and exit if exit is not None"
     sys.stderr.write(f'{Color.bold("half-orm ERROR")}: {Color.red(msg)}')
+    if show_caller:
+        caller = get_caller_info()
+        if caller:
+            sys.stderr.write(f'  {caller["filename"]}:{caller["lineno"]}, in {caller["function"]}\n'
+                             f'  {caller["code_context"]}\n')
     if exit_code:
         sys.exit(exit_code)
 
-def warning(msg: str, context="half-orm"):
+def warning(msg: str, context="half-orm", show_caller: bool=False):
     "Write warning message on stderr"
     sys.stderr.write(f'{Color.bold(context + " WARNING")}: {msg}')
+    if show_caller:
+        caller = get_caller_info()
+        if caller:
+            sys.stderr.write(f'  {caller["filename"]}:{caller["lineno"]}, in {caller["function"]}\n'
+                             f'  {caller["code_context"]}\n')
 
 class TraceDepth: #pragma: no coverage
     "Trace dept class"
