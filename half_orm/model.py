@@ -172,6 +172,7 @@ class Model:
         if reload:
             self.__schema_generation += 1
             self._classes_[self._dbname] = {}
+            self.__deja_vu[self.__dbname] = self
         self.__thread_local.conn = conn
         self.__thread_local.schema_generation = self.__schema_generation
         if self.__dbname not in self.__class__.__deja_vu:
