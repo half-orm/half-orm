@@ -1,3 +1,8 @@
+# 1.0.0rc16 (2026-06-24)
+
+* fix(model): rebind canonical Model on reconnect(reload=True) (871e89a)
+* feat(utils): add show_caller option to error and warning (da9eade)
+
 # 1.0.0rc15 (2026-06-23)
 
 * docs(model): add ho_meta docstring and unit tests (2cb730c)

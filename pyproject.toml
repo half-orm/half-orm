@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "half_orm"
-version = "1.0.0rc15"
+version = "1.0.0rc16"
 description = "A database-first ORM for PostgreSQL"
 readme = "README.md"
 license = { text = "GPL-3.0" }
