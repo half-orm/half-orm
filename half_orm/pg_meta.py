@@ -207,17 +207,31 @@ class PgMeta:
         meta (_Meta): A singleton instance of the `_Meta` class.
     """
     meta = _Meta()
-    def __init__(self, connection, reload=False):
+    def __init__(self, connection, with_half_orm_meta, reload=False):
         """Initializes a new instance of the `PgMeta` class.
 
         Args:
             connection (psycopg.extensions.connection): A connection object to a PostgreSQL database.
+            with_half_orm_meta (bool | frozenset[str]): already-normalized value
+                from Model — True (expose all half_orm_meta.* relations),
+                False (expose none), or a frozenset of allowed
+                "schema.relname" dotted names (opt-in allowlist).
             reload (bool, optional): A flag indicating whether to reload the metadata from the database. \
             Defaults to False.
         """
         self.__dbname = connection.info.get_parameters()['dbname']
+        self.__with_half_orm_meta = with_half_orm_meta
         if not PgMeta.meta.deja_vu(self.__dbname) or reload:
             self.__load_metadata(connection)
+
+    def __meta_allowed(self, schema, relname):
+        """True if this half_orm_meta.* relation should be exposed by desc()."""
+        allow = self.__with_half_orm_meta
+        if allow is True:
+            return True
+        if not allow:
+            return False
+        return f'{schema}.{relname}' in allow
 
     def metadata(self, dbname):
         """Retrieves the metadata for the specified database name.
@@ -354,7 +368,8 @@ class PgMeta:
         ret_val = []
         entry = self.metadata(dbname)['byname']
         for key in entry:
-            if key[1].find('half_orm_meta') == 0: continue
+            if key[1].find('half_orm_meta') == 0 and not self.__meta_allowed(key[1], key[2]):
+                continue
             inh = []
             tablekind = entry[key]['tablekind']
             if entry[key]['inherits']:

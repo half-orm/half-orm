@@ -53,6 +53,28 @@ def _sql_to_json_type(sql_type: str) -> str:
     base = sql_type.lstrip('_')
     return _SQL_TO_JSON.get(base, 'string')
 
+def _normalize_with_half_orm_meta(value):
+    """Normalize the `with_half_orm_meta` constructor argument.
+
+    Accepts:
+        - True / False: expose every / no half_orm_meta.* relation.
+        - a comma-separated string, or any other iterable of strings, of
+          fully-qualified dotted relation names (e.g.
+          "half_orm_meta.identity.user") — an explicit opt-in allowlist.
+          Note the schema itself may contain dots (it is everything before
+          the LAST dot), but since `classes()`/`desc()` compare against the
+          same "schema.relname" join, no split is actually needed here.
+
+    Returns True, False, or a frozenset of dotted names.
+    """
+    if value is True or value is False:
+        return value
+    if isinstance(value, str):
+        names = {v.strip() for v in value.split(',') if v.strip()}
+    else:
+        names = {str(v).strip() for v in value if str(v).strip()}
+    return frozenset(names) if names else False
+
 register = register_class
 
 class Model:
@@ -71,6 +93,17 @@ class Model:
 
             ``name`` is the only mandatory key when using peer authentication.
         scope (str | None): package name used to resolve registered subclasses.
+        with_half_orm_meta (bool | str | Iterable[str]): controls whether
+            "half_orm_meta.*" relations (half_orm_dev's own metadata schemas)
+            are exposed through :meth:`classes`/:meth:`desc`. ``False``
+            (default): none are exposed. ``True``: all of them are. A
+            comma-separated string, or any other iterable of strings, of
+            fully-qualified dotted relation names (e.g.
+            ``"half_orm_meta.identity.user"``): only those specific
+            relations are exposed — an explicit opt-in allowlist. Exposed
+            half_orm_meta relations are always returned as a generic
+            :meth:`get_relation_class` instance, never imported from a
+            generated package module.
 
     Raises:
         MissingConfigFile: if the configuration file is not found.
@@ -80,12 +113,13 @@ class Model:
     __deja_vu = {}
     _classes_ = {}
     __sql_trace = False
-    def __init__(self, config_file: None, scope: str=None):
+    def __init__(self, config_file: None, scope: str=None, with_half_orm_meta=False):
         self._dbinfo = {}
         self._production_mode = True
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
         self.__thread_local = threading.local()
+        self.__with_half_orm_meta = _normalize_with_half_orm_meta(with_half_orm_meta)
         self.__schema_generation = 0
         self.__aconn = None
         self.__connect()
@@ -168,7 +202,7 @@ class Model:
         conn.adapters.register_dumper(Null, NullDumper)
         conn.adapters.register_dumper(Field, FieldDumper)
         conn.adapters.register_dumper(dict, JsonbDumper)
-        self.__pg_meta = pg_meta.PgMeta(conn, reload)
+        self.__pg_meta = pg_meta.PgMeta(conn, self.__with_half_orm_meta, reload)
         if reload:
             self.__schema_generation += 1
             self._classes_[self._dbname] = {}
@@ -723,10 +757,13 @@ class Model:
             package_name = relation[1][0]
             module_name = ".".join(relation[1][1:])
             if module_name.find('half_orm_meta') == 0:
-                continue
-            class_name = pg_meta.camel_case(relation[1][-1])
-            module = importlib.import_module(f".{module_name}", package_name)
-            yield getattr(module, class_name), relation[0]
+                allow = self.__with_half_orm_meta
+                if allow is True or (allow and module_name in allow):
+                    yield self.get_relation_class(module_name), relation[0]
+            else:
+                class_name = pg_meta.camel_case(relation[1][-1])
+                module = importlib.import_module(f".{module_name}", package_name)
+                yield getattr(module, class_name), relation[0]
 
     @property
     def sql_trace(self) -> bool:

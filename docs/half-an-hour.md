@@ -628,5 +628,6 @@ methods use savepoints automatically.
 
 ## Examples
 
+* [Simple Blog](examples/blog.md)
 * [Database Exploration with GitLab](examples/gitlab.md)
 * [Instant REST API with halfORM](examples/instant-rest-api/instant-rest-api.md)

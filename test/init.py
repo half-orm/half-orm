@@ -23,6 +23,7 @@ To drop halftest database and user when you're done with the tests:
 """
 
 model = Model('halftest', scope="halftest")
+model_with_meta = Model('halftest', scope="halftest", with_half_orm_meta=True)
 
 HALFTEST_STR = '''📋 Available relations for halftest:
 r "actor"."person"            → The table actor.person contains the persons of the blogging system. The id attribute is a serial. Just pass first_name, last_name and birth_date to insert a new person.
