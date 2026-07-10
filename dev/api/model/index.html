@@ -1608,6 +1608,32 @@ File format:
                   <code>None</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>with_half_orm_meta</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span> | <span title="str">str</span> | <span title="Iterable">Iterable</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>controls whether
+"half_orm_meta.*" relations (half_orm_dev's own metadata schemas)
+are exposed through :meth:<code>classes</code>/:meth:<code>desc</code>. <code>False</code>
+(default): none are exposed. <code>True</code>: all of them are. A
+comma-separated string, or any other iterable of strings, of
+fully-qualified dotted relation names (e.g.
+<code>"half_orm_meta.identity.user"</code>): only those specific
+relations are exposed — an explicit opt-in allowlist. Exposed
+half_orm_meta relations are always returned as a generic
+:meth:<code>get_relation_class</code> instance, never imported from a
+generated package module.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
       </tbody>
     </table>
 
