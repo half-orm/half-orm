@@ -31,7 +31,7 @@ from keyword import iskeyword
 import psycopg
 from psycopg.rows import dict_row
 from half_orm import relation_errors
-from half_orm.transaction import Transaction
+from half_orm.transaction import Transaction, AsyncTransaction
 from half_orm.field import Field
 from half_orm import utils
 from half_orm.sql_ast import (
@@ -2058,6 +2058,40 @@ def transaction(fct):
     def wrapper(self, *args, **kwargs):
         with Transaction(self._ho_model):
             return fct(self, *args, **kwargs)
+    return wrapper
+
+
+def atransaction(fct):
+    """Async decorator that wraps a Relation coroutine method in a database transaction.
+
+    Async counterpart of :func:`transaction`: drives the model's async
+    connection (see :class:`~half_orm.transaction.AsyncTransaction`)
+    instead of the sync one. The decorated method must be a coroutine
+    function and use ``ho_a*`` methods for its INSERT / UPDATE / DELETE
+    operations — ``await model.aconnect()`` must have been called first.
+
+    Nested ``@atransaction`` calls use PostgreSQL savepoints: a failure in
+    an inner method rolls back only that inner scope.
+
+    Example:
+        transaction decorator usage:
+            ```python
+            from half_orm.relation import atransaction
+
+            @register
+            class Author(blog.get_relation_class('blog.author')):
+                @atransaction
+                async def apublish_many(self, posts):
+                    for title, content in posts:
+                        await self.post_rfk(title=title, content=content).ho_ainsert()
+            ```
+
+    *New in version 0.18.0.*
+    """
+    @wraps(fct)
+    async def wrapper(self, *args, **kwargs):
+        async with AsyncTransaction(self._ho_model):
+            return await fct(self, *args, **kwargs)
     return wrapper
 
 
