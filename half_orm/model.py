@@ -423,16 +423,42 @@ class Model:
         return self.__aconn
 
     async def _aexecute_query(self, query, values=None):
-        """Internal async query executor — no crud_only check. Called by Relation.__aexecute."""
+        """Internal async query executor — no crud_only check. Called by Relation.__aexecute.
+
+        Mirrors _connection's sync auto-reconnect (see that property's
+        docstring: "Connection dropped unexpectedly (conn.closed):
+        reconnects automatically"). The async connection is only ever
+        opened once, explicitly, via aconnect() (a plain property can't
+        await a reconnect the way _connection does) — so without this, a
+        connection that goes idle-closed between requests (Postgres or an
+        intermediate proxy dropping it) breaks every ho_a* call until the
+        process restarts. Reconnect proactively if already flagged closed,
+        or by reconnecting once and retrying if the drop is only surfaced
+        when the query itself is attempted.
+        """
         values = self._unwrap_values(values)
-        cursor = self._aconnection.cursor(row_factory=dict_row)
-        try:
-            await cursor.execute(query, values)
-        except psycopg.Error as exc:
+
+        def _log_error():
             vals = ''
             if not self._production_mode:
                 vals = f"values: {values}\n"
             utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
+
+        if self.__aconn is not None and self.__aconn.closed:
+            await self.aconnect()
+        try:
+            cursor = self._aconnection.cursor(row_factory=dict_row)
+            await cursor.execute(query, values)
+        except (psycopg.OperationalError, psycopg.InterfaceError):
+            await self.aconnect()
+            try:
+                cursor = self._aconnection.cursor(row_factory=dict_row)
+                await cursor.execute(query, values)
+            except psycopg.Error as exc:
+                _log_error()
+                raise exc
+        except psycopg.Error as exc:
+            _log_error()
             raise exc
         return cursor
 
