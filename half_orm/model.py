@@ -787,9 +787,19 @@ class Model:
                 if allow is True or (allow and module_name in allow):
                     yield self.get_relation_class(module_name), relation[0]
             else:
-                class_name = pg_meta.camel_case(relation[1][-1])
-                module = importlib.import_module(f".{module_name}", package_name)
-                yield getattr(module, class_name), relation[0]
+                # getattr() on the freshly imported module reads the actual
+                # (possibly `@register`-ed) class straight from its namespace,
+                # regardless of the model._classes_ registry — which reload
+                # (reconnect(reload=True)) clears without re-running already
+                # imported modules, so get_relation_class() alone could go
+                # stale. Fall back to it only when there's no generated
+                # package to import from, or its conventional class is missing.
+                try:
+                    class_name = pg_meta.camel_case(relation[1][-1])
+                    module = importlib.import_module(f".{module_name}", package_name)
+                    yield getattr(module, class_name), relation[0]
+                except (ModuleNotFoundError, AttributeError):
+                    yield self.get_relation_class(module_name), relation[0]
 
     @property
     def sql_trace(self) -> bool:
