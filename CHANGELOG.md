@@ -1,3 +1,10 @@
+# 1.0.0rc17 (2026-07-21)
+
+* fix(model): keep classes() reading @register-ed classes from their module instead of the reload-clearable registry, with get_relation_class as fallback (4cffc3d)
+* fix(model): auto-reconnect the async connection in _aexecute_query on drop (6034754)
+* feat(transaction): add AsyncTransaction/@atransaction for atomic operations on the async connection (8495d08)
+* feat(model): add the with_half_orm_meta opt-in normalization/filtering (d5e43dc)
+
 # 1.0.0rc16 (2026-06-24)
 
 * fix(model): rebind canonical Model on reconnect(reload=True) (871e89a)
