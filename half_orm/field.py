@@ -16,6 +16,19 @@ from half_orm.sql_ast import FieldExpr
 
 _TEXT_LIKE_TYPES = {'text', 'varchar', 'character varying', 'char', 'bpchar', 'name', 'citext'}
 
+# (comparator, column_sql_type) -> right-hand-side SQL template (with a single
+# '%s' bind placeholder), used instead of the default "cast the bound value to
+# the column's own type" behavior. Needed whenever a PostgreSQL operator's
+# right operand isn't of the same type as the left (column) operand — e.g.
+# `tsvector @@ tsquery`, not `tsvector @@ tsvector` — so a bare `%s::sql_type`
+# cast would be wrong (or, for tsquery specifically, would reject a plain
+# multi-word search string since the tsquery input parser requires explicit
+# &/|/! operators between lexemes; plainto_tsquery() builds a valid tsquery
+# from free text instead).
+_OPERATOR_RHS_TEMPLATES = {
+    ('@@', 'tsvector'): 'plainto_tsquery(%s)',
+}
+
 
 class Expr:
     """A raw SQL expression for use with :meth:`Field.set`.
@@ -254,12 +267,13 @@ class Field():
         cast = ''
         if self.__value != NULL and not isiterable:
             cast = f'::{self.__sql_type}'
+        rhs = _OPERATOR_RHS_TEMPLATES.get((comp, self.__sql_type), f'{comp_str}{cast}')
         if col_is_array and comp == '=':
             where_repr = f'{comp_str} = ANY({self.__praf(query, ho_id)})'
         elif not self.unaccent or not self._is_text_like:
-            where_repr = f"{self.__praf(query, ho_id)} {comp} {comp_str}{cast}"
+            where_repr = f"{self.__praf(query, ho_id)} {comp} {rhs}"
         else:
-            where_repr = f"unaccent({self.__praf(query, ho_id)}) {comp} unaccent({comp_str}{cast})"
+            where_repr = f"unaccent({self.__praf(query, ho_id)}) {comp} unaccent({rhs})"
         return where_repr
 
     def _where_expr(self, query, ho_id):
@@ -295,10 +309,11 @@ class Field():
         cast = ''
         if not is_array_any and self.__value != NULL and not isiterable:
             cast = f'::{self.__sql_type}'
+        placeholder = _OPERATOR_RHS_TEMPLATES.get((comp, self.__sql_type), f'{comp_str}{cast}')
         return FieldExpr(
             column=self.__praf(query, ho_id),
             comp=comp,
-            placeholder=f'{comp_str}{cast}',
+            placeholder=placeholder,
             value=self,
             unaccent=self.unaccent and self._is_text_like,
             array_any=is_array_any,
