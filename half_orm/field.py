@@ -16,6 +16,19 @@ from half_orm.sql_ast import FieldExpr
 
 _TEXT_LIKE_TYPES = {'text', 'varchar', 'character varying', 'char', 'bpchar', 'name', 'citext'}
 
+
+def is_text_like_sql_type(sql_type: str) -> bool:
+    """True if `sql_type` (a PostgreSQL type name, e.g. from ho_meta()'s
+    per-field 'sql_type') is one ``ilike``/``unaccent`` make sense against.
+
+    Array types (leading ``_``, e.g. ``_text``) are unwrapped first. Used by
+    :attr:`Field._is_text_like` internally, and by callers outside this
+    module (e.g. half_orm_gen's search) that need the same "is this a text
+    type" judgment before choosing a comparator, without duplicating the
+    type list.
+    """
+    return sql_type.lstrip('_') in _TEXT_LIKE_TYPES
+
 # (comparator, column_sql_type) -> right-hand-side SQL template (with a single
 # '%s' bind placeholder), used instead of the default "cast the bound value to
 # the column's own type" behavior. Needed whenever a PostgreSQL operator's
@@ -449,8 +462,7 @@ class Field():
 
     @property
     def _is_text_like(self):
-        base_type = self.__sql_type.lstrip('_')
-        return base_type in _TEXT_LIKE_TYPES
+        return is_text_like_sql_type(self.__sql_type)
 
     @unaccent.setter
     def unaccent(self, value):
