@@ -265,6 +265,9 @@ class PgMeta:
         byname = metadata['byname'] = OrderedDict()
         byid = metadata['byid'] = {}
         with connection.cursor(row_factory=dict_row) as cur:
+            cur.execute('SELECT extname FROM pg_extension')
+            metadata['extensions'] = frozenset(row['extname'] for row in cur.fetchall())
+        with connection.cursor(row_factory=dict_row) as cur:
             cur.execute(_REQUEST)
             all_ = [elt for elt in cur.fetchall()]
             for dct in all_:
@@ -350,6 +353,18 @@ class PgMeta:
             bool: True if the relation exists, False otherwise.
         """
         return (dbname, schema, relation) in self.meta[dbname]['byname']
+
+    def has_extension(self, dbname, name):
+        """Checks whether the specified PostgreSQL extension is installed.
+
+        Args:
+            dbname (str): The name of the PostgreSQL database.
+            name (str): The extension name (e.g. "unaccent").
+
+        Returns:
+            bool: True if the extension is installed, False otherwise.
+        """
+        return name in self.meta[dbname]['extensions']
 
 
     def desc(self, dbname):

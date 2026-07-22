@@ -124,6 +124,25 @@ class Model:
         self.__aconn = None
         self.__connect()
 
+    def has_extension(self, name: str) -> bool:
+        """True if the PostgreSQL extension `name` is installed on this database.
+
+        Backed by the same per-dbname metadata cache as :meth:`ho_meta`/
+        :meth:`desc` (see :class:`~half_orm.pg_meta.PgMeta`) — a single
+        query, refreshed on ``reconnect(reload=True)``, not a per-call
+        round-trip. Used e.g. by :attr:`~half_orm.field.Field.unaccent` to
+        silently no-op (with a warning) instead of failing at query time
+        when ``unaccent`` isn't installed — relevant for a database this
+        project doesn't fully control (may lack the CREATE privilege
+        needed to install it itself).
+
+        Example::
+
+            model = Model('mydb')
+            model.has_extension('unaccent')   # True / False
+        """
+        return self.__pg_meta.has_extension(self.__dbname, name)
+
     def __load_config(self, config_file):
         """Load the config file
 

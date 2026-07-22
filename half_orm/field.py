@@ -463,6 +463,15 @@ class Field():
                 stacklevel=2,
             )
             value = False
+        if value and not self.__relation._ho_model.has_extension('unaccent'):
+            warnings.warn(
+                f"unaccent ignored: the \"unaccent\" PostgreSQL extension is not "
+                f"installed on database '{self.__relation._ho_model._dbname}'. "
+                f"Install it with: CREATE EXTENSION IF NOT EXISTS unaccent;",
+                UserWarning,
+                stacklevel=2,
+            )
+            value = False
         self.__unaccent = value
 
     def _comp(self):

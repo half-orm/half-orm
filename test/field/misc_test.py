@@ -2,6 +2,7 @@
 #-*- coding:  utf-8 -*-
 
 from unittest import TestCase
+from unittest.mock import patch
 from datetime import date
 
 from half_orm.field import Field
@@ -96,12 +97,22 @@ class Test(TestCase):
 
     def test_unaccent(self):
         self.assertFalse(self.post.content.unaccent)
-        self.post.content.unaccent = True
-        self.assertTrue(self.post.content.unaccent)
+        # unaccent additionally requires the "unaccent" PostgreSQL extension
+        # (see Field.unaccent's setter) — mocked here rather than depending
+        # on whether the test database happens to have it installed.
+        with patch.object(self.post.content._relation._ho_model, 'has_extension', return_value=True):
+            self.post.content.unaccent = True
+            self.assertTrue(self.post.content.unaccent)
 
         with self.assertRaises(RuntimeError) as exc:
             self.post.content.unaccent = 'true'
         self.assertEqual("unaccent value must be True or False!", str(exc.exception))
+
+    def test_unaccent_ignored_when_extension_missing(self):
+        with patch.object(self.post.content._relation._ho_model, 'has_extension', return_value=False):
+            with self.assertWarns(UserWarning):
+                self.post.content.unaccent = True
+            self.assertFalse(self.post.content.unaccent)
 
     def test_name_property(self):
         self.assertEqual(self.post.content._name, self.post.content._Field__name)

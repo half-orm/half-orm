@@ -3,6 +3,7 @@
 
 import uuid
 from unittest import TestCase
+from unittest.mock import patch
 from half_orm.relation import Relation
 from half_orm.relation_errors import IsFrozenError
 
@@ -82,13 +83,17 @@ class Test(TestCase):
     def test_field_set_unaccent(self):
         self.assertFalse(self.pers.first_name.unaccent)
         self.assertFalse(self.pers.last_name.unaccent)
-        self.pers.first_name.set('Gaston', unaccent=True)
-        self.pers.last_name.set('Lagaffe', unaccent=True)
-        self.assertTrue(self.pers.first_name.unaccent)
-        self.assertTrue(self.pers.last_name.unaccent)
-        # reset clears unaccent
-        self.pers.first_name.set(None)
-        self.assertFalse(self.pers.first_name.unaccent)
+        # unaccent additionally requires the "unaccent" PostgreSQL extension
+        # (see Field.unaccent's setter) — mocked here rather than depending
+        # on whether the test database happens to have it installed.
+        with patch.object(self.pers.first_name._relation._ho_model, 'has_extension', return_value=True):
+            self.pers.first_name.set('Gaston', unaccent=True)
+            self.pers.last_name.set('Lagaffe', unaccent=True)
+            self.assertTrue(self.pers.first_name.unaccent)
+            self.assertTrue(self.pers.last_name.unaccent)
+            # reset clears unaccent
+            self.pers.first_name.set(None)
+            self.assertFalse(self.pers.first_name.unaccent)
 
     def test_repr(self):
         self.maxDiff = None
