@@ -1730,11 +1730,23 @@ Fkeys = {"""
 
     async def ho_aselect(self, *args,
         distinct: bool=False, order_by: Optional[str]=None,
-        limit: Optional[int]=None, offset: Optional[int]=None):
+        limit: Optional[int]=None, offset: Optional[int]=None,
+        json_agg=None):
         """Async variant of ho_select. Returns a list of dicts (not a generator). *Executes SQL.*
 
         *New in version 0.18.0.*
+
+        *New in version 0.18.6 (async parity):* ``json_agg`` parameter — see
+        :meth:`ho_select` for its full documentation (aggregate already-set
+        fkeys as JSON arrays/objects via a ``LEFT JOIN``/correlated-subquery
+        + ``json_agg``/``jsonb_agg``).
         """
+        if json_agg is not None:
+            query, values = self._ho_prep_json_agg_select(
+                *args, json_agg=json_agg, distinct=distinct,
+                order_by=order_by, limit=limit, offset=offset)
+            cursor = await self.__aexecute(query, values)
+            return await cursor.fetchall()
         query, values, can_dedup, pk_names = self._ho_prep_select_query(
             *args, distinct=distinct, order_by=order_by, limit=limit, offset=offset)
         cursor = await self.__aexecute(query, values)
