@@ -669,3 +669,162 @@ class TestJsonAggDistinct(TestCase):
             self.assertEqual(len(rows), 1)
             titles = {obj['title'] for obj in rows[0]['post_rfk']}
             self.assertEqual(titles, {'d_lj1', 'd_lj2'})
+
+
+class TestJsonAggIntermediateNodes(TestCase):
+    """Tests for the 'intermediate_nodes' spec key: pulling fields from hops
+    strictly BETWEEN fk_rel and the leaf of a chained FK, in addition to the
+    leaf's own 'fields' — comment → post → person (forward, forward, scalar
+    all the way, unlike the existing person ← comment → post chain tests
+    above, which are reverse-then-forward and list-valued)."""
+
+    def setUp(self):
+        self.person = halftest.person_cls
+        self.post = halftest.post_cls
+        self.comment = halftest.comment_cls
+        self.aa = self.person(**self.person(last_name='aa').ho_get())
+        self.post(author_last_name='aa').ho_delete(delete_all=True)
+
+    def tearDown(self):
+        self.post(author_last_name='aa').ho_delete(delete_all=True)
+
+    def _insert_post_and_get_id(self, title, content=''):
+        aa = self.aa
+        row = self.post(
+            title=title,
+            content=content,
+            author_first_name=str(aa['first_name']),
+            author_last_name=str(aa['last_name']),
+            author_birth_date=aa['birth_date'],
+        ).ho_insert()
+        return row['id']
+
+    def _insert_comment(self, post_id, content='comment'):
+        self.comment(post_id=post_id, content=content, author_id=self.aa['id']).ho_insert()
+
+    def test_intermediate_hop_fields_merged_with_leaf(self):
+        "post's own 'title' (hop 1) and person's 'last_name' (leaf) both appear in one flat object"
+        with Transaction(halftest.model):
+            pid = self._insert_post_and_get_id('inter_post', 'c')
+            self._insert_comment(pid, 'hello')
+
+            c = self.comment(content='hello')
+            p = self.post()
+            p.author_fk.set(self.person())
+            c.post_fk.set(p)
+
+            rows = list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': ['last_name'],
+                    'intermediate_nodes': {'fields': ['title']},
+                },
+            }))
+            self.assertEqual(len(rows), 1)
+            obj = rows[0]['post_fk']
+            self.assertEqual(obj['title'], 'inter_post')
+            self.assertEqual(obj['last_name'], 'aa')
+
+    def test_absent_intermediate_nodes_unchanged(self):
+        "no 'intermediate_nodes' key ⇒ only leaf fields, exactly as before"
+        with Transaction(halftest.model):
+            pid = self._insert_post_and_get_id('inter_post_plain', 'c')
+            self._insert_comment(pid, 'hello')
+
+            c = self.comment(content='hello')
+            p = self.post()
+            p.author_fk.set(self.person())
+            c.post_fk.set(p)
+
+            rows = list(c.ho_select(json_agg={'post_fk': {'fields': ['last_name']}}))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]['post_fk'], {'last_name': 'aa'})
+
+    def test_intermediate_hop_field_null_when_leaf_join_misses(self):
+        "leaf hop's join doesn't match ⇒ its keys are None, hop-1 fields still present"
+        with Transaction(halftest.model):
+            pid = self._insert_post_and_get_id('inter_post_nomatch', 'c')
+            self._insert_comment(pid, 'hello')
+
+            c = self.comment(content='hello')
+            p = self.post()
+            # author_fk deliberately NOT set on a matching person → leaf join misses
+            p.author_fk.set(self.person(last_name='__no_such_person__'))
+            c.post_fk.set(p)
+
+            rows = list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': ['last_name'],
+                    'intermediate_nodes': {'fields': ['title']},
+                },
+            }))
+            self.assertEqual(len(rows), 1)
+            obj = rows[0]['post_fk']
+            self.assertEqual(obj['title'], 'inter_post_nomatch')
+            self.assertIsNone(obj['last_name'])
+
+    def test_field_collision_across_hops_raises(self):
+        "same field name requested at two different hops must raise RuntimeError"
+        c = self.comment()
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': ['last_name'],
+                    'intermediate_nodes': {'fields': ['last_name']},  # 'last_name' isn't a post
+                                                                       # column, but the check is
+                                                                       # purely name-based, on purpose
+                },
+            }))
+        self.assertIn('last_name', str(ctx.exception))
+
+    def test_intermediate_nodes_deeper_than_chain_raises(self):
+        "'intermediate_nodes' nested past the actual .set() chain must raise RuntimeError"
+        c = self.comment()
+        c.post_fk.set(self.post())   # single hop only — no further FK set on post
+
+        with self.assertRaises(RuntimeError) as ctx:
+            list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': ['title'],
+                    'intermediate_nodes': {
+                        'fields': [],
+                        'intermediate_nodes': {'fields': ['last_name']},  # nothing further is .set()
+                    },
+                },
+            }))
+        self.assertIn('intermediate_nodes', str(ctx.exception))
+
+    def test_intermediate_nodes_with_scalar_fields_raises(self):
+        "'intermediate_nodes' combined with scalar-mode 'fields' (a bare string) must raise"
+        c = self.comment()
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': 'last_name',
+                    'intermediate_nodes': {'fields': ['title']},
+                },
+            }))
+        self.assertIn('intermediate_nodes', str(ctx.exception))
+
+    def test_intermediate_nodes_with_empty_leaf_fields_raises(self):
+        "'intermediate_nodes' combined with empty/whole-row 'fields' at the leaf must raise"
+        c = self.comment()
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': [],
+                    'intermediate_nodes': {'fields': ['title']},
+                },
+            }))
+        self.assertIn('intermediate_nodes', str(ctx.exception))

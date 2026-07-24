@@ -118,3 +118,40 @@ class Test(IsolatedAsyncioTestCase):
         self.assertEqual(len(rows), 1)
         contents = rows[0]['comment_rfk']
         self.assertEqual(contents, ['hello'])
+
+    async def test_intermediate_hop_fields_merged_with_leaf(self):
+        "'intermediate_nodes' merges post's own 'title' (hop 1) with person's 'last_name' (leaf), async parity"
+        row = await self._insert_post('a_inter_post', 'c')
+        await self.comment(post_id=row['id'], content='hello', author_id=self.aa['id']).ho_ainsert()
+
+        c = self.comment(content='hello')
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+
+        rows = await c.ho_aselect(json_agg={
+            'post_fk': {
+                'fields': ['last_name'],
+                'intermediate_nodes': {'fields': ['title']},
+            },
+        })
+        self.assertEqual(len(rows), 1)
+        obj = rows[0]['post_fk']
+        self.assertEqual(obj['title'], 'a_inter_post')
+        self.assertEqual(obj['last_name'], 'aa')
+
+    async def test_field_collision_across_hops_raises(self):
+        "same field name requested at two different hops must raise RuntimeError, async parity"
+        c = self.comment()
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            await c.ho_aselect(json_agg={
+                'post_fk': {
+                    'fields': ['last_name'],
+                    'intermediate_nodes': {'fields': ['last_name']},
+                },
+            })
+        self.assertIn('last_name', str(ctx.exception))

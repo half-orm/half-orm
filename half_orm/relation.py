@@ -42,6 +42,88 @@ from half_orm.sql_ast import (
     CompoundSelect as ASTCompoundSelect,
 )
 
+def _ho_walk_fk_chain(fk_rel):
+    """Walk `fk_rel`'s forward chain of already-`.set()` FKeys (`_ho_join_to`),
+    one single (non-branching) hop at a time.
+
+    Returns ``(hops, chain_has_list)`` where ``hops`` is an ordered list of
+    ``(chained_fkey, chained_rel)`` for every relation strictly *after*
+    `fk_rel` in the chain (empty if nothing further was `.set()`), and
+    ``chain_has_list`` is True iff any of those further hops is a
+    non-singleton reverse FKey (i.e. the aggregation must produce a JSON
+    array, not a scalar, for at least that hop).
+
+    Raises ``RuntimeError`` if a relation in the chain has more than one
+    FKey `.set()` simultaneously — branching FK chains are not supported by
+    ``json_agg`` (which relation would you land on?).
+
+    Shared by both the LEFT JOIN and the ``distinct`` correlated-subquery
+    paths of ``_ho_prep_json_agg_select`` so the chain-walking/branching
+    rules never drift apart between them.
+    """
+    hops = []
+    chain_has_list = False
+    current_rel = fk_rel
+    while current_rel._ho_join_to:
+        if len(current_rel._ho_join_to) > 1:
+            raise RuntimeError(
+                f"json_agg: branching FK chains are not supported — "
+                f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
+        chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
+        chained_rel._ho_query_type = 'select'
+        if chained_fkey.is_reverse and not chained_fkey.is_singleton:
+            chain_has_list = True
+        hops.append((chained_fkey, chained_rel))
+        current_rel = chained_rel
+    return hops, chain_has_list
+
+
+def _ho_build_json_agg_pairs(fk_rel, hops, spec, fields):
+    """Collect the ordered ``(field_name, rel)`` pairs to project into a
+    single ``json_build_object`` for one `json_agg` entry — the leaf's own
+    `fields` (last hop, or `fk_rel` itself if `hops` is empty) PLUS, when
+    the spec carries an ``intermediate_nodes`` fragment, each intermediate
+    hop's own fields (see `_ho_prep_json_agg_select`'s docstring for the
+    spec shape: `fields` always means "the leaf", `intermediate_nodes` is
+    everything strictly before it — asymmetric on purpose, so a bare
+    `{'fields': [...]}` spec keeps meaning exactly what it means today even
+    once a chain is present; see test_chained_fk_returns_list_of_leaf).
+
+    Raises `RuntimeError` on a field-name collision across hops, or if
+    `intermediate_nodes` nests deeper than the actual `.set()` chain.
+    """
+    chain = [fk_rel] + [rel for _, rel in hops]
+    leaf_rel = chain[-1]
+    intermediate_rels = chain[:-1]
+
+    pairs = []
+    seen = set()
+    current_spec = spec.get('intermediate_nodes') if isinstance(spec, dict) else None
+    for rel in intermediate_rels:
+        if current_spec is None:
+            continue
+        for f in current_spec.get('fields', []):
+            if f in seen:
+                raise RuntimeError(
+                    f"json_agg: field '{f}' is requested by more than one node in the "
+                    f"same FK chain — use distinct column names across hops.")
+            seen.add(f)
+            pairs.append((f, rel))
+        current_spec = current_spec.get('intermediate_nodes')
+    if current_spec is not None:
+        raise RuntimeError(
+            "json_agg: 'intermediate_nodes' nests deeper than the actual FK chain — "
+            f"no further FK is .set() past {leaf_rel._qrn}.")
+    for f in fields:
+        if f in seen:
+            raise RuntimeError(
+                f"json_agg: field '{f}' is requested by more than one node in the "
+                f"same FK chain — use distinct column names across hops.")
+        seen.add(f)
+        pairs.append((f, leaf_rel))
+    return pairs
+
+
 class _SetOperators:
     """_SetOperators class stores the set operations made on the Relation class objects
 
@@ -1409,12 +1491,30 @@ Fkeys = {"""
               the output column name.
             * a **dict** with optional keys:
 
-              - ``'fields'`` — list of column names (empty = all via
-                ``row_to_json``).
+              - ``'fields'`` — list of column names, pulled from the
+                **leaf** relation of the FK chain set via `.set()` (empty =
+                all of the leaf's columns via ``row_to_json``). This
+                meaning does not change when the chain has more than one
+                hop — see ``test_chained_fk_returns_list_of_leaf`` in
+                ``test/fkeys/json_agg_test.py``, which already relies on a
+                bare ``{'fields': [...]}`` pulling only from the leaf.
               - ``'alias'`` — output column name (default: fkey attr name).
               - ``'distinct'`` — ``True`` to deduplicate aggregated rows via
                 a correlated subquery instead of a LEFT JOIN.  Default:
                 ``False``.
+              - ``'intermediate_nodes'`` — optional, recursively-shaped dict
+                (``{'fields': [...], 'intermediate_nodes': {...}}``) letting
+                you ALSO pull fields from the hops strictly *between*
+                `fk_rel` and the leaf — one level of nesting per hop, in
+                chain order. Purely additive: omit it and behavior is
+                identical to today. All fields (leaf's + every intermediate
+                hop's) are merged into one flat JSON object per row — not
+                nested — so field names must be unique across the whole
+                chain (a collision raises ``RuntimeError``), and using it
+                requires the leaf's own ``'fields'`` to be an explicit,
+                non-empty list (no scalar-field mode, no whole-row
+                ``row_to_json`` default) since there'd be no single
+                sensible object to merge those into.
         """
         from half_orm.fkey import FKey
 
@@ -1475,6 +1575,16 @@ Fkeys = {"""
             if not scalar_mode:
                 fields = list(fields)
 
+            has_intermediate = isinstance(spec, dict) and spec.get('intermediate_nodes')
+            if has_intermediate and scalar_mode:
+                raise RuntimeError(
+                    f"json_agg: '{fkey_attr}' can't combine 'intermediate_nodes' with scalar-field "
+                    f"mode — use an explicit 'fields' list so hops can be merged into one object.")
+            if has_intermediate and not fields:
+                raise RuntimeError(
+                    f"json_agg: '{fkey_attr}' can't combine 'intermediate_nodes' with an empty/"
+                    f"whole-row 'fields' — provide an explicit non-empty 'fields' list at the leaf.")
+
             fk_rel._ho_query_type = 'select'
             is_list = fkey.is_reverse and not fkey.is_singleton
 
@@ -1490,36 +1600,31 @@ Fkeys = {"""
                     w_sql, _ = fk_where_expr.to_sql()
                     where_parts.append(w_sql)
 
-                leaf_rel = fk_rel
+                hops, chain_has_list = _ho_walk_fk_chain(fk_rel)
+                is_list = is_list or chain_has_list
                 current_rel = fk_rel
-                while current_rel._ho_join_to:
-                    if len(current_rel._ho_join_to) > 1:
-                        raise RuntimeError(
-                            f"json_agg: branching FK chains are not supported — "
-                            f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
-                    chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
-                    chained_rel._ho_query_type = 'select'
+                for chained_fkey, chained_rel in hops:
                     from_parts.append(
                         f'join {chained_rel._ho_sql_id()} on {chained_fkey._join_query(current_rel)}')
                     chained_where = chained_rel.__where_expr(chained_rel.ho_id)
                     if chained_where:
                         w_sql, _ = chained_where.to_sql()
                         where_parts.append(w_sql)
-                    if chained_fkey.is_reverse and not chained_fkey.is_singleton:
-                        is_list = True
-                    leaf_rel = chained_rel
                     current_rel = chained_rel
+                leaf_rel = current_rel
 
                 rel_id = f'r{leaf_rel.ho_id}'
                 # Use jsonb_build_object / to_jsonb so that DISTINCT has an
                 # equality operator to work with (json type has none).
                 if scalar_mode:
                     obj_expr = f'{rel_id}."{fields}"'
-                elif fields:
-                    obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                    obj_expr = f'jsonb_build_object({obj_pairs})'
                 else:
-                    obj_expr = f'to_jsonb({rel_id})'
+                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields)
+                    if pairs:
+                        obj_pairs = ', '.join(f"'{f}', r{rel.ho_id}.\"{f}\"" for f, rel in pairs)
+                        obj_expr = f'jsonb_build_object({obj_pairs})'
+                    else:
+                        obj_expr = f'to_jsonb({rel_id})'
 
                 from_sql = ' '.join(from_parts)
                 where_sql = ' and '.join(where_parts)
@@ -1546,15 +1651,9 @@ Fkeys = {"""
                     join_type='left join',
                 ))
 
-                leaf_rel = fk_rel
-                current_rel = fk_rel
-                while current_rel._ho_join_to:
-                    if len(current_rel._ho_join_to) > 1:
-                        raise RuntimeError(
-                            f"json_agg: branching FK chains are not supported — "
-                            f"{current_rel._qrn} has {len(current_rel._ho_join_to)} FKs set simultaneously.")
-                    chained_fkey, chained_rel = next(iter(current_rel._ho_join_to.items()))
-                    chained_rel._ho_query_type = 'select'
+                hops, chain_has_list = _ho_walk_fk_chain(fk_rel)
+                is_list = is_list or chain_has_list
+                for chained_fkey, chained_rel in hops:
                     chained_where = chained_rel.__where_expr(chained_rel.ho_id)
                     self._ho_ast_joins.append(ASTJoin(
                         table=chained_rel._ho_sql_id(),
@@ -1562,23 +1661,22 @@ Fkeys = {"""
                         where=chained_where,
                         join_type='left join',
                     ))
-                    if chained_fkey.is_reverse and not chained_fkey.is_singleton:
-                        is_list = True
-                    leaf_rel = chained_rel
-                    current_rel = chained_rel
+                leaf_rel = hops[-1][1] if hops else fk_rel
 
                 rel_id = f'r{leaf_rel.ho_id}'
                 if scalar_mode:
                     obj_expr = f'{rel_id}."{fields}"'
-                elif fields:
-                    obj_pairs = ', '.join(f"'{f}', {rel_id}.\"{f}\"" for f in fields)
-                    # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
-                    obj_expr = (
-                        f'jsonb_build_object({obj_pairs})' if distinct
-                        else f'json_build_object({obj_pairs})'
-                    )
                 else:
-                    obj_expr = f'to_jsonb({rel_id})' if distinct else f'row_to_json({rel_id})'
+                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields)
+                    if pairs:
+                        obj_pairs = ', '.join(f"'{f}', r{rel.ho_id}.\"{f}\"" for f, rel in pairs)
+                        # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
+                        obj_expr = (
+                            f'jsonb_build_object({obj_pairs})' if distinct
+                            else f'json_build_object({obj_pairs})'
+                        )
+                    else:
+                        obj_expr = f'to_jsonb({rel_id})' if distinct else f'row_to_json({rel_id})'
 
                 if is_list:
                     has_reverse = True

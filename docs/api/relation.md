@@ -98,7 +98,28 @@ These methods execute SQL immediately and return results.
     post.comment_rfk.set(comment)
     for row in post.ho_select(json_agg={'comment_rfk': ['last_name']}):
         print(row['comment_rfk'])  # [{'last_name': '...'}, ...]
+
+    # Chained FK, forward all the way (A → B → C) — pull fields from an
+    # INTERMEDIATE hop too, not just the leaf, via 'intermediate_nodes'.
+    # comment → post → person: comment's own 'content' alongside the
+    # post's author's 'last_name', merged into one flat object.
+    comment = Comment(content='nice post')
+    post = Post()
+    post.author_fk.set()               # chain: post → person (the leaf)
+    comment.post_fk.set(post)
+    for row in comment.ho_select(json_agg={
+        'post_fk': {
+            'fields': ['last_name'],             # leaf (person)
+            'intermediate_nodes': {'fields': ['title']},  # hop 1 (post)
+        },
+    }):
+        print(row['post_fk'])  # {'title': '...', 'last_name': '...'}
     ```
+
+    `intermediate_nodes` is purely additive — omit it and a chain behaves
+    exactly as before. Field names must be unique across the whole chain
+    (a collision raises `RuntimeError`), and it requires an explicit,
+    non-empty `fields` list at the leaf.
 
     *Changed in version 0.18.7* **(breaking)**.
 
