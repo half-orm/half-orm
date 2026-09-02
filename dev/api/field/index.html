@@ -1395,11 +1395,11 @@ all columns automatically as <code>Field</code> instances on every relation obje
 relation, but <code>.set()</code> is useful when you need a non-<code>=</code> comparator,
 <code>unaccent</code>, a column-to-column comparison, or an arithmetic expression:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">author</span> <span class="o">=</span> <span class="n">Author</span><span class="p">()</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">author</span><span class="o">.</span><span class="n">last_name</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">&#39;ilike&#39;</span><span class="p">,</span> <span class="s1">&#39;mar%&#39;</span><span class="p">),</span> <span class="n">unaccent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">author</span><span class="o">.</span><span class="n">last_name</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">'ilike'</span><span class="p">,</span> <span class="s1">'mar%'</span><span class="p">),</span> <span class="n">unaccent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">()</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">post</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">post</span><span class="o">.</span><span class="n">likes</span><span class="p">))</span>                       <span class="c1"># WHERE views &gt; likes</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">post</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">&#39;&gt;=&#39;</span><span class="p">,</span> <span class="n">Expr</span><span class="p">(</span><span class="s1">&#39;2 * &quot;likes&quot;&#39;</span><span class="p">)))</span>             <span class="c1"># WHERE views &gt;= 2 * likes</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">post</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">'&gt;'</span><span class="p">,</span> <span class="n">post</span><span class="o">.</span><span class="n">likes</span><span class="p">))</span>                       <span class="c1"># WHERE views &gt; likes</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">post</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">set</span><span class="p">((</span><span class="s1">'&gt;='</span><span class="p">,</span> <span class="n">Expr</span><span class="p">(</span><span class="s1">'2 * "likes"'</span><span class="p">)))</span>             <span class="c1"># WHERE views &gt;= 2 * likes</span>
 </code></pre></div>
 <p>Setting any field to <code>None</code> removes that constraint.</p>
 <p>See <a href="../../half-an-hour/#3-filtering-select-2-min">Learn halfORM in half an hour</a>
@@ -1432,8 +1432,8 @@ column-to-column :meth:<code>Field.set</code> cannot express::</p>
 <div class="highlight"><pre><span></span><code>from half_orm.field import Expr
 
 p = Post()
-p.views.set((&#39;&gt;=&#39;, Expr(&#39;2 * &quot;likes&quot;&#39;)))       # views &gt;= 2 * likes
-p.score.set(Expr(&#39;&quot;likes&quot; * 10 + &quot;views&quot;&#39;))    # score = likes*10 + views
+p.views.set(('&gt;=', Expr('2 * "likes"')))       # views &gt;= 2 * likes
+p.score.set(Expr('"likes" * 10 + "views"'))    # score = likes*10 + views
 </code></pre></div>
 
 
@@ -1498,26 +1498,26 @@ the same table without bound parameters.
 before comparing.  Requires the <code>unaccent</code> extension.</p>
 </details>        <p>Examples::</p>
 <div class="highlight"><pre><span></span><code>a = Author()
-a.last_name.set(&#39;Martin&#39;)               # last_name = &#39;Martin&#39;
-a.last_name.set((&#39;ilike&#39;, &#39;mar%&#39;))       # last_name ILIKE &#39;mar%&#39;
-a.last_name.set((&#39;ilike&#39;, &#39;mar%&#39;), unaccent=True)
-                                        # unaccent(last_name) ILIKE unaccent(&#39;mar%&#39;)
+a.last_name.set('Martin')               # last_name = 'Martin'
+a.last_name.set(('ilike', 'mar%'))       # last_name ILIKE 'mar%'
+a.last_name.set(('ilike', 'mar%'), unaccent=True)
+                                        # unaccent(last_name) ILIKE unaccent('mar%')
 
 from half_orm.null import NULL
 a.last_name.set(NULL)                   # last_name IS NULL
-a.last_name.set((&#39;is not&#39;, NULL))        # last_name IS NOT NULL
+a.last_name.set(('is not', NULL))        # last_name IS NOT NULL
 
 a.last_name.set(None)                   # removes the constraint
 
 # Column-to-column (same relation instance)
 p = Post()
 p.views.set(p.likes)                              # views = likes
-p.views.set((&#39;&gt;&#39;, p.likes))                       # views &gt; likes
+p.views.set(('&gt;', p.likes))                       # views &gt; likes
 
 # Arbitrary SQL expression
 from half_orm.field import Expr
-p.views.set((&#39;&gt;=&#39;, Expr(&#39;2 * &quot;likes&quot;&#39;)))          # views &gt;= 2 * likes
-p.score.set(Expr(&#39;&quot;likes&quot; * 10 + &quot;views&quot;&#39;))       # score = likes*10 + views
+p.views.set(('&gt;=', Expr('2 * "likes"')))          # views &gt;= 2 * likes
+p.score.set(Expr('"likes" * 10 + "views"'))       # score = likes*10 + views
 </code></pre></div>
 
 
@@ -1546,7 +1546,7 @@ constraint.</p>
 <p>Example::</p>
 <div class="highlight"><pre><span></span><code>a = Author()
 a.last_name.is_set()              # False
-a.last_name.set(&#39;Martin&#39;)
+a.last_name.set('Martin')
 a.last_name.is_set()              # True
 a.last_name.set(None)
 a.last_name.is_set()              # False
@@ -1577,9 +1577,9 @@ a.last_name.is_set()              # False
 <p>Use this to read back a value that was set on a row returned by
 :meth:<code>~half_orm.relation.Relation.ho_get</code> or extracted from an
 :meth:<code>~half_orm.relation.Relation.ho_select</code> result::</p>
-<div class="highlight"><pre><span></span><code>author = Author(last_name=&#39;Martin&#39;).ho_get()
-author.last_name.value    # &#39;Martin&#39;
-author.first_name.value   # &#39;Alice&#39;
+<div class="highlight"><pre><span></span><code>author = Author(last_name='Martin').ho_get()
+author.last_name.value    # 'Martin'
+author.first_name.value   # 'Alice'
 </code></pre></div>
 
     </div>
@@ -1629,7 +1629,7 @@ author.first_name.value   # &#39;Alice&#39;
 <code>typing.List[inner_type]</code>.  Unknown SQL types fall back to
 <code>typing.Any</code>.</p>
 <p>Example::</p>
-<div class="highlight"><pre><span></span><code>Author().last_name.py_type   # &lt;class &#39;str&#39;&gt;
+<div class="highlight"><pre><span></span><code>Author().last_name.py_type   # &lt;class 'str'&gt;
 Post().tags.py_type          # typing.List[str]  (if tags is text[])
 </code></pre></div>
 
@@ -1693,7 +1693,7 @@ halfORM parses this block at load time and exposes it as
 <h3 id="comment-format">Comment format<a class="headerlink" href="#comment-format" title="Permanent link">&para;</a></h3>
 <p>The block uses a fenced YAML code block introduced by <code>@json</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">COMMENT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="p">.</span><span class="k">data</span><span class="w"> </span><span class="k">IS</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s1">&#39;Post metadata.</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s1">'Post metadata.</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s1">@json</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="s1">```yaml</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s1">lang:  text    # ISO 639-1 language code</span>
@@ -1703,7 +1703,7 @@ halfORM parses this block at load time and exposes it as
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="s1">  - id:   uuid</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="s1">    name: text</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="s1">```</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="s1">&#39;</span><span class="p">;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="s1">'</span><span class="p">;</span>
 </code></pre></div>
 <p><strong>Type notation inside the block:</strong></p>
 <table>

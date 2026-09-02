@@ -1383,14 +1383,14 @@ You can verify that predicate without hitting the database:</p>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_posts_carries_last_name</span><span class="p">():</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">assertConstraintsMatch</span><span class="p">(</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">Person</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">posts</span><span class="p">(),</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n">table</span><span class="o">=</span><span class="s1">&#39;actor.person&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s1">&#39;last_name&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Martin&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">Person</span><span class="p">(</span><span class="n">last_name</span><span class="o">=</span><span class="s1">'Martin'</span><span class="p">)</span><span class="o">.</span><span class="n">posts</span><span class="p">(),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n">table</span><span class="o">=</span><span class="s1">'actor.person'</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s1">'last_name'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">'Martin'</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">)</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_commenters_traverses_full_path</span><span class="p">():</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">assertInvolvesTables</span><span class="p">(</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hello&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">commenters</span><span class="p">(),</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="s1">&#39;blog.post&#39;</span><span class="p">,</span> <span class="s1">&#39;blog.comment&#39;</span><span class="p">,</span> <span class="s1">&#39;actor.person&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">'Hello'</span><span class="p">)</span><span class="o">.</span><span class="n">commenters</span><span class="p">(),</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="s1">'blog.post'</span><span class="p">,</span> <span class="s1">'blog.comment'</span><span class="p">,</span> <span class="s1">'actor.person'</span><span class="p">,</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="p">)</span>
 </code></pre></div>
 <p>Tests pass or fail based on the <em>structure</em> of the query, making them
@@ -1405,7 +1405,7 @@ failure, following the <code>assert*</code> convention of :class:<code>unittest.
 
 
 <h3 id="half_orm.testing.assertConstraintsMatch" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">assertConstraintsMatch</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">assertConstraintsMatch</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">'='</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#half_orm.testing.assertConstraintsMatch" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1554,8 +1554,8 @@ than the bare <code>AssertionError: False</code> produced by
 <div class="highlight"><pre><span></span><code>from half_orm.testing import assertConstraintsMatch
 
 assertConstraintsMatch(
-    Person(last_name=&#39;Martin&#39;).posts(),
-    table=&#39;actor.person&#39;, field=&#39;last_name&#39;, value=&#39;Martin&#39;,
+    Person(last_name='Martin').posts(),
+    table='actor.person', field='last_name', value='Martin',
 )
 </code></pre></div>
 
@@ -1693,8 +1693,8 @@ at least one expected table is absent.</p>
 <div class="highlight"><pre><span></span><code>from half_orm.testing import assertInvolvesTables
 
 assertInvolvesTables(
-    Post(title=&#39;Hello&#39;).commenters(),
-    &#39;blog.post&#39;, &#39;blog.comment&#39;, &#39;actor.person&#39;,
+    Post(title='Hello').commenters(),
+    'blog.post', 'blog.comment', 'actor.person',
 )
 </code></pre></div>
 
@@ -1928,8 +1928,8 @@ is compound / unconstrained.</p>
 <div class="highlight"><pre><span></span><code>from half_orm.testing import assertTablePath
 
 assertTablePath(
-    Post(title=&#39;Hello&#39;).commenters(),
-    &#39;blog.post&#39;, &#39;blog.comment&#39;, &#39;actor.person&#39;,
+    Post(title='Hello').commenters(),
+    'blog.post', 'blog.comment', 'actor.person',
 )
 </code></pre></div>
 
@@ -1946,7 +1946,7 @@ more complex checks.</p>
 
 
 <h3 id="half_orm.testing.constraints_match" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">constraints_match</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">constraints_match</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="s1">'='</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#half_orm.testing.constraints_match" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -2075,9 +2075,9 @@ matches all provided criteria.</p>
         <p>Example::</p>
 <div class="highlight"><pre><span></span><code>from half_orm.testing import constraints_match
 
-posts = Person(last_name=&#39;Martin&#39;).posts()
-assert constraints_match(posts, table=&#39;actor.person&#39;,
-                         field=&#39;last_name&#39;, comp=&#39;=&#39;, value=&#39;Martin&#39;)
+posts = Person(last_name='Martin').posts()
+assert constraints_match(posts, table='actor.person',
+                         field='last_name', comp='=', value='Martin')
 </code></pre></div>
 
 
@@ -2216,7 +2216,7 @@ as filters (AND logic).</p>
       </tbody>
     </table>
         <p>Example::</p>
-<div class="highlight"><pre><span></span><code>find_constraints(result, table=&#39;blog.comment_type&#39;, value=&#39;review&#39;)
+<div class="highlight"><pre><span></span><code>find_constraints(result, table='blog.comment_type', value='review')
 </code></pre></div>
 
 
@@ -2359,8 +2359,8 @@ constraints.</p>
 <div class="highlight"><pre><span></span><code>from half_orm.testing import constraint_count
 
 # exactly one constraint on actor.person
-assert constraint_count(Person(last_name=&#39;Martin&#39;).posts(),
-                        table=&#39;actor.person&#39;) == 1
+assert constraint_count(Person(last_name='Martin').posts(),
+                        table='actor.person') == 1
 </code></pre></div>
 
 

@@ -2201,7 +2201,7 @@
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># ... final commits if needed ...</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Create release tag</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;release: halfORM 0.16.0 with unified CLI&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">"release: halfORM 0.16.0 with unified CLI"</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.16.0
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="c1"># Merge back to main</span>
@@ -2228,11 +2228,11 @@
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># ... targeted tests ...</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Apply fix to production branch first</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>git<span class="w"> </span>checkout<span class="w"> </span>release/0.16.x<span class="w">  </span><span class="c1"># or create if doesn&#39;t exist</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>git<span class="w"> </span>checkout<span class="w"> </span>release/0.16.x<span class="w">  </span><span class="c1"># or create if doesn't exist</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>git<span class="w"> </span>cherry-pick<span class="w"> </span>hotfix/critical-security-fix
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1"># Create emergency patch release</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.1<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;hotfix: critical security fix&quot;</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.1<span class="w"> </span>-m<span class="w"> </span><span class="s2">"hotfix: critical security fix"</span>
 <a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.16.1
 <a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
 <a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="c1"># Apply fix to development branches</span>
@@ -2255,13 +2255,13 @@
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Apply to 0.15.x maintenance branch</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>git<span class="w"> </span>checkout<span class="w"> </span>maint/0.15.x<span class="w">  </span><span class="c1"># or create from v0.15.latest</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>git<span class="w"> </span>cherry-pick<span class="w"> </span>hotfix/critical-security-fix
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.15.4<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;hotfix: critical security fix&quot;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.15.4<span class="w"> </span>-m<span class="w"> </span><span class="s2">"hotfix: critical security fix"</span>
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.15.4
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Apply to 0.16.x production branch</span>
 <a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>git<span class="w"> </span>checkout<span class="w"> </span>release/0.16.x
 <a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>git<span class="w"> </span>cherry-pick<span class="w"> </span>hotfix/critical-security-fix
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.1<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;hotfix: critical security fix&quot;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.16.1<span class="w"> </span>-m<span class="w"> </span><span class="s2">"hotfix: critical security fix"</span>
 <a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.16.1
 <a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
 <a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="c1"># Apply to development branches</span>
@@ -2344,7 +2344,7 @@
 </ul>
 <h3 id="2-release-preparation">2. Release Preparation<a class="headerlink" href="#2-release-preparation" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Update version</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0.16.0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>half_orm/version.txt
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"0.16.0"</span><span class="w"> </span>&gt;<span class="w"> </span>half_orm/version.txt
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Update documentation</span>
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Edit docs/index.md to reflect new version</span>
@@ -2354,11 +2354,11 @@
 <a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
 <a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># Commit changes</span>
 <a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>git<span class="w"> </span>add<span class="w"> </span>.
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: prepare release 0.16.0&quot;</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore: prepare release 0.16.0"</span>
 </code></pre></div>
 <h3 id="3-release-creation">3. Release Creation<a class="headerlink" href="#3-release-creation" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Create annotated tag</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v0.16.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;release: halfORM 0.16.0</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v0.16.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">"release: halfORM 0.16.0</span>
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
 <a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="s2">Major improvements:</span>
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="s2">- Unified CLI interface</span>
@@ -2370,7 +2370,7 @@
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="s2">- Development tools moved to half-orm-dev package</span>
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="s2">- CLI commands restructured under unified interface</span>
 <a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="s2">Migration guide: https://half-orm.github.io/half-orm/guides/migration/&quot;</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="s2">Migration guide: https://half-orm.github.io/half-orm/guides/migration/"</span>
 <a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
 <a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="c1"># Push tag</span>
 <a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.16.0
@@ -2391,9 +2391,9 @@
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># - Upload additional files if needed</span>
 <a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Update development version</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0.17.0-dev&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>half_orm/version.txt
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"0.17.0-dev"</span><span class="w"> </span>&gt;<span class="w"> </span>half_orm/version.txt
 <a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>git<span class="w"> </span>add<span class="w"> </span>half_orm/version.txt
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: bump version to 0.17.0-dev&quot;</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore: bump version to 0.17.0-dev"</span>
 <a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
 </code></pre></div>
 <h2 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h2>
@@ -2442,19 +2442,19 @@
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
 <a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="n">EXTENSION_INFO</span> <span class="o">=</span> <span class="p">{</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Extension for X functionality&#39;</span><span class="p">,</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="s1">&#39;commands&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;generate&#39;</span><span class="p">,</span> <span class="s1">&#39;serve&#39;</span><span class="p">,</span> <span class="s1">&#39;deploy&#39;</span><span class="p">]</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Extension for X functionality'</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="s1">'commands'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'generate'</span><span class="p">,</span> <span class="s1">'serve'</span><span class="p">,</span> <span class="s1">'deploy'</span><span class="p">]</span>
 <a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="p">}</span>
 <a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>
 <a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">add_commands</span><span class="p">(</span><span class="n">main_cli</span><span class="p">):</span>
 <a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>    <span class="nd">@main_cli</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
 <a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extension</span><span class="p">():</span>
-<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extension commands.&quot;&quot;&quot;</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">        </span><span class="sd">"""Extension commands."""</span>
 <a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>        <span class="k">pass</span>
 <a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>
 <a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>    <span class="nd">@extension</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
 <a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">():</span>
-<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate something.&quot;&quot;&quot;</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">        </span><span class="sd">"""Generate something."""</span>
 <a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>        <span class="k">pass</span>
 </code></pre></div>
 <h2 id="documentation-coordination">Documentation Coordination<a class="headerlink" href="#documentation-coordination" title="Permanent link">&para;</a></h2>
@@ -2505,7 +2505,7 @@
 <a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="c1"># Apply critical fixes to maintenance branch</span>
 <a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>git<span class="w"> </span>checkout<span class="w"> </span>maint/0.15.x
 <a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>git<span class="w"> </span>cherry-pick<span class="w"> </span>&lt;commit-hash&gt;<span class="w">  </span><span class="c1"># Cherry-pick from main/hotfix</span>
-<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.15.4<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;maintenance: backport critical fix&quot;</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>git<span class="w"> </span>tag<span class="w"> </span>v0.15.4<span class="w"> </span>-m<span class="w"> </span><span class="s2">"maintenance: backport critical fix"</span>
 <a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.15.4
 <a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="c1"># Maintain multiple versions simultaneously</span>

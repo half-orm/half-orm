@@ -1868,8 +1868,8 @@ The same branch structure and versioning strategy applies to both code and docum
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Documentation</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">on</span><span class="p">:</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">main</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;release/*&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;dev/*&#39;</span><span class="w"> </span><span class="p p-Indicator">]</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">&#39;v*&#39;</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">main</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">'release/*'</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">'dev/*'</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">'v*'</span><span class="w"> </span><span class="p p-Indicator">]</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">main</span><span class="w"> </span><span class="p p-Indicator">]</span>
 </code></pre></div>
@@ -1916,11 +1916,11 @@ The same branch structure and versioning strategy applies to both code and docum
 <h2 id="content-management">Content Management<a class="headerlink" href="#content-management" title="Permanent link">&para;</a></h2>
 <h3 id="version-specific-content">Version-Specific Content<a class="headerlink" href="#version-specific-content" title="Permanent link">&para;</a></h3>
 <p>Use conditional blocks for version-specific content:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>{% if version == &quot;0.16.0&quot; %}
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>{% if version == "0.16.0" %}
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>This feature is new in version 0.16.0.
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>{% endif %}
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>{% if version != &quot;dev&quot; %}
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>{% if version != "dev" %}
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>This applies to stable versions only.
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>{% endif %}
 </code></pre></div>
