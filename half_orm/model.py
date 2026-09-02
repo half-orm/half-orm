@@ -114,7 +114,7 @@ class Model:
     _classes_ = {}
     __sql_trace = False
     def __init__(self, config_file: None, scope: str=None, with_half_orm_meta=False):
-        self._dbinfo = {}
+        self.__connection_params = {}
         self._production_mode = True
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
@@ -166,28 +166,32 @@ class Model:
             except KeyError as exc:
                 raise model_errors.MalformedConfigFile(file_, 'Missing mandatory parameter', 'name') from exc
 
-            if self._dbinfo and dbname != self.__dbname:
+            if self.__connection_params and dbname != self.__dbname:
                 raise RuntimeError(
                     f"Can't reconnect to another database: {dbname} != {self.__dbname}")
-            self._dbinfo['dbname'] = dbname
+            self.__connection_params['dbname'] = dbname
 
         else:
             dbname = config_file
-            self._dbinfo['dbname'] = dbname
+            self.__connection_params['dbname'] = dbname
             # WARNING: use peer authentication only in development environment
             database = {'user': None, 'password': None, 'host': None, 'port': None, 'devel': True}
 
-        self._dbinfo['user'] = database.get('user')
-        self._dbinfo['password'] = database.get('password')
-        self._dbinfo['host'] = database.get('host')
-        self._dbinfo['port'] = database.get('port')
-        self._dbinfo['connect_timeout'] = database.get('timeout', 3)
+        self.__connection_params['user'] = database.get('user')
+        self.__connection_params['password'] = database.get('password')
+        self.__connection_params['host'] = database.get('host')
+        self.__connection_params['port'] = database.get('port')
+        self.__connection_params['connect_timeout'] = database.get('timeout', 3)
         self._production_mode = database.get('production', False)
         if self._production_mode == 'False': # production = False
             self._production_mode = False
         self._crud_only = database.get('crud_only', False)
         if self._crud_only == 'False':
             self._crud_only = False
+
+    @property
+    def _dbinfo(self):
+        return self.__connection_params
 
     def __connect(self, config_file: str=None, reload: bool=False):
         """Setup a new connection to the database.
@@ -205,7 +209,7 @@ class Model:
         if config_file:
             self.__load_config(config_file)
         try:
-            conn = psycopg.connect(**self._dbinfo, row_factory=dict_row, autocommit=True)
+            conn = psycopg.connect(**self.__connection_params, row_factory=dict_row, autocommit=True)
         except psycopg.OperationalError as exc:
             if self.__config_file_found:
                 config_info = f"Configuration file: '{self.__config_file_path}'"
@@ -377,7 +381,7 @@ class Model:
 
     @property
     def __dbname(self):
-        return self._dbinfo['dbname']
+        return self.__connection_params['dbname']
 
     def ping(self):
         """Check if the connection is alive, reconnecting if needed.
@@ -416,7 +420,7 @@ class Model:
         if self.__aconn is not None and not self.__aconn.closed:
             return
         self.__aconn = await AsyncConnection.connect(
-            **self._dbinfo, row_factory=dict_row, autocommit=True)
+            **self.__connection_params, row_factory=dict_row, autocommit=True)
         from half_orm.null import Null, NullDumper, FieldDumper
         from half_orm.field import Field
         from psycopg.types.json import JsonbDumper
