@@ -84,14 +84,14 @@
         },
         {
             "@type": "SoftwareApplication",
-            "identifier": "importlib-metadata",
-            "name": "importlib-metadata",
+            "identifier": "psycopg",
+            "name": "psycopg[binary]",
             "runtimePlatform": "Python 3"
         },
         {
             "@type": "SoftwareApplication",
-            "identifier": "psycopg2-binary",
-            "name": "psycopg2-binary",
+            "identifier": "pyyaml",
+            "name": "PyYAML",
             "runtimePlatform": "Python 3"
         }
     ],
