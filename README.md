@@ -10,6 +10,17 @@
 
 > ## ⚠️ BREAKING CHANGES in v1.0.0
 >
+> **Legacy unprefixed API removed** — the pre-`ho_` method names, deprecated
+> since 0.x, no longer exist: `select`, `insert`, `update`, `delete`, `get`,
+> `count`, `is_empty`, `unaccent`, `order_by`, `limit`, `offset`, `_mogrify`.
+> Use their `ho_`-prefixed equivalents (`ho_select`, `ho_insert`, `ho_update`,
+> `ho_delete`, `ho_get`, `ho_count`, `ho_is_empty`, `ho_unaccent`, `ho_mogrify`,
+> passing `order_by`/`limit`/`offset` as `ho_select()` keyword arguments).
+>
+> **`DC_Relation`** removed from `half_orm.relation` — this IDE type-checking
+> stub is now generated per-project by `half-orm-dev` instead of shipped in
+> the library.
+>
 > **`ho_get()`** is now public and returns a `dict` directly. It raises
 > `NotFoundError` (0 rows) or `MultipleRowsError` (> 1 row) instead of
 > counting first.
