@@ -8,6 +8,7 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   HALFORM_CONF_DIR: "$CI_PROJECT_DIR/.config"
   GIT_STRATEGY: clone
+  GIT_DEPTH: "0"
 
 .before_script_template: &test
   before_script:

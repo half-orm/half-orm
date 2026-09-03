@@ -98,7 +98,7 @@ def current_version() -> str:
 
 
 def last_tag():
-    r = git('describe', '--tags', '--abbrev=0')
+    r = git('describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*.[0-9]*.[0-9]*')
     return r.stdout.strip() if r.returncode == 0 else None
 
 
