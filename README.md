@@ -1,7 +1,7 @@
 # halfORM
 
 [![PyPI version](https://img.shields.io/pypi/v/half_orm)](https://pypi.org/project/half-orm/)
-[![Python versions](https://img.shields.io/badge/Python-%20≥%203.8-blue)](https://www.python.org)
+[![Python versions](https://img.shields.io/badge/Python-%20≥%203.9-blue)](https://www.python.org)
 [![PostgreSQL versions](https://img.shields.io/badge/PostgreSQL-%20≥%209.6-blue)](https://www.postgresql.org)
 [![License](https://img.shields.io/pypi/l/half_orm?color=green)](https://pypi.org/project/half-orm/)
 [![Tests](https://github.com/half-orm/half-orm/actions/workflows/python-package.yml/badge.svg)](https://github.com/half-orm/half-orm/actions/workflows/python-package.yml)

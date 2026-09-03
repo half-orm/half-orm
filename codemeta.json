@@ -72,7 +72,6 @@
         "Python 3.12",
         "Python 3.13",
         "Python 3.14",
-        "Python 3.8",
         "Python 3.9"
     ],
     "softwareHelp": "https://half-orm.github.io/half-orm/",
