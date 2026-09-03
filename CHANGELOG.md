@@ -1,3 +1,13 @@
+# 1.0.0rc18 (2026-09-03)
+
+* fix(ci): remove python3.8 from tests on gitlab (2690558)
+* refactor(model): make connection params private (__connection_params), expose _dbinfo as a read-only property (d7bfad0)
+* feat(json_agg): support intermediate_nodes to pull fields from hops between fk_rel and the leaf of a chained FK, not just the leaf (24c883e)
+* Expose is_text_like_sql_type() publicly (db9416d)
+* Add async json_agg support to ho_aselect. (fa58f0f)
+* Add Model.has_extension()/PgMeta extension cache; Field.unaccent silently no-ops with a warning when the unaccent extension isn't installed, instead of failing at query time. (e32f4c5)
+* Add tsvector @@ support to Field: dispatch table maps (operator, column type) to a RHS SQL template, defaulting to plainto_tsquery(%s) for full-text search instead of the broken same-type cast. (d7f43b9)
+
 # 1.0.0rc17 (2026-07-21)
 
 * fix(model): keep classes() reading @register-ed classes from their module instead of the reload-clearable registry, with get_relation_class as fallback (4cffc3d)
