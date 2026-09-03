@@ -136,32 +136,4 @@
          <loc>https://half-orm.github.io/dev/guides/development/extension-development/</loc>
          <lastmod>2026-09-03</lastmod>
     </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/first-steps/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/foreign-keys/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/installation/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/models-relations/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/queries/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
-    <url>
-         <loc>https://half-orm.github.io/dev/tutorial/transactions/</loc>
-         <lastmod>2026-09-03</lastmod>
-    </url>
 </urlset>
