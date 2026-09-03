@@ -1636,6 +1636,9 @@ generated package module.</p>
           </tr>
       </tbody>
     </table>
+        <p>If no file named <code>config_file</code> is found in <code>HALFORM_CONF_DIR</code>, it is
+used directly as the database name and a peer-authentication connection
+is attempted (no user/password/host/port) — development use only.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -1647,16 +1650,6 @@ generated package module.</p>
         </tr>
       </thead>
       <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="MissingConfigFile">MissingConfigFile</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if the configuration file is not found.</p>
-              </div>
-            </td>
-          </tr>
           <tr class="doc-section-item">
             <td>
                   <code><span title="MalformedConfigFile">MalformedConfigFile</span></code>
