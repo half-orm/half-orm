@@ -5,10 +5,15 @@ stages:
   - build
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
   HALFORM_CONF_DIR: "$CI_PROJECT_DIR/.config"
   GIT_STRATEGY: clone
   GIT_DEPTH: "0"
+
+cache:
+  key: "$CI_JOB_NAME"
+  paths:
+    - $CI_PROJECT_DIR/.cache/uv
 
 .before_script_template: &test
   before_script:
@@ -22,20 +27,20 @@ variables:
     - su - postgres -c "createdb halftest -O halftest"
     - su - postgres -c "createdb hop_test -O halftest"
     - su - postgres -c "psql halftest -f $CI_PROJECT_DIR/test/sql/halftest.sql"
-    - /usr/local/bin/python -m pip install --upgrade pip virtualenv
-    - virtualenv venv
+    - /usr/local/bin/python -m pip install uv
+    - uv venv venv
     - source venv/bin/activate
-    - pip install pytest
-    - pip install .
+    - uv pip install pytest
+    - uv pip install .
     - useradd halftest
 
 .before_script_template: &build
   before_script:
-    - pip install virtualenv
-    - virtualenv venv
+    - pip install uv
+    - uv venv venv
     - source venv/bin/activate
-    - pip install .
-    - pip install build
+    - uv pip install .
+    - uv pip install build
 
 test:
   stage: test

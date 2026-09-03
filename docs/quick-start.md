@@ -349,14 +349,14 @@ half_orm litestar-api generate
 - Build filtered queries
 
 ### Continue Learning:
-- **[Tutorial](tutorial/index.md)** - Complete step-by-step guide
+- **[Learn halfORM in half an hour](half-an-hour.md)** - Complete walkthrough, in order
 - **[Fundamentals](fundamentals.md)** - Core concepts deep dive
 - **[Examples](examples/index.md)** - Real-world patterns
 
 ### Common Next Questions:
-- **Custom classes?** → [Models & Relations](tutorial/models-relations.md)
-- **Complex queries?** → [Queries](tutorial/queries.md)
-- **Transactions?** → [Transactions](tutorial/transactions.md)
+- **Custom classes?** → [Custom classes and business logic](half-an-hour.md#11-custom-classes-and-business-logic-2-min)
+- **Complex queries?** → [Predicate algebra](half-an-hour.md#9-predicate-algebra-5-min)
+- **Transactions?** → [Transactions](half-an-hour.md#10-transactions-5-min)
 
 ## Troubleshooting
 

@@ -196,7 +196,6 @@ git branch -D gh-pages
 docs/
 ├── index.md                    # Main documentation home
 ├── quick-start.md             # Quick start guide
-├── tutorial/                  # Tutorial section
 ├── guides/                    # How-to guides
 ├── api/                       # API reference
 ├── architecture/              # Architecture docs

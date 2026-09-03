@@ -6,7 +6,7 @@ This page covers the core concepts that underpin halfORM's design and behavior. 
     - Before diving into complex queries or relationships
     - When you need to understand halfORM's philosophy
     - As a reference for core concepts mentioned throughout the documentation
-    - **Required reading** before [Queries](./tutorial/queries.md) and [Foreign Keys](./tutorial/foreign-keys.md)
+    - **Required reading** before the [predicate algebra](./half-an-hour.md#9-predicate-algebra-5-min) and [foreign keys](./half-an-hour.md#8-foreign-keys-composing-predicates-across-tables-10-min) sections of the half-an-hour guide
 
 ## Core Philosophy
 

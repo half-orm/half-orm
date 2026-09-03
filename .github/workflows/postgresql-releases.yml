@@ -27,6 +27,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
     - name: Install dependencies
       run: |
         sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
@@ -44,10 +48,9 @@ jobs:
         sudo su - postgres -c "createdb hop_test -O halftest"
         PGPASSWORD=root psql halftest -h localhost -f $PWD/test/sql/halftest.sql
 
-        python -m pip install --upgrade pip coveralls coverage
-        python -m pip install flake8 pytest virtualenv psycopg[binary]
-        pip install .
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        uv pip install --system coveralls coverage flake8 pytest psycopg[binary]
+        uv pip install --system .
+        if [ -f requirements.txt ]; then uv pip install --system -r requirements.txt; fi
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
