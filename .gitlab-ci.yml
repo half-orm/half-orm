@@ -21,10 +21,10 @@ variables:
     - su - postgres -c "createdb halftest -O halftest"
     - su - postgres -c "createdb hop_test -O halftest"
     - su - postgres -c "psql halftest -f $CI_PROJECT_DIR/test/sql/halftest.sql"
-    - /usr/local/bin/python -m pip install --upgrade pip
-    - pip install virtualenv pytest psycopg[binary] click
+    - /usr/local/bin/python -m pip install --upgrade pip virtualenv
     - virtualenv venv
     - source venv/bin/activate
+    - pip install pytest
     - pip install .
     - useradd halftest
 
