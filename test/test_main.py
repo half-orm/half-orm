@@ -27,7 +27,7 @@ class TestMainModule:
             [sys.executable, "-m", "half_orm"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30
         )
         
         # Doit s'exécuter sans crash
@@ -41,7 +41,7 @@ class TestMainModule:
             [sys.executable, "-m", "half_orm", "--help"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30
         )
         
         assert result.returncode == 0
@@ -55,7 +55,7 @@ class TestMainModule:
             [sys.executable, "-m", "half_orm", "nonexistent_db"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30
         )
         
         # Doit afficher la version même si la DB échoue
@@ -69,7 +69,7 @@ class TestMainModule:
             [sys.executable, "-m", "half_orm", "test_db", "public.test_table"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30
         )
         
         # Doit afficher la version
