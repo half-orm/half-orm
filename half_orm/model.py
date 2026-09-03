@@ -105,8 +105,11 @@ class Model:
             :meth:`get_relation_class` instance, never imported from a
             generated package module.
 
+    If no file named ``config_file`` is found in ``HALFORM_CONF_DIR``, it is
+    used directly as the database name and a peer-authentication connection
+    is attempted (no user/password/host/port) — development use only.
+
     Raises:
-        MissingConfigFile: if the configuration file is not found.
         MalformedConfigFile: if ``name`` is missing from the file.
         psycopg.OperationalError: if the database connection fails.
     """
@@ -146,8 +149,12 @@ class Model:
     def __load_config(self, config_file):
         """Load the config file
 
+        If no file named **config_file** is found in *HALFORM_CONF_DIR*, it is
+        used directly as the database name and a peer-authentication
+        connection is attempted (no user/password/host/port) — development
+        use only.
+
         Raises:
-            MissingConfigFile: If the **config_file** is not found in *HALFORM_CONF_DIR*.
             MalformedConfigFile: if the *name* is missing in the **config_file**.
             RuntimeError: If the reconnection is attempted on another database.
         """
