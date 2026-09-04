@@ -14,7 +14,7 @@ authors = [
     { name = "Joël Maïzi", email = "joel.maizi@collorg.org" }
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Database",
     "Topic :: Software Development :: Libraries :: Python Modules",
