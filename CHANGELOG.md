@@ -1,3 +1,17 @@
+# 1.0.0 (2026-09-04)
+
+* docs(model): fix stale docstrings and a dead doc link (609aa23)
+* test(main): give subprocess CLI tests more timeout headroom (65e7f23)
+* ci: switch to uv and fix pip caching (1aa9e92)
+* docs: remove the orphaned tutorial/ directory (8d3e682)
+* fix(release): filter last_tag() to release tags; force full clone on gitlab (5911de2)
+* fix(ci): install pytest inside the venv, not before it exists (d67348e)
+* test(model): skip auto-reconnect test when sudo restart isn't available (be48aa3)
+* chore: sync codemeta.json dependencies with pyproject.toml (18114ea)
+* chore: add Python 3.13/3.14 classifiers (a34f91a)
+* chore: drop Python 3.8 support for 1.0.0 (a9ee3c9)
+* docs(readme): document missing 1.0.0 breaking changes (bd5364d)
+
 # 1.0.0rc18 (2026-09-03)
 
 * fix(ci): remove python3.8 from tests on gitlab (2690558)
