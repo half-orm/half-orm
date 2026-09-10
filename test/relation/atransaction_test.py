@@ -80,6 +80,27 @@ class Test(IsolatedAsyncioTestCase):
         finally:
             await halftest.person_cls(first_name='zx', last_name='zx').ho_adelete()
 
+    async def test_python_exception_rolls_back(self):
+        "A non-SQL exception must roll the outermost transaction back, not commit it"
+        initial_count = await self.pers.ho_acount()
+        try:
+            with self.assertRaises(ValueError):
+                async with AsyncTransaction(halftest.model):
+                    await self.pers(
+                        first_name='zz', last_name='zz', birth_date='2000-01-01'
+                    ).ho_ainsert()
+                    raise ValueError('business rule violated')
+            self.assertEqual(initial_count, await self.pers.ho_acount())
+        finally:
+            await halftest.person_cls(first_name='zz', last_name='zz').ho_adelete()
+
+    async def test_autocommit_restored_after_exception(self):
+        "Autocommit must be back on once the outermost block is left in error"
+        with self.assertRaises(ValueError):
+            async with AsyncTransaction(halftest.model):
+                raise ValueError('boom')
+        self.assertTrue(halftest.model._aconnection.autocommit)
+
     async def test_nested_with_savepoint_isolation(self):
         "Nested 'async with AsyncTransaction' failure must not abort the outer transaction"
         initial_count = await self.pers.ho_acount()
