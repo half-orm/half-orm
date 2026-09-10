@@ -93,6 +93,85 @@ def _ho_quote_literal(value):
     return "'" + str(value).replace("'", "''") + "'"
 
 
+# One ORDER BY term: a column (bare or double-quoted) or an output-column
+# ordinal, optionally followed by a direction and a NULLS placement. Anything
+# else — an expression, a function call, a qualified name, a second statement —
+# is refused, because `order_by` is interpolated into the query rather than
+# bound as a parameter.
+_ORDER_BY_TERM_RE = re.compile(
+    r'''\s*
+        (?: "(?P<quoted>(?:[^"]|"")+)"      # "quoted column"
+          | (?P<bare>[A-Za-z_][A-Za-z0-9_$]*)   # bare_column
+          | (?P<ordinal>[1-9][0-9]*)            # output column number
+        )
+        (?:\s+(?P<direction>asc|desc))?
+        (?:\s+nulls\s+(?P<nulls>first|last))?
+        \s*''',
+    re.IGNORECASE | re.VERBOSE)
+
+
+def _ho_parse_order_by(order_by, columns, context='order_by'):
+    """Render `order_by` as a safe SQL ORDER BY clause.
+
+    Accepts the documented forms — ``'name'``, ``'name desc'``,
+    ``'last_name, first_name desc'``, ``'name desc nulls last'``, and
+    output-column ordinals — checking every column name against `columns`
+    and quoting it on the way out.
+
+    An expression (``lower(name)``), a qualified name (``r1.name``) or
+    anything carrying a quote or a semicolon is refused: use
+    :meth:`~half_orm.model.Model.execute_query` when a query genuinely needs
+    arbitrary SQL there.
+
+    Args:
+        order_by (str): the clause to parse.
+        columns (Iterable[str]): the column names accepted in this context.
+        context (str): parameter name to quote in error messages.
+
+    Returns:
+        str: the rendered clause, e.g. ``'"last_name" asc, "id" desc'``.
+
+    Raises:
+        ValueError: if `order_by` is not a string or does not parse.
+        UnknownAttributeError: if a term names a column the relation has not.
+    """
+    if not isinstance(order_by, str):
+        raise ValueError(
+            f"{context} must be a string, got {type(order_by).__name__!r}")
+
+    rendered = []
+    pos = 0
+    while True:
+        match = _ORDER_BY_TERM_RE.match(order_by, pos)
+        if not match or match.end() == pos:
+            raise ValueError(
+                f"Invalid {context}: {order_by!r}. Expected a comma-separated list of "
+                f"'<column> [asc|desc] [nulls first|last]'.")
+        quoted, bare, ordinal = match.group('quoted', 'bare', 'ordinal')
+        if ordinal is not None:
+            term = ordinal
+        else:
+            name = quoted.replace('""', '"') if quoted is not None else bare
+            if name not in columns:
+                raise relation_errors.UnknownAttributeError(f"{name} ({context})")
+            term = _ho_quote_ident(name)
+        if match.group('direction'):
+            term += f" {match.group('direction').lower()}"
+        if match.group('nulls'):
+            term += f" nulls {match.group('nulls').lower()}"
+        rendered.append(term)
+
+        pos = match.end()
+        if pos == len(order_by):
+            break
+        if order_by[pos] != ',':
+            raise ValueError(
+                f"Invalid {context}: {order_by!r}. Unexpected "
+                f"{order_by[pos]!r} at position {pos}.")
+        pos += 1
+    return ', '.join(rendered)
+
+
 def _ho_check_json_agg_field(rel, name, fkey_attr):
     """Check that `name` is a column of `rel`, as ``ho_select(*args)`` does
     for its own projection list.
@@ -435,14 +514,34 @@ class Relation:
         return all(pk in args for pk in self._ho_pkey)
 
     #@utils.trace
+    def _ho_check_select_params(self, *args, order_by=None, limit=None, offset=None):
+        """Check everything a caller can put into a SELECT that is *not* a
+        bound parameter, and return the rendered ORDER BY clause (or ``None``).
+
+        ``ho_select`` reaches the query builder by two routes — this one and
+        ``_ho_prep_json_agg_select`` — and only the first used to run these
+        checks, so the same argument was validated or not depending on
+        whether ``json_agg`` was passed. Both call this now.
+
+        Raises:
+            ValueError: on a non-integer limit/offset or an unparsable order_by.
+            UnknownAttributeError: on a column name the relation has not.
+        """
+        self._ho_check_colums(*args)
+        for name, value in (('limit', limit), ('offset', offset)):
+            # bool is an int in Python, and `limit True` is not SQL.
+            if value is not None and (isinstance(value, bool) or not isinstance(value, int)):
+                raise ValueError(
+                    f"{name} must be an integer, got {type(value).__name__!r}")
+        if order_by is None:
+            return None
+        return _ho_parse_order_by(order_by, self._ho_fields)
+
     def _ho_prep_select_query(self, *args,
         distinct=False, order_by=None, limit=None, offset=None):
         """Validate select parameters and return (query, values, can_dedup, pk_names)."""
-        self._ho_check_colums(*args)
-        if limit is not None and not isinstance(limit, int):
-            raise ValueError(f"limit must be an integer, got {type(limit).__name__!r}")
-        if offset is not None and not isinstance(offset, int):
-            raise ValueError(f"offset must be an integer, got {type(offset).__name__!r}")
+        order_by = self._ho_check_select_params(
+            *args, order_by=order_by, limit=limit, offset=offset)
         distinct = 'distinct' if distinct else ''
         can_dedup = bool(self._ho_join_to) and self._ho_result_is_relation(*args)
         pk_names = list(self._ho_pkey.keys())
@@ -463,8 +562,14 @@ class Relation:
             *args: column names to project. If omitted, all columns are
                 returned.
             distinct (bool): add ``DISTINCT`` to the SELECT. Default: ``False``.
-            order_by (str): SQL ``ORDER BY`` clause, e.g.
-                ``'last_name, first_name desc'``. Default: ``None``.
+            order_by (str): ``ORDER BY`` clause: a comma-separated list of
+                ``<column> [asc|desc] [nulls first|last]``, e.g.
+                ``'last_name, first_name desc'``. Column names are checked
+                against the relation and quoted; an output-column ordinal
+                (``'1 desc'``) is accepted too. Anything else — an
+                expression, a function call, a qualified name — raises
+                ``ValueError``, since the clause is interpolated into the
+                query rather than bound as a parameter. Default: ``None``.
             limit (int): maximum number of rows to return. Default: ``None``.
             offset (int): number of rows to skip. Default: ``None``.
             json_agg (dict): aggregate already-set fkeys as JSON arrays via
@@ -1558,10 +1663,11 @@ Fkeys = {"""
 
         self._ho_query_type = 'select'
 
-        # Same check `_ho_prep_select_query` runs for a plain ho_select: this
-        # path bypasses it, and __where_args interpolates *args straight into
-        # the projection list.
-        self._ho_check_colums(*args)
+        # This path bypasses `_ho_prep_select_query`, so it has to run its
+        # checks itself: __where_args interpolates *args straight into the
+        # projection list, and order_by/limit/offset go raw into the clause.
+        order_by = self._ho_check_select_params(
+            *args, order_by=order_by, limit=limit, offset=offset)
 
         what, where_expr = self.__where_args(*args)
         columns = [what]
