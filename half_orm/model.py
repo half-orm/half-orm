@@ -21,6 +21,7 @@ Example:
 
 import importlib
 import os
+import re
 import sys
 import threading
 import typing
@@ -74,6 +75,55 @@ def _config_bool(section, key, default, file_):
     except KeyError:
         raise model_errors.MalformedConfigFile(
             file_, f"Invalid boolean value for '{key}'", value) from None
+
+
+# One segment of a qualified SQL name: a bare identifier, or a double-quoted
+# one (embedded quotes doubled, as PostgreSQL spells them).
+#   [^\W\d] is a word character that is not a digit — a letter or underscore,
+#   Unicode-aware, which is what PostgreSQL accepts to start an identifier.
+_NAME_SEGMENT = r'(?:"(?:[^"]|"")+"|[^\W\d][\w$]*)'
+_QUALIFIED_NAME_RE = re.compile(rf'^{_NAME_SEGMENT}(?:\.{_NAME_SEGMENT})*$')
+
+
+def _check_qualified_name(name, what):
+    """Check `name` is a (possibly schema-qualified) SQL name and return it.
+
+    Function and procedure names are interpolated into the statement — only
+    their *arguments* are bound — so a name is the one part of these calls an
+    application must not build from untrusted input without checking. A name
+    matching this grammar carries no space, parenthesis, semicolon or stray
+    quote, and so cannot close the call and start something else.
+
+    The name is returned unchanged rather than re-quoted, so that PostgreSQL
+    keeps folding bare identifiers to lower case exactly as before.
+
+    Raises:
+        ValueError: if `name` is not a usable SQL name.
+    """
+    if not isinstance(name, str):
+        raise ValueError(f"{what} must be a string, got {type(name).__name__}: {name!r}")
+    if not _QUALIFIED_NAME_RE.match(name):
+        raise ValueError(
+            f"Invalid {what}: {name!r}. Expected a SQL name such as 'my_function' "
+            f"or 'my_schema.my_function'.")
+    return name
+
+
+def _check_named_params(kwargs, what):
+    """Check that `kwargs` keys are usable as PostgreSQL named arguments.
+
+    They are rendered as ``key => %s``, and ``f(**{'a => 1) --': v})`` is
+    legal Python, so the keys need the same treatment as the callable's name.
+
+    Raises:
+        ValueError: if a key is not a plain identifier.
+    """
+    for key in kwargs:
+        if not key.isidentifier():
+            raise ValueError(
+                f"Invalid parameter name for {what}: {key!r}. Named parameters "
+                f"must be plain identifiers.")
+    return kwargs
 
 
 def _describe_values(values):
@@ -714,9 +764,14 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            ValueError: if the name or a named parameter is not a SQL
+                identifier. The name is interpolated into the statement,
+                unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the execute_function method!")
+        fct_name = _check_qualified_name(fct_name, 'function name')
+        _check_named_params(kwargs, 'execute_function')
         cursor = self._connection.cursor(row_factory=dict_row)
         if kwargs:
             params = ', '.join([f'{key} => %s' for key in kwargs])
@@ -741,9 +796,14 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            ValueError: if the name or a named parameter is not a SQL
+                identifier. The name is interpolated into the statement,
+                unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the call_procedure method!")
+        proc_name = _check_qualified_name(proc_name, 'procedure name')
+        _check_named_params(kwargs, 'call_procedure')
         if kwargs:
             params = ', '.join([f'{key} => %s' for key in kwargs])
             values = tuple(kwargs.values())
@@ -771,9 +831,14 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            ValueError: if the name or a named parameter is not a SQL
+                identifier. The name is interpolated into the statement,
+                unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the aexecute_function method!")
+        fct_name = _check_qualified_name(fct_name, 'function name')
+        _check_named_params(kwargs, 'aexecute_function')
         if kwargs:
             params = ', '.join([f'{key} => %s' for key in kwargs])
             values = tuple(kwargs.values())
@@ -797,9 +862,14 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            ValueError: if the name or a named parameter is not a SQL
+                identifier. The name is interpolated into the statement,
+                unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the acall_procedure method!")
+        proc_name = _check_qualified_name(proc_name, 'procedure name')
+        _check_named_params(kwargs, 'acall_procedure')
         if kwargs:
             params = ', '.join([f'{key} => %s' for key in kwargs])
             values = tuple(kwargs.values())
