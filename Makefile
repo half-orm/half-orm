@@ -1,3 +1,11 @@
+# PostgreSQL port used by the test database. The .config/* connection files
+# deliberately omit `port` so that libpq resolves it from PGPORT, which
+# defaults to 5432 here — the same port they used to hard-code. Point the
+# tests at another cluster with `make py_test PGPORT=5435`, or by exporting
+# PGPORT in the environment.
+PGPORT ?= 5432
+export PGPORT
+
 py_test:
 	export LC_MESSAGES=C PYTHONPATH=$$PWD HALFORM_CONF_DIR=$$PWD/.config && pytest -x -vv --assert=plain --cov-config=.coveragerc --cov=half_orm --cov-report html test
 	flake8 half_orm --count --select=E9,F63,F7,F82 --show-source --statistics
