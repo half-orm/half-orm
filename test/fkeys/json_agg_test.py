@@ -5,6 +5,7 @@
 
 from unittest import TestCase
 
+from half_orm import relation_errors
 from half_orm.transaction import Transaction
 
 from ..init import halftest
@@ -772,13 +773,14 @@ class TestJsonAggIntermediateNodes(TestCase):
         with self.assertRaises(RuntimeError) as ctx:
             list(c.ho_select(json_agg={
                 'post_fk': {
-                    'fields': ['last_name'],
-                    'intermediate_nodes': {'fields': ['last_name']},  # 'last_name' isn't a post
-                                                                       # column, but the check is
-                                                                       # purely name-based, on purpose
+                    # 'id' exists on both hops (blog.post and actor.person), so the
+                    # collision is the only thing wrong with this spec — field names
+                    # are validated against their relation before being merged.
+                    'fields': ['id'],
+                    'intermediate_nodes': {'fields': ['id']},
                 },
             }))
-        self.assertIn('last_name', str(ctx.exception))
+        self.assertIn('id', str(ctx.exception))
 
     def test_intermediate_nodes_deeper_than_chain_raises(self):
         "'intermediate_nodes' nested past the actual .set() chain must raise RuntimeError"
@@ -828,3 +830,105 @@ class TestJsonAggIntermediateNodes(TestCase):
                 },
             }))
         self.assertIn('intermediate_nodes', str(ctx.exception))
+
+class TestJsonAggFieldValidation(TestCase):
+    """json_agg field names must be validated against their relation, and
+    alias names quoted, so that neither can inject SQL into the projection
+    list (see the `_ho_check_json_agg_field` / `_ho_quote_ident` helpers).
+
+    `ho_select(*args)` has always run its projection list through
+    `_ho_check_colums`; json_agg reaches the SQL by another path and used to
+    interpolate whatever it was handed."""
+
+    def setUp(self):
+        self.person = halftest.person_cls
+        self.post = halftest.post_cls
+        self.comment = halftest.comment_cls
+
+    def _person_with_posts(self):
+        p = self.person(last_name='aa')
+        p.post_rfk.set(self.post())
+        return p
+
+    # -- field names ---------------------------------------------------
+
+    def test_unknown_leaf_field_raises(self):
+        "a field that is not a column of the leaf relation must be rejected"
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(
+                json_agg={'post_rfk': ['title', 'no_such_column']}))
+
+    def test_unknown_scalar_field_raises(self):
+        "scalar-mode fields (a bare string) must be validated too"
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(
+                json_agg={'post_rfk': 'no_such_column'}))
+
+    def test_unknown_field_raises_with_distinct(self):
+        "the correlated-subquery path must validate the same way as the LEFT JOIN one"
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(
+                json_agg={'post_rfk': {'fields': ['no_such_column'], 'distinct': True}}))
+
+    def test_unknown_intermediate_field_raises(self):
+        "intermediate_nodes fields must be validated against their own hop"
+        c = self.comment()
+        p = self.post()
+        p.author_fk.set(self.person())
+        c.post_fk.set(p)
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(c.ho_select(json_agg={
+                'post_fk': {
+                    'fields': ['last_name'],
+                    'intermediate_nodes': {'fields': ['no_such_column']},
+                },
+            }))
+
+    def test_non_string_field_raises(self):
+        "a non-string field name must be rejected rather than str()-ed into the query"
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(json_agg={'post_rfk': ['title', 42]}))
+
+    # -- injection payloads --------------------------------------------
+
+    def test_field_injection_payload_is_rejected(self):
+        "a field name carrying a quote must be rejected, not interpolated"
+        payload = 'title", (select version()) as "leak'
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(
+                json_agg={'post_rfk': {'fields': [payload]}}))
+
+    def test_alias_injection_payload_is_quoted_not_executed(self):
+        "an alias carrying a quote must become one literal column name, not extra SQL"
+        payload = 'posts", (select version()) as "leak'
+        rows = list(self._person_with_posts().ho_select(
+            'last_name', json_agg={'post_rfk': {'fields': ['title'], 'alias': payload}}))
+        self.assertTrue(rows)
+        row = rows[0]
+        # The whole payload is the column name; no second column was created.
+        self.assertIn(payload, row)
+        self.assertNotIn('leak', row)
+        self.assertEqual(sorted(row), sorted(['last_name', payload]))
+
+    def test_alias_injection_payload_is_quoted_with_distinct(self):
+        "same, through the correlated-subquery path"
+        payload = 'posts", (select version()) as "leak'
+        rows = list(self._person_with_posts().ho_select(
+            'last_name',
+            json_agg={'post_rfk': {'fields': ['title'], 'alias': payload, 'distinct': True}}))
+        self.assertTrue(rows)
+        self.assertNotIn('leak', rows[0])
+
+    def test_select_args_are_validated_with_json_agg(self):
+        "ho_select(*args) must be checked on the json_agg path too, not only the plain one"
+        with self.assertRaises(relation_errors.UnknownAttributeError):
+            list(self._person_with_posts().ho_select(
+                'last_name, (select version()) as leak',
+                json_agg={'post_rfk': ['title']}))
+
+    def test_select_args_still_work_with_json_agg(self):
+        "valid projection args must keep working alongside json_agg"
+        rows = list(self._person_with_posts().ho_select(
+            'last_name', json_agg={'post_rfk': ['title']}))
+        self.assertTrue(rows)
+        self.assertEqual(sorted(rows[0]), ['last_name', 'post_rfk'])

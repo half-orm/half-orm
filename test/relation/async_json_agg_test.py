@@ -150,8 +150,10 @@ class Test(IsolatedAsyncioTestCase):
         with self.assertRaises(RuntimeError) as ctx:
             await c.ho_aselect(json_agg={
                 'post_fk': {
-                    'fields': ['last_name'],
-                    'intermediate_nodes': {'fields': ['last_name']},
+                    # 'id' exists on both hops, so the collision is the only thing
+                    # wrong with this spec — see the sync test of the same name.
+                    'fields': ['id'],
+                    'intermediate_nodes': {'fields': ['id']},
                 },
             })
-        self.assertIn('last_name', str(ctx.exception))
+        self.assertIn('id', str(ctx.exception))

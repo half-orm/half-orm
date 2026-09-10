@@ -78,7 +78,43 @@ def _ho_walk_fk_chain(fk_rel):
     return hops, chain_has_list
 
 
-def _ho_build_json_agg_pairs(fk_rel, hops, spec, fields):
+def _ho_quote_ident(name):
+    """Quote `name` as a PostgreSQL identifier, doubling any embedded quote.
+
+    Column names come from the catalog and alias names from the caller;
+    neither is interpolated raw into the query, so a name carrying a ``"``
+    can never close the identifier and open SQL of its own.
+    """
+    return '"' + str(name).replace('"', '""') + '"'
+
+
+def _ho_quote_literal(value):
+    "Quote `value` as a single-quoted SQL string literal."
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def _ho_check_json_agg_field(rel, name, fkey_attr):
+    """Check that `name` is a column of `rel`, as ``ho_select(*args)`` does
+    for its own projection list.
+
+    ``json_agg`` reaches the SQL through a different path than
+    ``_ho_check_colums``, so without this a caller-supplied field name would
+    land in the query unchecked.
+
+    Raises:
+        UnknownAttributeError: if `name` is not a column of `rel`.
+    """
+    if not isinstance(name, str):
+        raise relation_errors.UnknownAttributeError(
+            f"json_agg['{fkey_attr}']: field names must be strings, got "
+            f"{type(name).__name__}")
+    if name not in rel._ho_fields:
+        raise relation_errors.UnknownAttributeError(
+            f"{name} (json_agg['{fkey_attr}'] on {rel._qrn})")
+    return name
+
+
+def _ho_build_json_agg_pairs(fk_rel, hops, spec, fields, fkey_attr):
     """Collect the ordered ``(field_name, rel)`` pairs to project into a
     single ``json_build_object`` for one `json_agg` entry — the leaf's own
     `fields` (last hop, or `fk_rel` itself if `hops` is empty) PLUS, when
@@ -103,6 +139,7 @@ def _ho_build_json_agg_pairs(fk_rel, hops, spec, fields):
         if current_spec is None:
             continue
         for f in current_spec.get('fields', []):
+            _ho_check_json_agg_field(rel, f, fkey_attr)
             if f in seen:
                 raise RuntimeError(
                     f"json_agg: field '{f}' is requested by more than one node in the "
@@ -115,6 +152,7 @@ def _ho_build_json_agg_pairs(fk_rel, hops, spec, fields):
             "json_agg: 'intermediate_nodes' nests deeper than the actual FK chain — "
             f"no further FK is .set() past {leaf_rel._qrn}.")
     for f in fields:
+        _ho_check_json_agg_field(leaf_rel, f, fkey_attr)
         if f in seen:
             raise RuntimeError(
                 f"json_agg: field '{f}' is requested by more than one node in the "
@@ -1520,6 +1558,11 @@ Fkeys = {"""
 
         self._ho_query_type = 'select'
 
+        # Same check `_ho_prep_select_query` runs for a plain ho_select: this
+        # path bypasses it, and __where_args interpolates *args straight into
+        # the projection list.
+        self._ho_check_colums(*args)
+
         what, where_expr = self.__where_args(*args)
         columns = [what]
         if not self._ho_pkey:
@@ -1617,11 +1660,14 @@ Fkeys = {"""
                 # Use jsonb_build_object / to_jsonb so that DISTINCT has an
                 # equality operator to work with (json type has none).
                 if scalar_mode:
-                    obj_expr = f'{rel_id}."{fields}"'
+                    _ho_check_json_agg_field(leaf_rel, fields, fkey_attr)
+                    obj_expr = f'{rel_id}.{_ho_quote_ident(fields)}'
                 else:
-                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields)
+                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields, fkey_attr)
                     if pairs:
-                        obj_pairs = ', '.join(f"'{f}', r{rel.ho_id}.\"{f}\"" for f, rel in pairs)
+                        obj_pairs = ', '.join(
+                            f'{_ho_quote_literal(f)}, r{rel.ho_id}.{_ho_quote_ident(f)}'
+                            for f, rel in pairs)
                         obj_expr = f'jsonb_build_object({obj_pairs})'
                     else:
                         obj_expr = f'to_jsonb({rel_id})'
@@ -1639,7 +1685,7 @@ Fkeys = {"""
                                 f" from ({sub}) t), '[]'::jsonb)")
                 else:
                     col_expr = f'(select {obj_expr} from {from_sql} where {where_sql})'
-                columns.append(f'{col_expr} as "{alias}"')
+                columns.append(f'{col_expr} as {_ho_quote_ident(alias)}')
 
             else:
                 # --- LEFT JOIN (default) ---------------------------------------
@@ -1665,11 +1711,14 @@ Fkeys = {"""
 
                 rel_id = f'r{leaf_rel.ho_id}'
                 if scalar_mode:
-                    obj_expr = f'{rel_id}."{fields}"'
+                    _ho_check_json_agg_field(leaf_rel, fields, fkey_attr)
+                    obj_expr = f'{rel_id}.{_ho_quote_ident(fields)}'
                 else:
-                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields)
+                    pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields, fkey_attr)
                     if pairs:
-                        obj_pairs = ', '.join(f"'{f}', r{rel.ho_id}.\"{f}\"" for f, rel in pairs)
+                        obj_pairs = ', '.join(
+                            f'{_ho_quote_literal(f)}, r{rel.ho_id}.{_ho_quote_ident(f)}'
+                            for f, rel in pairs)
                         # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
                         obj_expr = (
                             f'jsonb_build_object({obj_pairs})' if distinct
@@ -1694,11 +1743,12 @@ Fkeys = {"""
                 rel_id = f'r{leaf_rel.ho_id}'
                 fk_pk_fields = list(leaf_rel._ho_pkey.keys())
                 filter_clause = (
-                    f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
+                    f' filter (where {rel_id}.{_ho_quote_ident(fk_pk_fields[0])} is not null)'
                     if fk_pk_fields else ''
                 )
                 columns.append(
-                    f"coalesce({agg_fn}({obj_expr}){filter_clause}, {empty_arr}) as \"{alias}\""
+                    f"coalesce({agg_fn}({obj_expr}){filter_clause}, {empty_arr})"
+                    f" as {_ho_quote_ident(alias)}"""
                 )
             else:
                 # scalar result: at most one leaf row → dict or NULL.
@@ -1707,15 +1757,16 @@ Fkeys = {"""
                     rel_id = f'r{leaf_rel.ho_id}'
                     fk_pk_fields = list(leaf_rel._ho_pkey.keys())
                     filter_clause = (
-                        f' filter (where {rel_id}."{fk_pk_fields[0]}" is not null)'
+                        f' filter (where {rel_id}.{_ho_quote_ident(fk_pk_fields[0])} is not null)'
                         if fk_pk_fields else ''
                     )
                     col_expr = f'({agg_fn}({obj_expr}){filter_clause})->0'
                 else:
                     col_expr = obj_expr
-                columns.append(f"{col_expr} as \"{alias}\"")
+                columns.append(f'{col_expr} as {_ho_quote_ident(alias)}')
 
-        group_by = [f'r{self.ho_id}."{pk}"' for pk in self._ho_pkey] if has_reverse else []
+        group_by = ([f'r{self.ho_id}.{_ho_quote_ident(pk)}' for pk in self._ho_pkey]
+                    if has_reverse else [])
 
         stmt = ASTSelect(
             columns=columns,
