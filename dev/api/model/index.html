@@ -1580,12 +1580,25 @@ database is enough — it is shared across all relation classes.</p>
 <code>HALFORM_CONF_DIR</code> (env var, defaults to <code>/etc/half_orm</code>).
 File format:
     [database]
-    name     = <db name>      # mandatory
-    user     = <user>
-    password = <password>
-    host     = <host>
-    port     = <port></p>
-<p><code>name</code> is the only mandatory key when using peer authentication.</p>
+    name       = <db name>    # mandatory
+    user       = <user>
+    password   = <password>
+    host       = <host>
+    port       = <port>
+    production = <bool>       # default: false
+    crud_only  = <bool>       # default: false</p>
+<p><code>name</code> is the only mandatory key when using peer authentication.
+Booleans accept <code>true</code>/<code>false</code>, <code>yes</code>/<code>no</code>, <code>on</code>/<code>off</code>
+and <code>1</code>/<code>0</code>, in any case; anything else raises
+<code>MalformedConfigFile</code>.</p>
+<p><code>production</code> records the environment this connection belongs
+to. half_orm itself does not act on it — query parameters are
+never written to the logs, in any mode — but extensions do:
+half_orm_dev makes a server read-only when it is set.</p>
+<p><code>crud_only</code> refuses :meth:<code>execute_query</code> and
+:meth:<code>aexecute_query</code>, leaving only the Relation CRUD methods.
+It is a guard rail against accidents, not a privilege boundary:
+use <code>GRANT</code>/<code>REVOKE</code> to actually restrict what a role can do.</p>
               </div>
             </td>
             <td>
