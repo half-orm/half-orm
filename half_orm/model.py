@@ -53,6 +53,55 @@ def _sql_to_json_type(sql_type: str) -> str:
     base = sql_type.lstrip('_')
     return _SQL_TO_JSON.get(base, 'string')
 
+def _config_bool(section, key, default, file_):
+    """Read `key` from a connection-file section as a boolean.
+
+    ``ConfigParser`` hands back strings, so a plain truth test on the value
+    made ``production = false`` — anything but the exact string ``'False'`` —
+    come out *true*. The spellings accepted here are ConfigParser's own:
+    true/false, yes/no, on/off, 1/0, in any case.
+
+    Raises:
+        MalformedConfigFile: if the value is not a recognizable boolean.
+    """
+    value = section.get(key)
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    try:
+        return ConfigParser.BOOLEAN_STATES[str(value).strip().lower()]
+    except KeyError:
+        raise model_errors.MalformedConfigFile(
+            file_, f"Invalid boolean value for '{key}'", value) from None
+
+
+def _describe_values(values):
+    """Describe query parameters by shape, never by content.
+
+    Query parameters routinely carry passwords, tokens and personal data, so
+    a failing query reports what it was given (``(str[19], int, NULL)``)
+    rather than the values themselves. Use ``Model.sql_trace = True`` or
+    :meth:`~half_orm.relation.Relation.ho_mogrify` to see the interpolated
+    query when debugging.
+    """
+    if values is None:
+        return 'none'
+    if not isinstance(values, (list, tuple)):
+        values = (values,)
+    described = []
+    for value in values:
+        if value is None:
+            described.append('NULL')
+            continue
+        type_name = type(value).__name__
+        try:
+            described.append(f'{type_name}[{len(value)}]')
+        except TypeError:
+            described.append(type_name)
+    return f"({', '.join(described)})"
+
+
 def _normalize_with_half_orm_meta(value):
     """Normalize the `with_half_orm_meta` constructor argument.
 
@@ -85,13 +134,28 @@ class Model:
             ``HALFORM_CONF_DIR`` (env var, defaults to ``/etc/half_orm``).
             File format:
                 [database]
-                name     = <db name>      # mandatory
-                user     = <user>
-                password = <password>
-                host     = <host>
-                port     = <port>
+                name       = <db name>    # mandatory
+                user       = <user>
+                password   = <password>
+                host       = <host>
+                port       = <port>
+                production = <bool>       # default: false
+                crud_only  = <bool>       # default: false
 
             ``name`` is the only mandatory key when using peer authentication.
+            Booleans accept ``true``/``false``, ``yes``/``no``, ``on``/``off``
+            and ``1``/``0``, in any case; anything else raises
+            ``MalformedConfigFile``.
+
+            ``production`` records the environment this connection belongs
+            to. half_orm itself does not act on it — query parameters are
+            never written to the logs, in any mode — but extensions do:
+            half_orm_dev makes a server read-only when it is set.
+
+            ``crud_only`` refuses :meth:`execute_query` and
+            :meth:`aexecute_query`, leaving only the Relation CRUD methods.
+            It is a guard rail against accidents, not a privilege boundary:
+            use ``GRANT``/``REVOKE`` to actually restrict what a role can do.
         scope (str | None): package name used to resolve registered subclasses.
         with_half_orm_meta (bool | str | Iterable[str]): controls whether
             "half_orm_meta.*" relations (half_orm_dev's own metadata schemas)
@@ -189,12 +253,13 @@ class Model:
         self.__connection_params['host'] = database.get('host')
         self.__connection_params['port'] = database.get('port')
         self.__connection_params['connect_timeout'] = database.get('timeout', 3)
-        self._production_mode = database.get('production', False)
-        if self._production_mode == 'False': # production = False
-            self._production_mode = False
-        self._crud_only = database.get('crud_only', False)
-        if self._crud_only == 'False':
-            self._crud_only = False
+        # `production` carries no security meaning inside half_orm — query
+        # parameters are never logged, in any mode (see _describe_values).
+        # It records the environment a connection belongs to, and extensions
+        # act on it: half_orm_dev reads it through Model._production_mode to
+        # make a server read-only (no migration, no module regeneration).
+        self._production_mode = _config_bool(database, 'production', False, file_)
+        self._crud_only = _config_bool(database, 'crud_only', False, file_)
 
     @property
     def _dbinfo(self):
@@ -469,10 +534,10 @@ class Model:
         values = self._unwrap_values(values)
 
         def _log_error():
-            vals = ''
-            if not self._production_mode:
-                vals = f"values: {values}\n"
-            utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
+            # See _execute_query: parameters are described, never disclosed.
+            utils.error(
+                f"Query execution failed:\nquery: {query}\n"
+                f"values: {_describe_values(values)}\n")
 
         if self.__aconn is not None and self.__aconn.closed:
             await self.aconnect()
@@ -604,11 +669,11 @@ class Model:
             cursor = self._connection.cursor(row_factory=dict_row)
             cursor.execute(query, values)
         except psycopg.Error as exc:
-            vals = ''
-            if not self._production_mode:
-                # report values only in development mode
-                vals = f"values: {values}\n"
-            utils.error(f"Query execution failed:\nquery: {query}\n{vals}")
+            # Shapes only: a failing query must never write its parameters —
+            # passwords, tokens, personal data — to the logs.
+            utils.error(
+                f"Query execution failed:\nquery: {query}\n"
+                f"values: {_describe_values(values)}\n")
             raise exc
         return cursor
 
