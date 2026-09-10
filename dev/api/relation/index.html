@@ -2096,8 +2096,14 @@ returned.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>SQL <code>ORDER BY</code> clause, e.g.
-<code>'last_name, first_name desc'</code>. Default: <code>None</code>.</p>
+                <p><code>ORDER BY</code> clause: a comma-separated list of
+<code>&lt;column&gt; [asc|desc] [nulls first|last]</code>, e.g.
+<code>'last_name, first_name desc'</code>. Column names are checked
+against the relation and quoted; an output-column ordinal
+(<code>'1 desc'</code>) is accepted too. Anything else — an
+expression, a function call, a qualified name — raises
+<code>ValueError</code>, since the clause is interpolated into the
+query rather than bound as a parameter. Default: <code>None</code>.</p>
               </div>
             </td>
             <td>
