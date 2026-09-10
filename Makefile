@@ -1,3 +1,11 @@
+# PostgreSQL port used by the test database. The .config/* connection files
+# deliberately omit `port` so that libpq resolves it from PGPORT, which
+# defaults to 5432 here — the same port they used to hard-code. Point the
+# tests at another cluster with `make py_test PGPORT=5435`, or by exporting
+# PGPORT in the environment.
+PGPORT ?= 5432
+export PGPORT
+
 release: test
 	@python3 scripts/do_release.py
 

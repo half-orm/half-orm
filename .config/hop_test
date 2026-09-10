@@ -3,5 +3,4 @@ name = hop_test
 user = halftest
 password = halftest
 host = localhost
-port = 5432
 production = False

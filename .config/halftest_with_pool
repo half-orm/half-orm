@@ -3,7 +3,6 @@ name = halftest
 user = halftest
 password = halftest
 host = localhost
-port = 5432
 
 [pool]
 minconn = 1
