@@ -42,6 +42,56 @@ _OPERATOR_RHS_TEMPLATES = {
     ('@@', 'tsvector'): 'plainto_tsquery(%s)',
 }
 
+# Comparators are interpolated into the WHERE clause, not bound as parameters,
+# so they must be constrained to things that can only ever *be* an operator.
+#
+# Word operators are enumerated. Symbolic ones are accepted by pattern rather
+# than by list, because PostgreSQL extensions define their own — pgvector's
+# `<->`, PostGIS's `&&&`, pg_trgm's `%` — and halfORM has always let those
+# through. The pattern below is PostgreSQL's own operator character set: a
+# comparator matching it cannot contain a space, a quote or a letter, so it
+# cannot close the condition and start another one.
+_WORD_COMPS = frozenset({
+    'in', 'not in',
+    'is', 'is not',
+    'is distinct from', 'is not distinct from',
+    'like', 'not like', 'ilike', 'not ilike',
+    'similar to', 'not similar to',
+})
+
+_SYMBOLIC_COMP_RE = re.compile(r'^[-+*/<>=~!@#%^&|`?]{1,32}$')
+
+# The operator character set can also spell the SQL comment openers, which
+# would let a comparator swallow the rest of the condition.
+_COMMENT_TOKENS = ('--', '/*', '*/')
+
+
+def check_comparator(comp: str) -> str:
+    """Validate `comp` as a comparison operator and return its normalized form.
+
+    Accepts the SQL word operators listed in ``_WORD_COMPS`` (case- and
+    whitespace-insensitive) and any operator spelled with PostgreSQL's
+    operator characters.  Everything else — anything carrying a space, a
+    quote, a letter outside the word list, or a comment opener — is
+    rejected, because it would reach the query as raw SQL.
+
+    Raises:
+        ValueError: if `comp` is not a usable comparison operator.
+    """
+    if not isinstance(comp, str):
+        raise ValueError(
+            f"comparator must be a string, got {type(comp).__name__}: {comp!r}")
+    normalized = ' '.join(comp.lower().split())
+    if normalized in _WORD_COMPS:
+        return normalized
+    if (_SYMBOLIC_COMP_RE.match(normalized)
+            and not any(tok in normalized for tok in _COMMENT_TOKENS)):
+        return normalized
+    raise ValueError(
+        f"Invalid comparator: {comp!r}. Use one of "
+        f"{', '.join(sorted(_WORD_COMPS))}, or a PostgreSQL operator such as "
+        f"'=', '!=', '<', '>=', '@>', '@@'.")
+
 
 class Expr:
     """A raw SQL expression for use with :meth:`Field.set`.
@@ -355,8 +405,18 @@ class Field():
             The constraint value.  Pass ``None`` to *remove* the constraint.
             Pass a ``(comparator, value)`` tuple to use an operator other than
             ``=``.  Supported comparators: ``=``, ``!=``, ``<``, ``<=``,
-            ``>``, ``>=``, ``like``, ``ilike``, ``in``, ``is``, ``is not``,
-            and any other PostgreSQL operator accepted in a WHERE clause.
+            ``>``, ``>=``, ``like``, ``not like``, ``ilike``, ``not ilike``,
+            ``similar to``, ``not similar to``, ``in``, ``not in``, ``is``,
+            ``is not``, ``is distinct from``, ``is not distinct from``, and
+            any operator spelled with PostgreSQL's operator characters —
+            including those added by extensions, such as ``@@``, ``@>``,
+            ``&&`` or pgvector's ``<->``.
+
+            The comparator is interpolated into the WHERE clause rather than
+            bound as a parameter, so anything else raises ``ValueError``.
+            Never build one by concatenating untrusted input; for a
+            condition that genuinely needs arbitrary SQL, pass an
+            :class:`Expr` as the *value*.
 
             Pass a sibling ``Field`` of the **same** relation instance, or an
             :class:`Expr` for arbitrary SQL expressions, to compare columns of
@@ -406,6 +466,11 @@ class Field():
             comp, value = value
         if value is None:
             raise ValueError("Can't have a None value with a comparator!")
+        if comp is not None:
+            # Validated here rather than further down: the Expr and Field
+            # branches below return early, and their comparator reaches the
+            # WHERE clause with no bound parameter at all.
+            comp = check_comparator(comp)
         # Expr (raw SQL expression)
         if isinstance(value, Expr):
             self.__is_set = True
@@ -429,7 +494,6 @@ class Field():
             comp = '='
         if isinstance(value, (list, set)):
             value = tuple(value)
-        comp = comp.lower()
         if value is NULL and comp not in {'is', 'is not'}:
             raise ValueError("comp should be 'is' or 'is not' with NULL value!")
         self.__is_set = True
