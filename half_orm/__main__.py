@@ -40,7 +40,7 @@ def check_databases_access():
                 try:
                     model = Model(cnx_file)
                     print(f"✅ {cnx_file}")
-                except (psycopg.Error, model_errors.MalformedConfigFile) as exc:
+                except (psycopg.Error, model_errors.MalformedConfigFile, ValueError) as exc:
                     sys.stderr.write(f'❌ {cnx_file}: {exc}\n')
         else:
             print("💡 No database configuration files found.")
@@ -77,10 +77,11 @@ def main():
         if database == '':
             sys.stderr.write("❌ Empty database name\n")
             sys.exit(1)
+            return
         try:
             model = Model(database)
             print(model)
-        except (psycopg.Error, model_errors.MalformedConfigFile) as exc:
+        except (psycopg.Error, model_errors.MalformedConfigFile, ValueError) as exc:
             sys.stderr.write(f"❌ Error connecting to database '{database}': {exc}\n")
             sys.stderr.write(f"💡 Use 'python -m half_orm --help' for usage information\n")
             sys.exit(1)
@@ -92,14 +93,17 @@ def main():
         if database == '':
             sys.stderr.write("❌ Empty database name\n")
             sys.exit(1)
+            return
         if relation == '':
             sys.stderr.write("❌ Empty relation name\n")
             sys.exit(1)
+            return
         try:
             model = Model(database)
             relation_class = model.get_relation_class(relation)
             print(relation_class())
-        except (psycopg.Error, model_errors.MalformedConfigFile, model_errors.UnknownRelation, model_errors.MissingSchemaInName) as exc:
+        except (psycopg.Error, model_errors.MalformedConfigFile, ValueError,
+                model_errors.UnknownRelation, model_errors.MissingSchemaInName) as exc:
             sys.stderr.write(f"❌ Error accessing relation '{relation}' in database '{database}': {exc}\n")
             sys.stderr.write(f"💡 Use 'python -m half_orm --help' for usage information\n")
             sys.exit(1)
