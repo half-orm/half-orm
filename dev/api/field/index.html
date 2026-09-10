@@ -1484,9 +1484,19 @@ p.score.set(Expr('"likes" * 10 + "views"'))    # score = likes*10 + views
     The constraint value.  Pass <code>None</code> to <em>remove</em> the constraint.
     Pass a <code>(comparator, value)</code> tuple to use an operator other than
     <code>=</code>.  Supported comparators: <code>=</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>,
-    <code>&gt;</code>, <code>&gt;=</code>, <code>like</code>, <code>ilike</code>, <code>in</code>, <code>is</code>, <code>is not</code>,
-    and any other PostgreSQL operator accepted in a WHERE clause.</p>
-<div class="highlight"><pre><span></span><code>Pass a sibling ``Field`` of the **same** relation instance, or an
+    <code>&gt;</code>, <code>&gt;=</code>, <code>like</code>, <code>not like</code>, <code>ilike</code>, <code>not ilike</code>,
+    <code>similar to</code>, <code>not similar to</code>, <code>in</code>, <code>not in</code>, <code>is</code>,
+    <code>is not</code>, <code>is distinct from</code>, <code>is not distinct from</code>, and
+    any operator spelled with PostgreSQL's operator characters —
+    including those added by extensions, such as <code>@@</code>, <code>@&gt;</code>,
+    <code>&amp;&amp;</code> or pgvector's <code>&lt;-&gt;</code>.</p>
+<div class="highlight"><pre><span></span><code>The comparator is interpolated into the WHERE clause rather than
+bound as a parameter, so anything else raises ``ValueError``.
+Never build one by concatenating untrusted input; for a
+condition that genuinely needs arbitrary SQL, pass an
+:class:`Expr` as the *value*.
+
+Pass a sibling ``Field`` of the **same** relation instance, or an
 :class:`Expr` for arbitrary SQL expressions, to compare columns of
 the same table without bound parameters.
 </code></pre></div>
