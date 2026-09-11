@@ -11,6 +11,11 @@ Steps (normal mode):
   3. Ask for the new version.
   4. If major or minor changes: create maintenance branch X.Y from last tag.
   5. Update half_orm/version.txt, pyproject.toml, CHANGELOG.md.
+
+Hand-written notes -- anything a reader has to *do*, which generated commit
+subjects cannot express -- go under a '# Unreleased' heading at the top of
+CHANGELOG.md. The release folds that section into the new version's entry,
+above the generated log, and leaves an empty heading behind for the next one.
   6. Commit and tag vX.Y.Z.
 
 --dry-run skips the clean-repo check and makes no changes.
@@ -147,11 +152,45 @@ def update_pyproject(new: str):
     path.write_text(text)
 
 
+UNRELEASED_HEADING = '# Unreleased'
+
+
+def split_unreleased(text: str):
+    """Separate a leading '# Unreleased' section from the rest of the log.
+
+    Generated commit subjects cannot say what an upgrade requires of the
+    reader, so anything hand-written between two releases is collected under
+    that heading. Returns (notes, remainder); notes is '' when there is no
+    such section, which leaves older changelogs untouched.
+    """
+    if not text.lstrip().startswith(UNRELEASED_HEADING):
+        return '', text
+
+    body = text.lstrip()[len(UNRELEASED_HEADING):]
+    # The next top-level heading starts the previous release.
+    match = re.search(r'^# ', body, flags=re.MULTILINE)
+    if match is None:
+        return body.strip(), ''
+    return body[:match.start()].strip(), body[match.start():]
+
+
+def render_changelog_entry(new: str, log: str, notes: str = '') -> str:
+    """One release section: what the reader must do, then what changed."""
+    today = date.today().strftime('%Y-%m-%d')
+    parts = [f'# {new} ({today})', '']
+    if notes:
+        parts += [notes, '']
+    parts += [log, '']
+    return '\n'.join(parts) + '\n'
+
+
 def update_changelog(new: str, log: str):
     path = ROOT / 'CHANGELOG.md'
-    today = date.today().strftime('%Y-%m-%d')
-    entry = f'# {new} ({today})\n\n{log}\n\n'
-    path.write_text(entry + path.read_text())
+    notes, remainder = split_unreleased(path.read_text())
+    # Left in place so the next contributor can see where notes go.
+    path.write_text(f'{UNRELEASED_HEADING}\n\n'
+                    + render_changelog_entry(new, log, notes)
+                    + remainder)
 
 
 def update_codemeta(new: str):
@@ -216,8 +255,12 @@ def main():
         print(f'  half_orm/version.txt  → {new}')
         print(f'  pyproject.toml        → version = "{new}"')
         print(f'  codemeta.json         → version = "{new}"')
+        notes, _ = split_unreleased((ROOT / 'CHANGELOG.md').read_text())
         print(f'  CHANGELOG.md          → prepend:\n')
-        print(f'# {new} ({today})\n\n{log}\n')
+        print(render_changelog_entry(new, log, notes))
+        if notes:
+            print(f'[DRY RUN] The {UNRELEASED_HEADING!r} section above is '
+                  'folded into this release.')
         print(f'[DRY RUN] Would commit "[release] {new}" and tag "v{new}"')
         return
 

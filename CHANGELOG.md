@@ -1,3 +1,81 @@
+# Unreleased
+
+## Extension loading: security fixes with behaviour changes
+
+The extension trust mechanism enforced less than it displayed. Fixing it
+changes observable behaviour, so this is a minor release rather than a patch.
+Everything below concerns the `half_orm` CLI and its extensions; the ORM
+itself is untouched.
+
+### Extension trust moved out of the project directory
+
+`.half_orm_cli` is no longer read. It sat in the current directory and
+suppressed the security prompt for unofficial extensions, so a repository
+shipping one granted itself silent consent -- and `git clone` produces files
+owned by you, which is why no permission check could have helped.
+
+Trust now lives in `~/.config/half_orm/cli.json` (`%APPDATA%` on Windows,
+`$XDG_CONFIG_HOME` when set), written `0600`, with entries still keyed by
+project path: approving an extension in one checkout does not approve it
+elsewhere. A leftover `.half_orm_cli` is reported once, then ignored.
+
+**What to do:** approve unofficial extensions once more when asked. Nothing
+to migrate -- the old file only ever held those approvals.
+
+### Unattended runs refuse instead of degrading quietly
+
+With no terminal attached, an unofficial extension used to vanish without a
+word and the command exited 0: `click.Abort` is a `RuntimeError`, and it was
+being swallowed. Such a run now fails with an explanation and a non-zero exit.
+
+**What to do:** set `HALF_ORM_TRUST_EXTENSIONS=1` in CI and other unattended
+environments. `--trusted-extensions` now works too -- it was parsed after the
+extensions had already loaded, so it could skip nothing.
+
+### Extensions load on first use, not at import
+
+`import half_orm.cli` no longer registers commands, prompts on stdin, or
+exits the host process over a version mismatch. Only code driving the click
+group programmatically is affected; importing the ORM never was.
+
+### An extension must own the module it is loaded from
+
+Checks read a distribution's metadata while `importlib` resolves the module
+through `sys.path`, so a bare directory named `half_orm_gen`, carrying no
+metadata at all, could be executed and reported as `[OFFICIAL]`. The module
+is now required to belong to the distribution vouching for it.
+
+**What to do:** if an extension stops loading with "is not part of that
+distribution", the module being imported is not the installed one -- usually
+a stale `PYTHONPATH` entry or a leftover directory. Editable installs
+(PEP 660) are recognised and unaffected.
+
+### Trust is bound to the code, not to a version number
+
+Approving an extension now records a digest of its files, so republishing
+different code under the same version no longer inherits the approval.
+Official extensions are still loaded without asking, but the build is
+recorded on first sight and compared afterwards; one whose content changes
+while its version does not is skipped rather than loaded.
+
+Editable installs are deliberately not pinned: their code is a working tree
+meant to change between commands, and an alarm that fires on every edit is
+one nobody reads.
+
+**What to do:** after reinstalling an extension at the same version -- an
+ordinary alpha cycle -- run `half_orm --untrust <name>` once. Recorded builds
+are global, so a single command settles it for every project.
+
+`--untrust` also accepts any spelling of a name: `half_orm_dev`,
+`half-orm-dev` and `dev` all reach the same record. It previously prefixed
+blindly and asked for `half-orm-half_orm_dev`.
+
+### `half-orm-test-extension` is no longer trusted automatically
+
+It is distributed through GitHub, so its PyPI name is unclaimed, and an
+allowlist entry pointing at a name anyone can register is a free pass to
+whoever registers it. It now prompts like any other community extension.
+
 # 1.0.0 (2026-09-04)
 
 * docs(model): fix stale docstrings and a dead doc link (609aa23)

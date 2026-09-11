@@ -5,8 +5,10 @@
 
 import io
 import json
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest.mock as mock
 from pathlib import Path
 from unittest import TestCase
@@ -16,6 +18,10 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 # Import helpers directly — they have no side effects at import time.
 sys.path.insert(0, str(ROOT))
 from scripts.do_release import (
+    UNRELEASED_HEADING,
+    split_unreleased,
+    render_changelog_entry,
+    update_changelog,
     _clean_decoration,
     _github_repo,
     check_github_ci,
@@ -63,6 +69,90 @@ class TestParseMajorMinor(TestCase):
 
     def test_invalid(self):
         self.assertEqual(parse_major_minor('invalid'), (None, None))
+
+
+class TestUnreleasedSection(TestCase):
+    """Hand-written upgrade notes must survive `make release`.
+
+    Generated commit subjects say what changed; they cannot say what the
+    reader now has to do about it.
+    """
+
+    def test_absent_section_leaves_the_log_alone(self):
+        text = '# 1.0.0 (2026-09-04)\n\n* something (abc1234)\n'
+        notes, remainder = split_unreleased(text)
+        self.assertEqual(notes, '')
+        self.assertEqual(remainder, text)
+
+    def test_notes_are_separated_from_the_previous_release(self):
+        text = (f'{UNRELEASED_HEADING}\n\n## Upgrading\n\nDo the thing.\n\n'
+                '# 1.0.0 (2026-09-04)\n\n* something (abc1234)\n')
+        notes, remainder = split_unreleased(text)
+        self.assertIn('Do the thing.', notes)
+        self.assertTrue(remainder.startswith('# 1.0.0'))
+        self.assertNotIn('Do the thing.', remainder)
+
+    def test_subsections_do_not_end_the_notes(self):
+        """'## Upgrading' is part of the notes; only '# ' starts a release."""
+        text = (f'{UNRELEASED_HEADING}\n\n## A\n\nfirst\n\n## B\n\nsecond\n\n'
+                '# 0.9.0 (2026-01-01)\n\n* old (0000000)\n')
+        notes, _ = split_unreleased(text)
+        self.assertIn('first', notes)
+        self.assertIn('second', notes)
+
+    def test_notes_with_no_previous_release(self):
+        text = f'{UNRELEASED_HEADING}\n\nBrand new project.\n'
+        notes, remainder = split_unreleased(text)
+        self.assertEqual(notes, 'Brand new project.')
+        self.assertEqual(remainder, '')
+
+    def test_empty_section_yields_no_notes(self):
+        text = f'{UNRELEASED_HEADING}\n\n# 1.0.0 (2026-09-04)\n\n* x (abc1234)\n'
+        notes, remainder = split_unreleased(text)
+        self.assertEqual(notes, '')
+        self.assertTrue(remainder.startswith('# 1.0.0'))
+
+    def test_entry_puts_notes_before_the_commit_log(self):
+        entry = render_changelog_entry('1.1.0', '* a commit (abc1234)', 'Read me.')
+        self.assertLess(entry.index('Read me.'), entry.index('a commit'))
+
+    def test_entry_without_notes_has_no_blank_gap(self):
+        entry = render_changelog_entry('1.1.0', '* a commit (abc1234)')
+        self.assertNotIn('\n\n\n', entry)
+
+    def _write_changelog(self, text):
+        tmp = Path(tempfile.mkdtemp())
+        (tmp / 'CHANGELOG.md').write_text(text)
+        return tmp
+
+    def test_update_folds_notes_in_and_keeps_a_slot(self):
+        tmp = self._write_changelog(
+            f'{UNRELEASED_HEADING}\n\n## Upgrading\n\nRun --untrust.\n\n'
+            '# 1.0.0 (2026-09-04)\n\n* old (0000000)\n')
+        try:
+            with mock.patch('scripts.do_release.ROOT', tmp):
+                update_changelog('1.1.0', '* new (abc1234)')
+            result = (tmp / 'CHANGELOG.md').read_text()
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+        self.assertTrue(result.startswith(f'{UNRELEASED_HEADING}\n'))
+        self.assertIn('Run --untrust.', result)
+        self.assertLess(result.index('# 1.1.0'), result.index('# 1.0.0'))
+        self.assertLess(result.index('Run --untrust.'), result.index('* new'))
+        self.assertIn('* old (0000000)', result)
+
+    def test_update_of_a_changelog_without_the_section_loses_nothing(self):
+        tmp = self._write_changelog('# 1.0.0 (2026-09-04)\n\n* old (0000000)\n')
+        try:
+            with mock.patch('scripts.do_release.ROOT', tmp):
+                update_changelog('1.1.0', '* new (abc1234)')
+            result = (tmp / 'CHANGELOG.md').read_text()
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+        self.assertIn('* old (0000000)', result)
+        self.assertLess(result.index('# 1.1.0'), result.index('# 1.0.0'))
 
 
 class TestDryRun(TestCase):

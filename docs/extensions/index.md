@@ -29,37 +29,69 @@ Extensions integrate seamlessly with the halfORM CLI by providing:
 
 ### Security Model
 
-halfORM has a built-in security model for extensions:
+An extension is ordinary Python code that the CLI imports, so loading one is
+running it. halfORM asks before doing that, and remembers what it ran.
 
-- **Official extensions** - Automatically trusted and loaded
-- **Community extensions** - Require user approval on first use
-- **Trusted extensions** - Previously approved versions
-- **Version compatibility** - Extensions must match core major.minor version
+- **Official extensions** — maintained by the halfORM team. Loaded without
+  asking, but the build is recorded on first sight and checked afterwards.
+- **Community extensions** — approved by you, per project. Approving one in
+  a checkout does not approve it anywhere else.
+- **Module ownership** — the module that gets imported must belong to the
+  distribution that was checked. A directory of the right name earlier on
+  `sys.path` does not inherit its verdict.
+- **Version compatibility** — an extension you rely on must match the core
+  `major.minor`; one you never approved is skipped rather than fatal.
 
 ```bash
-# Trust a community extension version
-half_orm my-extension command  # Shows security prompt first time
+# Approving a community extension: prompted on first use
+half_orm my-extension command
 
-# Remove trust for an extension
+# Forget an approval, or a recorded build
 half_orm --untrust my-extension
 ```
+
+#### Where trust is recorded
+
+In `~/.config/half_orm/cli.json` — `%APPDATA%` on Windows, `$XDG_CONFIG_HOME`
+when set — created `0600`. Deliberately outside your project: a checkout is
+untrusted input, and one able to write its own approvals would grant itself
+silent consent.
+
+Set `HALF_ORM_CLI_CONFIG` to place the file elsewhere.
+
+#### What an approval covers
+
+A digest of the extension's code, not just its version number. Republishing
+different code under the same version does not inherit the approval — you are
+asked again, and told why.
+
+The same applies to official extensions, which are skipped rather than loaded
+when their content changes while their version does not:
+
+```bash
+# After reinstalling an extension at the same version
+half_orm --untrust my-extension   # accepts the new build, everywhere
+```
+
+Editable installs (`pip install -e`) are not pinned. Their code is a working
+tree meant to change between two commands, so approving one pins where it is
+rather than what it contains.
+
+#### Unattended runs
+
+There is nobody to answer a prompt in CI, and an extension that quietly fails
+to load turns its commands into "No such command". halfORM refuses instead,
+with a non-zero exit:
+
+```bash
+export HALF_ORM_TRUST_EXTENSIONS=1   # load extensions without prompting
+```
+
+`--trusted-extensions` does the same on the command line.
 
 ## Available Extensions
 
 ### ✅ Official Extensions
-
-#### half-orm-test-extension
-**Purpose**: Demonstration and testing of the extension system  
-**Repository**: [half-orm/half-orm-test-extension](https://github.com/half-orm/half-orm-test-extension)
-
-```bash
-# Installation
-pip install git+https://github.com/half-orm/half-orm-test-extension
-
-# Usage
-half_orm test-extension greet --name "World"
-half_orm test-extension status
-```
 
 #### half-orm-inspect
 **Purpose**: Enhanced database inspection and exploration  
@@ -72,6 +104,25 @@ pip install half-orm-inspect
 # Usage  
 half_orm inspect my_database
 half_orm inspect my_database public.users --details
+```
+
+### 🧪 Reference Extension
+
+#### half-orm-test-extension
+**Purpose**: Demonstration and testing of the extension system
+**Repository**: [half-orm/half-orm-test-extension](https://github.com/half-orm/half-orm-test-extension)
+
+Distributed through GitHub rather than PyPI, so it is approved like any
+community extension: the allowlist grants trust by name, and a name nobody
+has registered on PyPI is a name anyone can take.
+
+```bash
+# Installation
+pip install git+https://github.com/half-orm/half-orm-test-extension
+
+# Usage — prompts for approval the first time
+half_orm test-extension greet --name "World"
+half_orm test-extension status
 ```
 
 ### 📋 More Extensions in Development
@@ -121,7 +172,7 @@ def add_commands(main_group):
 
 - **Auto-registration**: Use `@create_and_register_extension` decorator
 - **Automatic metadata**: Version, description, and commands discovered automatically
-- **Security model**: Official extensions trusted, community extensions require approval
+- **Security model**: official extensions loaded without prompting but watched, community extensions approved per project
 - **Version compatibility**: Must match halfORM core major.minor version
 
 For a complete working example, see [half-orm-test-extension](https://github.com/half-orm/half-orm-test-extension) which demonstrates all the essential patterns.
