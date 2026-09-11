@@ -20,6 +20,7 @@ Example:
     3
 """
 
+import csv
 import inspect
 from dataclasses import dataclass
 import re
@@ -76,6 +77,42 @@ def _ho_walk_fk_chain(fk_rel):
         hops.append((chained_fkey, chained_rel))
         current_rel = chained_rel
     return hops, chain_has_list
+
+
+def _ho_copy_columns(obj, data, columns, method):
+    """Resolve and check the column list a COPY statement will name.
+
+    No parameter can stand for an identifier, so these names are interpolated
+    into the statement -- and they arrive from a CSV header or from the keys of
+    the caller's dicts, both of which are routinely deserialised from outside
+    the program. Only a name the relation actually has may pass.
+
+    Consumes the header line when *data* is a file-like object and *columns*
+    is None, leaving the stream positioned on the first row.
+    """
+    if columns is None:
+        if hasattr(data, 'read'):
+            header = data.readline()
+            if not header:
+                raise ValueError(f'{method}: empty input, no header row')
+            # PostgreSQL parses the body as CSV, so the header is read the
+            # same way: splitting on ',' mangles any quoted name holding one.
+            columns = next(csv.reader([header]), [])
+        else:
+            if not data:
+                raise ValueError(f'{method}: data must not be empty')
+            columns = list(data[0].keys())
+
+    columns = [column.strip() if isinstance(column, str) else column
+               for column in columns]
+    if not columns:
+        raise ValueError(f'{method}: no columns to copy')
+
+    unknown = [column for column in columns if column not in obj._ho_fields]
+    if unknown:
+        raise relation_errors.UnknownAttributeError(
+            ', '.join(str(column) for column in unknown))
+    return columns
 
 
 def _ho_quote_ident(name):
@@ -471,15 +508,15 @@ class Relation:
                     )
                 ```
         """
-        cls()._ho_check_writable()
+        obj = cls()
+        obj._ho_check_writable()
+        is_file = hasattr(data, 'read')
+        columns = _ho_copy_columns(obj, data, columns, 'ho_copy')
+        cols = ', '.join(_ho_quote_ident(c) for c in columns)
         conn = cls._ho_model._connection
-        if hasattr(data, 'read'):
+
+        if is_file:
             # File-like object — stream CSV directly into COPY
-            if columns is None:
-                # First line is the header
-                header = data.readline().rstrip('\n')
-                columns = [c.strip() for c in header.split(',')]
-            cols = ', '.join(f'"{c}"' for c in columns)
             stmt = f'copy {cls._qrn} ({cols}) from stdin (format csv)'
             count = 0
             with conn.cursor().copy(stmt) as copy:
@@ -487,17 +524,13 @@ class Relation:
                     copy.write(line)
                     count += 1
             return count
-        else:
-            # list[dict]
-            if not data:
-                raise ValueError('ho_copy: data must not be empty')
-            columns = list(data[0].keys())
-            cols = ', '.join(f'"{c}"' for c in columns)
-            stmt = f'copy {cls._qrn} ({cols}) from stdin'
-            with conn.cursor().copy(stmt) as copy:
-                for row in data:
-                    copy.write_row([row[c] for c in columns])
-            return len(data)
+
+        # list[dict]
+        stmt = f'copy {cls._qrn} ({cols}) from stdin'
+        with conn.cursor().copy(stmt) as copy:
+            for row in data:
+                copy.write_row([row[c] for c in columns])
+        return len(data)
 
     def _ho_result_is_relation(self, *args) -> bool:
         """Returns True if ho_select(*args) produces a proper relation in the
@@ -2069,13 +2102,14 @@ Fkeys = {"""
 
         *New in version 0.18.12.*
         """
-        cls()._ho_check_writable()
+        obj = cls()
+        obj._ho_check_writable()
+        is_file = hasattr(data, 'read')
+        columns = _ho_copy_columns(obj, data, columns, 'ho_acopy')
+        cols = ', '.join(_ho_quote_ident(c) for c in columns)
         aconn = cls._ho_model._aconnection
-        if hasattr(data, 'read'):
-            if columns is None:
-                header = data.readline().rstrip('\n')
-                columns = [c.strip() for c in header.split(',')]
-            cols = ', '.join(f'"{c}"' for c in columns)
+
+        if is_file:
             stmt = f'copy {cls._qrn} ({cols}) from stdin (format csv)'
             count = 0
             async with aconn.cursor().copy(stmt) as copy:
@@ -2083,16 +2117,12 @@ Fkeys = {"""
                     await copy.write(line)
                     count += 1
             return count
-        else:
-            if not data:
-                raise ValueError('ho_acopy: data must not be empty')
-            columns = list(data[0].keys())
-            cols = ', '.join(f'"{c}"' for c in columns)
-            stmt = f'copy {cls._qrn} ({cols}) from stdin'
-            async with aconn.cursor().copy(stmt) as copy:
-                for row in data:
-                    await copy.write_row([row[c] for c in columns])
-            return len(data)
+
+        stmt = f'copy {cls._qrn} ({cols}) from stdin'
+        async with aconn.cursor().copy(stmt) as copy:
+            for row in data:
+                await copy.write_row([row[c] for c in columns])
+        return len(data)
 
     #@utils.trace
     def __what(self):
