@@ -1,5 +1,7 @@
 # Unreleased
 
+# 1.1.0 (2026-09-11)
+
 ## Extension loading: security fixes with behaviour changes
 
 The extension trust mechanism enforced less than it displayed. Fixing it
@@ -145,6 +147,34 @@ keys of the caller's dicts and interpolated them into the statement unchecked.
 Unknown names now raise `UnknownAttributeError`. The header is parsed as CSV
 rather than split on ',', so a file whose header quotes every field -- which
 used to be rejected as a zero-length identifier -- now loads.
+
+* docs: add SECURITY.md (9900467)
+* fix(meta): quote relation names properly, and stop conflating them (041547c)
+* fix(hotest): follow the alias as an attribute path instead of eval-ing it (5956b4c)
+* fix(relation): ho_cast narrows only; refuse widening to an ancestor (55a8c14)
+* fix(relation): alias relations by a counter, not by their heap address (5fe8f28)
+* fix(model): stop letting a schema name choose a module, and report import errors (70723f1)
+* fix(relation): match column names exactly, and render the column they name (8b5478c)
+* fix(copy): check COPY column names against the relation (433eb02)
+* fix(ci): stop interpolating dispatch inputs into docs.yml shell scripts (16d761a)
+* docs: make the strict build pass, and make CI enforce it (21209eb)
+* docs(extensions): describe the trust model as it now behaves (a02bebb)
+* fix(cli): remember official builds per installation, and fix --untrust (1e4ad2f)
+* feat(cli): bind extension trust to the code, not to a version number (c0439d5)
+* fix(cli): check what will actually be imported, not just what it claims (acce66b)
+* fix(cli): load extensions on first use, not at import (d6c7fe3)
+* fix(cli): move the extension trust store out of the project directory (8e6063f)
+* fix(model): confine config_file to CONF_DIR, and guard reconnect in both branches (f97c9bf)
+* fix(model): check function and procedure names before interpolating them (c1c9ab6)
+* fix(model): never log query parameters, and parse config booleans properly (65fce39)
+* fix(select): validate order_by, and run the same checks on the json_agg path (9826db7)
+* fix(field): constrain the comparator passed to Field.set() (99d958d)
+* fix(json_agg): validate field names and quote identifiers in the projection (b36ecda)
+* test: let PGPORT select the cluster the test suite runs against (e1ca704)
+* fix(transaction): roll back instead of committing when an exception escapes (0b14d92)
+* fix(ci): serialize docs.yml runs to stop gh-pages push races (d4dc4e6)
+* chore: mark 1.0.0 as production/stable, not beta (615f2f0)
+* fix(ci): stop build job from inheriting test jobs' venv artifacts (cf385fa)
 
 # 1.0.0 (2026-09-04)
 
