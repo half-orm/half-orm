@@ -22,6 +22,7 @@ Example:
 
 import csv
 import inspect
+import itertools
 from dataclasses import dataclass
 import re
 import operator
@@ -113,6 +114,11 @@ def _ho_copy_columns(obj, data, columns, method):
         raise relation_errors.UnknownAttributeError(
             ', '.join(str(column) for column in unknown))
     return columns
+
+
+# Relation aliases. itertools.count is atomic in CPython, so concurrent
+# relations cannot be handed the same number.
+_ho_alias_counter = itertools.count(1)
 
 
 def _ho_unquote_ident(name):
@@ -388,6 +394,7 @@ class Relation:
         self._ho_set_operators = _SetOperators(self)
 
         self._ho_id_cast = None
+        self._ho_alias_id = next(_ho_alias_counter)
         self._ho_mogrify = False
         self._ho_check_colums(*kwargs.keys())
         _ = {self.__dict__[field_name].set(value)
@@ -1112,9 +1119,14 @@ class Relation:
 
     @property
     def ho_id(self):
-        """Return the _ho_id_cast or the id of the relation.
+        """The number this relation is aliased by in a query (``r42``).
+
+        Drawn from a counter rather than ``id(self)``, which put the object's
+        heap address into every query -- and therefore into logs, error
+        messages and pg_stat_statements. ``id()`` is also reused once an
+        object is freed, so two relations could be handed the same alias.
         """
-        return self._ho_id_cast or id(self)
+        return self._ho_id_cast or self._ho_alias_id
 
     @property
     def ho_only(self):
@@ -2241,7 +2253,12 @@ Fkeys = {"""
         if target_class._t_fqrn not in self_ancestors and self._t_fqrn not in target_ancestors:
             raise relation_errors.CastError(self, qrn)
         new = target_class(**self.__to_dict_val_comp())
-        new._ho_id_cast = id(self)
+        # self._ho_alias_id, not self.ho_id: the faithful translation of the
+        # id(self) this replaces. Reading ho_id would propagate an alias this
+        # relation had itself been cast to, which is arguably more correct --
+        # a chained cast currently loses the link back to the original -- but
+        # that is a change to inheritance behaviour, not to an alias scheme.
+        new._ho_id_cast = self._ho_alias_id
         new._ho_join_to = self._ho_join_to
         new._ho_set_operators = self._ho_set_operators
         new._ho_neg = self._ho_neg

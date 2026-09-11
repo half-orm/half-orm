@@ -113,7 +113,7 @@ FOREIGN KEYS:
  ↳ "halftest":"blog"."comment"(post_id)
 - author: ("author_first_name", "author_last_name", "author_birth_date")
  ↳ "halftest":"actor"."person"(first_name, last_name, birth_date)
-- _reverse_...............: ("author_first_name", "author_last_name", "author_birth_date")
+- _reverse_<n>: ("author_first_name", "author_last_name", "author_birth_date")
  ↳ "halftest":"blog"."post"("first_name", "last_name", "birth_date")
      DATABASE: halftest
      SCHEMA: actor
@@ -176,5 +176,6 @@ class Test(HoTestCase):
         self.maxDiff = None
         posts = self.pers.post_rfk(title='Easy')
         res = ''.join(repr(posts))
-        res = re.sub(r'_reverse_\d{15}', '_reverse_...............', res, count=2)
+        # The alias is a counter now, not a 15-digit heap address.
+        res = re.sub(r'_reverse_\d+', '_reverse_<n>', res, count=2)
         self.assertEqual(res, PERS_POSTS)
