@@ -111,6 +111,31 @@ class Test(TestCase):
         with self.assertRaises(relation_errors.CastError):
             halftest.post_cls(title='coucou').ho_cast('actor.person')
 
+    def test_cast_to_itself(self):
+        "casting a relation to its own table narrows to everything"
+        self.assertIsInstance(
+            halftest.post_cls().ho_cast('blog.post'), halftest.post_cls)
+
+    def test_cast_to_an_ancestor_is_refused(self):
+        """A cast narrows; widening answered with the ancestor's own extension.
+
+        blog.event inherits blog.post, so casting events to posts used to
+        return every post rather than the posts that are events.
+        """
+        with self.assertRaises(relation_errors.CastError) as ctx:
+            halftest.event_cls().ho_cast('blog.post')
+        self.assertIn('ancestor', str(ctx.exception))
+
+    def test_cast_to_an_ancestor_is_refused_before_it_crashes(self):
+        """A column of the descendant used to reach the ancestor's checker.
+
+        `Event(location=...)` carried `location` into blog.post, which has no
+        such column, and surfaced as UnknownAttributeError -- a different
+        error for the same unsupported operation, depending on the query.
+        """
+        with self.assertRaises(relation_errors.CastError):
+            halftest.event_cls(location='somewhere').ho_cast('blog.post')
+
     def test_field_aliases(self):
         "it should alias weird field names"
         self.assertEqual('class_', self.ColumnAliasTest()._Relation__py_field_name('class', 1))

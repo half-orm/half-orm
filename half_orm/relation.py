@@ -2230,12 +2230,17 @@ Fkeys = {"""
         return description or 'No description available'
 
     def ho_cast(self, qrn):
-        """Cast a relation to a related relation in the PostgreSQL inheritance hierarchy.
+        """Narrow a relation to a descendant in the PostgreSQL inheritance hierarchy.
 
-        The target ``qrn`` must either be an ancestor or a descendant of this
-        relation in the PostgreSQL table-inheritance hierarchy.  The check is
-        performed via the Python MRO, which :mod:`half_orm.relation_factory`
-        builds to mirror the PostgreSQL hierarchy.
+        The target ``qrn`` must be this relation or one that inherits from it.
+        The check is performed via the Python MRO, which
+        :mod:`half_orm.relation_factory` builds to mirror the PostgreSQL
+        hierarchy.
+
+        Casting narrows: ``Post().ho_cast('blog.event')`` gives the posts that
+        are events. It does not widen -- an ancestor is refused, because
+        returning that ancestor's own extension would answer a question nobody
+        asked.
 
         Args:
             qrn (str): qualified relation name of the target (e.g. ``'blog.event'``).
@@ -2245,12 +2250,23 @@ Fkeys = {"""
             field constraints and join state as ``self``.
 
         Raises:
-            CastError: if ``qrn`` is not related to this relation by inheritance.
+            CastError: if ``qrn`` is an ancestor of this relation, or is not
+                related to it by inheritance at all.
         """
         target_class = self._ho_model._import_class(qrn)
         self_ancestors   = {cls._t_fqrn for cls in type(self).__mro__       if hasattr(cls, '_t_fqrn')}
         target_ancestors = {cls._t_fqrn for cls in target_class.__mro__     if hasattr(cls, '_t_fqrn')}
-        if target_class._t_fqrn not in self_ancestors and self._t_fqrn not in target_ancestors:
+        if self._t_fqrn not in target_ancestors:
+            # A cast narrows to a descendant. Widening to an ancestor asked
+            # PostgreSQL for the ancestor's whole extension -- every post,
+            # not the posts that are events -- and raised UnknownAttributeError
+            # outright when a column of the descendant was constrained. Both
+            # answers are wrong, and which one you got depended on the query.
+            if target_class._t_fqrn in self_ancestors:
+                raise relation_errors.CastError(
+                    self, qrn,
+                    f"'{qrn}' is an ancestor, and a cast narrows to a "
+                    "descendant. Query it directly for its own rows.")
             raise relation_errors.CastError(self, qrn)
         new = target_class(**self.__to_dict_val_comp())
         # self._ho_alias_id, not self.ho_id: the faithful translation of the

@@ -62,13 +62,17 @@ class ReadOnlyRelationError(Exception):
             "write operations (ho_insert, ho_update, ho_delete).")
 
 class CastError(Exception):
-    """Raised when :meth:`~half_orm.relation.Relation.ho_cast` is called with
-    a target relation that is not related by PostgreSQL table inheritance.
+    """Raised when :meth:`~half_orm.relation.Relation.ho_cast` cannot narrow
+    to the target relation.
+
+    Either the two are unrelated by PostgreSQL table inheritance, or the
+    target is an ancestor -- a cast narrows to a descendant, it does not widen.
     """
-    def __init__(self, relation, qrn):
+    def __init__(self, relation, qrn, reason=None):
+        reason = reason or (
+            "no table-inheritance relationship between the two relations.")
         super().__init__(
-            f"Cannot cast '{relation.__class__.__name__}' to '{qrn}': "
-            "no table-inheritance relationship between the two relations."
+            f"Cannot cast '{relation.__class__.__name__}' to '{qrn}': {reason}"
         )
 
 class WrongFkeyError(Exception):

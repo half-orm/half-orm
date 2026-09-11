@@ -107,6 +107,22 @@ and RETURNING then asked PostgreSQL for a column called `column5`, which no
 table has, while WHERE and INSERT resolved correctly. All four now agree, and
 a renamed column is labelled back so `row['column5']` reads as expected.
 
+### `ho_cast` narrows only; widening to an ancestor is refused
+
+`blog.event` inherits `blog.post`, so casting posts to events gives the posts
+that are events -- 2 of 5 in the test fixture, which is right. The other
+direction answered with the ancestor's whole extension: casting those 2 events
+back to posts returned all 5, silently. And constraining a column the
+descendant alone has (`Event(location=...)`) raised `UnknownAttributeError`
+from deep inside instead -- a different error for the same unsupported
+operation, depending on the query.
+
+Widening now raises `CastError` saying so. Query the ancestor directly for its
+own rows.
+
+**What to do:** replace `child.ho_cast('parent_table')` with a query on the
+parent. Nothing else changes; narrowing is untouched.
+
 ### COPY column names are checked against the relation
 
 `ho_copy` and `ho_acopy` took their column names from a CSV header or from the
