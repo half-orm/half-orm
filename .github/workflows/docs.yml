@@ -88,43 +88,84 @@ jobs:
           
       - name: Get version info
         id: version
+        env:
+          # An expression is substituted into the script *text* before bash
+          # ever sees it, so a workflow_dispatch input written inside `run:`
+          # is code, not data: `0.18"; curl … | sh; #` runs as this job, which
+          # holds contents: write on the repository. Read from the
+          # environment, the same value stays a string.
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_ALIAS: ${{ github.event.inputs.alias }}
+          INPUT_TITLE: ${{ github.event.inputs.title }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            V="${{ github.event.inputs.version }}"
-            A="${{ github.event.inputs.alias }}"
-            T="${{ github.event.inputs.title }}"
-            echo "version=${V}" >> $GITHUB_OUTPUT
-            echo "alias=${A}" >> $GITHUB_OUTPUT
-            echo "title=${T:-${V} (rebuild)}" >> $GITHUB_OUTPUT
+          set -eu
+
+          # A newline in a value would let it append lines of its own to
+          # $GITHUB_OUTPUT, and so declare step outputs nobody wrote here.
+          emit() {
+            case "$2" in
+              *$'\n'*|*$'\r'*)
+                echo "::error::$1 must be a single line"; exit 1 ;;
+            esac
+            printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"
+          }
+
+          # version and alias end up as arguments to `mike deploy`. Quoting
+          # stops them being read as commands; this stops them being read as
+          # options, and keeps them to what a version name can hold.
+          check_name() {
+            case "$2" in
+              '') return 0 ;;
+              -*) echo "::error::$1 must not start with '-'"; exit 1 ;;
+              *[!A-Za-z0-9._-]*)
+                echo "::error::$1 may only contain A-Z a-z 0-9 . _ -"; exit 1 ;;
+            esac
+          }
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            V="$INPUT_VERSION"
+            A="$INPUT_ALIAS"
+            T="$INPUT_TITLE"
+            check_name version "$V"
+            check_name alias "$A"
+            emit version "$V"
+            emit alias "$A"
+            emit title "${T:-${V} (rebuild)}"
           elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
             VERSION_NUMBER="${VERSION#v}"
             MINOR="${VERSION_NUMBER%.*}"
-            echo "version=${MINOR}" >> $GITHUB_OUTPUT
-            echo "alias=latest" >> $GITHUB_OUTPUT
-            echo "title=${VERSION_NUMBER} (latest)" >> $GITHUB_OUTPUT
+            # Git allows ';' and '$' in a tag name, and this one reaches a
+            # command line further down.
+            check_name version "$MINOR"
+            emit version "$MINOR"
+            emit alias latest
+            emit title "${VERSION_NUMBER} (latest)"
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
-            echo "version=dev" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=Development" >> $GITHUB_OUTPUT
+            emit version dev
+            emit alias ''
+            emit title Development
           elif [[ $GITHUB_REF == refs/heads/release/* ]]; then
             VERSION="${GITHUB_REF_NAME#release/}"
-            echo "version=${VERSION}-rc" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=${VERSION} (release candidate)" >> $GITHUB_OUTPUT
+            check_name version "${VERSION}-rc"
+            emit version "${VERSION}-rc"
+            emit alias ''
+            emit title "${VERSION} (release candidate)"
           elif [[ $GITHUB_REF == refs/heads/dev/* ]]; then
             VERSION="${GITHUB_REF_NAME#dev/}"
-            echo "version=${VERSION}-dev" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=${VERSION} (development)" >> $GITHUB_OUTPUT
+            check_name version "${VERSION}-dev"
+            emit version "${VERSION}-dev"
+            emit alias ''
+            emit title "${VERSION} (development)"
           elif [[ $GITHUB_REF == refs/heads/doc ]]; then
-            echo "version=dev" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=Development" >> $GITHUB_OUTPUT
+            emit version dev
+            emit alias ''
+            emit title Development
           else
-            echo "version=" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=" >> $GITHUB_OUTPUT
+            emit version ''
+            emit alias ''
+            emit title ''
           fi
           
       - name: Cleanup stale versions
@@ -163,35 +204,41 @@ jobs:
 
       - name: Build and deploy documentation
         if: steps.version.outputs.version != '' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          # Derived from the inputs above, so carried the same way. They were
+          # also unquoted here, which left them open to word splitting.
+          DOC_VERSION: ${{ steps.version.outputs.version }}
+          DOC_ALIAS: ${{ steps.version.outputs.alias }}
+          DOC_TITLE: ${{ steps.version.outputs.title }}
         run: |
           # Deploy the version
-          if [[ -n "${{ steps.version.outputs.alias }}" ]]; then
+          if [[ -n "$DOC_ALIAS" ]]; then
             mike deploy \
               --push \
               --update-aliases \
-              ${{ steps.version.outputs.version }} \
-              ${{ steps.version.outputs.alias }} \
-              --title "${{ steps.version.outputs.title }}"
+              "$DOC_VERSION" \
+              "$DOC_ALIAS" \
+              --title "$DOC_TITLE"
           else
             mike deploy \
               --push \
-              ${{ steps.version.outputs.version }} \
-              --title "${{ steps.version.outputs.title }}"
+              "$DOC_VERSION" \
+              --title "$DOC_TITLE"
           fi
-          
+
           # Set default version if this is latest
-          if [[ "${{ steps.version.outputs.alias }}" == "latest" ]]; then
+          if [[ "$DOC_ALIAS" == "latest" ]]; then
             mike set-default --push latest
           fi
-          
+
           # For dev version, set as default if no other default exists
-          if [[ "${{ steps.version.outputs.version }}" == "dev" ]]; then
+          if [[ "$DOC_VERSION" == "dev" ]]; then
             # Check if any default exists
             if ! mike list | grep -q "\[default\]"; then
               mike set-default --push dev
             fi
           fi
-          
+
           # List versions for debugging
           echo "=== Deployed versions ==="
           mike list
