@@ -115,6 +115,19 @@ def _ho_copy_columns(obj, data, columns, method):
     return columns
 
 
+def _ho_unquote_ident(name):
+    """Undo _ho_quote_ident; a bare name is returned unchanged.
+
+    Column names arrive pre-quoted from the foreign-key machinery, which keeps
+    them ready for interpolation into a join condition and hands the same list
+    to ``ho_select``. Only a fully quoted name is unwrapped -- ``first_name"``
+    is not one, and stays as it is so the membership test can refuse it.
+    """
+    if len(name) >= 2 and name.startswith('"') and name.endswith('"'):
+        return name[1:-1].replace('""', '"')
+    return name
+
+
 def _ho_quote_ident(name):
     """Quote `name` as a PostgreSQL identifier, doubling any embedded quote.
 
@@ -385,11 +398,50 @@ class Relation:
         return self.__class__(**kwargs)
 
     def _ho_check_colums(self, *args):
-        "Check that the args are actual columns of the relation"
-        columns = {elt.replace('"', '') for elt in args}
-        if columns.intersection(self._ho_fields.keys()) != columns:
-            diff = columns.difference(self._ho_fields.keys())
-            raise relation_errors.UnknownAttributeError(', '.join([elt for elt in args if elt in diff]))
+        """Check that the args are actual columns of the relation.
+
+        Matched exactly. Quotes used to be deleted from a name before
+        comparing it, so ``first_name"`` passed as ``first_name`` and reached
+        the query carrying its quote; and since the report was built from the
+        stripped set, the offending name was missing from the message --
+        ``Unknown attribute: .`` A non-string used to raise AttributeError
+        from inside the check rather than naming the problem.
+
+        A fully quoted name is unwrapped first: the foreign-key machinery
+        stores its column names that way and hands them straight to
+        ``ho_select``.
+        """
+        unknown = [arg for arg in args
+                   if not isinstance(arg, str)
+                   or _ho_unquote_ident(arg) not in self._ho_fields]
+        if unknown:
+            raise relation_errors.UnknownAttributeError(', '.join(
+                arg if isinstance(arg, str) else repr(arg) for arg in unknown))
+
+    def _ho_column_sql(self, name, labelled=False):
+        """Render one column of this relation as SQL.
+
+        ``_ho_fields`` is keyed by the *Python* name, which is not always the
+        column's own: ``a = 1`` is a legitimate column name in PostgreSQL but
+        cannot be an attribute, so it is exposed as ``columnN``. WHERE and
+        INSERT already resolve through ``Field.name``; the projection list and
+        RETURNING did not, and asked PostgreSQL for a column called
+        ``column5``, which no table has.
+
+        With `labelled`, a renamed column is also labelled back, so a caller
+        who asked for ``column5`` reads ``row['column5']`` rather than having
+        to know the name that could not be an attribute in the first place.
+        """
+        if name == '*':
+            return name
+        py_name = _ho_unquote_ident(name) if isinstance(name, str) else name
+        field = self._ho_fields.get(py_name)
+        if field is None:
+            raise relation_errors.UnknownAttributeError(str(name))
+        sql = _ho_quote_ident(field.name)
+        if labelled and field.name != py_name:
+            sql = f'{sql} as {_ho_quote_ident(py_name)}'
+        return sql
 
     #@utils.trace
     _HO_WRITABLE_KINDS = {'Table', 'Partioned table'}
@@ -420,7 +472,8 @@ class Relation:
             values=values,
             upsert=upsert,
             pk_columns=pk_cols,
-            returning=ASTReturning(list(returning)),
+            returning=ASTReturning(
+                [self._ho_column_sql(col, labelled=True) for col in returning]),
         )
         query, vals = stmt.to_sql()
         return query, tuple(vals)
@@ -869,15 +922,18 @@ class Relation:
             pk_names = list(self._ho_pkey.keys())
             sub_sql, sub_vals = self._ho_prep_select(*pk_names)
             if len(pk_names) == 1:
-                where = ASTRaw(f'"{pk_names[0]}" in ({sub_sql})', sub_vals)
+                where = ASTRaw(
+                    f'{self._ho_column_sql(pk_names[0])} in ({sub_sql})', sub_vals)
             else:
-                pk_cols = ', '.join(f'"{pk}"' for pk in pk_names)
+                pk_cols = ', '.join(self._ho_column_sql(pk) for pk in pk_names)
                 where = ASTRaw(f'({pk_cols}) in ({sub_sql})', sub_vals)
             stmt = ASTUpdate(
                 table=self._qrn,
                 set_clause=set_clause,
                 where=where,
-                returning=ASTReturning(list(args)) if args else None,
+                returning=ASTReturning(
+                    [self._ho_column_sql(col, labelled=True)
+                     for col in args]) if args else None,
             )
         else:
             _, where_expr = self.__where_args()
@@ -888,7 +944,9 @@ class Relation:
                 where=where_expr,
                 fk_where=fk_where_str or None,
                 fk_values=fk_values,
-                returning=ASTReturning(list(args)) if args else None,
+                returning=ASTReturning(
+                    [self._ho_column_sql(col, labelled=True)
+                     for col in args]) if args else None,
             )
         query, vals = stmt.to_sql()
         return query, tuple(vals), update_args
@@ -949,14 +1007,17 @@ class Relation:
             pk_names = list(self._ho_pkey.keys())
             sub_sql, sub_vals = self._ho_prep_select(*pk_names)
             if len(pk_names) == 1:
-                where = ASTRaw(f'"{pk_names[0]}" in ({sub_sql})', sub_vals)
+                where = ASTRaw(
+                    f'{self._ho_column_sql(pk_names[0])} in ({sub_sql})', sub_vals)
             else:
-                pk_cols = ', '.join(f'"{pk}"' for pk in pk_names)
+                pk_cols = ', '.join(self._ho_column_sql(pk) for pk in pk_names)
                 where = ASTRaw(f'({pk_cols}) in ({sub_sql})', sub_vals)
             stmt = ASTDelete(
                 table=self._qrn,
                 where=where,
-                returning=ASTReturning(list(args)) if args else None,
+                returning=ASTReturning(
+                    [self._ho_column_sql(col, labelled=True)
+                     for col in args]) if args else None,
             )
         else:
             _, where_expr = self.__where_args()
@@ -966,7 +1027,9 @@ class Relation:
                 where=where_expr,
                 fk_where=fk_where_str or None,
                 fk_values=fk_values,
-                returning=ASTReturning(list(args)) if args else None,
+                returning=ASTReturning(
+                    [self._ho_column_sql(col, labelled=True)
+                     for col in args]) if args else None,
             )
         query, vals = stmt.to_sql()
         return query, tuple(vals)
@@ -1524,7 +1587,9 @@ Fkeys = {"""
         rel_id_ = self.ho_id
         what = f'r{rel_id_}.*'
         if args:
-            what = ', '.join([f'r{rel_id_}.{arg}' for arg in args])
+            what = ', '.join(
+                [f'r{rel_id_}.{self._ho_column_sql(arg, labelled=True)}'
+                 for arg in args])
         where_expr = self.__walk_op(rel_id_)
         return what, where_expr
 
