@@ -10,6 +10,7 @@ Tests cover:
 """
 
 import pytest
+import contextlib
 import json
 import os
 import stat
@@ -31,6 +32,20 @@ from half_orm.cli import (
     remove_trusted_extension, load_cli_config, save_cli_config,
     get_config_file, get_project_key, LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
 )
+
+
+@contextlib.contextmanager
+def identity_checks_satisfied():
+    """Let a fabricated distribution pass the module-ownership check.
+
+    Tests that mock `distributions` have no files on disk, so the real check
+    -- is the importable module actually part of this distribution? -- has
+    nothing to look at and rightly refuses.
+    """
+    with patch('half_orm.cli._module_origin',
+               return_value=Path('/fake/site-packages/mod/__init__.py')), \
+            patch('half_orm.cli._distribution_owns', return_value=True):
+        yield
 
 
 @pytest.fixture(autouse=True)
@@ -192,6 +207,11 @@ class TestCLICommands:
 
 class TestExtensionDiscovery:
     """Test extension discovery functionality."""
+
+    @pytest.fixture(autouse=True)
+    def _fabricated_distributions_own_their_modules(self):
+        with identity_checks_satisfied():
+            yield
     
     def test_extension_name_extraction(self):
         """Test extension name extraction from module names."""
@@ -275,8 +295,10 @@ class TestExtensionDiscovery:
         mock_dist.version = incompatible_version
         mock_distributions.return_value = [mock_dist]
         
-        # Patch sys.exit to prevent the test from actually exiting
-        with patch('half_orm.cli.sys.exit') as mock_exit:
+        # An incompatible version is a hard failure only for an extension the
+        # user actually relies on; see the unapproved case below.
+        with patch('half_orm.cli.is_official_extension', return_value=True), \
+                patch('half_orm.cli.sys.exit') as mock_exit:
             # Patch warn_version_incompatibility to verify it's called
             with patch('half_orm.cli.warn_version_incompatibility') as mock_warn:
                 # Clear cached extensions
@@ -291,6 +313,34 @@ class TestExtensionDiscovery:
                 
                 # The extension should not be in the returned extensions
                 assert 'half-orm-test-extension' not in extensions
+
+    @patch('half_orm.cli.distributions')
+    def test_unapproved_incompatible_extension_does_not_halt(self, mock_distributions):
+        """An extension nobody approved must not take the whole CLI down.
+
+        The version check used to run first and exit(1), so any installed
+        half-orm-* package could brick every command -- including the ones
+        used to diagnose and remove it.
+        """
+        import half_orm
+        major, minor, _ = half_orm.__version__.split('.')
+        incompatible = f"{major}.{int(minor) + 1}.0"
+
+        mock_dist = Mock()
+        mock_dist.metadata = {'Name': 'half-orm-stranger'}
+        mock_dist.version = incompatible
+        mock_distributions.return_value = [mock_dist]
+
+        with patch('half_orm.cli.sys.exit') as mock_exit, \
+                patch('half_orm.cli.warn_unofficial_extension') as mock_prompt:
+            half_orm_cli._cached_extensions = None
+            extensions = discover_extensions()
+
+        assert 'half-orm-stranger' not in extensions
+        mock_exit.assert_not_called()
+        # ...and it is refused before anyone is asked to consent to it.
+        mock_prompt.assert_not_called()
+
 
 class TestSecurityWarnings:
     """Test security warning functionality."""
@@ -513,6 +563,25 @@ class TestTrustStoreLocation:
         assert is_trusted_extension('half-orm-ext', '1.0.0') is False
 
 
+def _write_shadow_module(tmp_path, module='half_orm_probe'):
+    """A bare directory of the right name, carrying no metadata whatsoever.
+
+    This is the whole attack: nothing here claims to be an extension, yet it
+    is what `import` finds first.
+    """
+    root = tmp_path / 'shadow'
+    package = root / module
+    package.mkdir(parents=True)
+    marker = tmp_path / 'shadow-was-imported'
+    (package / '__init__.py').write_text('')
+    (package / 'cli_extension.py').write_text(
+        'import pathlib\n'
+        f'pathlib.Path({str(marker)!r}).write_text("imported")\n'
+        'def add_commands(group):\n'
+        '    pass\n')
+    return root, marker
+
+
 def _write_probe_extension(tmp_path):
     """Install a discoverable extension that records the fact it was imported.
 
@@ -539,11 +608,12 @@ def _write_probe_extension(tmp_path):
     return marker
 
 
-def _run_in_subprocess(code, tmp_path, env_extra=None):
+def _run_in_subprocess(code, tmp_path, env_extra=None, extra_paths=None):
     """Run `code` in a fresh interpreter that can discover the probe."""
     repo_root = Path(half_orm.__file__).resolve().parent.parent
     env = dict(os.environ)
-    env['PYTHONPATH'] = os.pathsep.join([str(repo_root), str(tmp_path)])
+    env['PYTHONPATH'] = os.pathsep.join(
+        [str(path) for path in (extra_paths or ())] + [str(repo_root), str(tmp_path)])
     env['HALF_ORM_CLI_CONFIG'] = str(tmp_path / 'cli.json')
     env.pop('HALF_ORM_TRUST_EXTENSIONS', None)
     env.update(env_extra or {})
@@ -638,6 +708,169 @@ class TestRegistrationTiming:
         mock_register.assert_called_once()
 
 
+class TestModuleIdentity:
+    """What is checked and what is imported must be the same thing.
+
+    Every verdict -- [OFFICIAL], trusted, version-compatible -- is reached by
+    reading a distribution's metadata, while `importlib` resolves the module
+    through sys.path and is free to land somewhere else entirely.
+    """
+
+    LIST_EXTENSIONS = ("import sys\n"
+                       "sys.argv = ['half_orm', '--list-extensions']\n"
+                       "from half_orm.cli import main\n"
+                       "main()\n")
+
+    def test_shadowing_directory_is_refused(self, tmp_path):
+        """A metadata-less directory must not inherit a distribution's verdict."""
+        probe_marker = _write_probe_extension(tmp_path)
+        shadow_root, shadow_marker = _write_shadow_module(tmp_path)
+
+        result = _run_in_subprocess(
+            self.LIST_EXTENSIONS, tmp_path,
+            {'HALF_ORM_TRUST_EXTENSIONS': '1'},
+            extra_paths=[shadow_root])
+
+        assert not shadow_marker.exists(), 'the shadowing module was executed'
+        assert not probe_marker.exists(), 'the distribution was loaded anyway'
+        assert 'is not part of that distribution' in result.stderr
+
+    def test_genuine_distribution_is_accepted(self, tmp_path):
+        """The check must not reject a plainly correct installation."""
+        probe_marker = _write_probe_extension(tmp_path)
+
+        result = _run_in_subprocess(
+            self.LIST_EXTENSIONS, tmp_path, {'HALF_ORM_TRUST_EXTENSIONS': '1'})
+
+        assert result.returncode == 0, result.stderr
+        assert probe_marker.exists()
+
+    def test_recorded_file_is_owned(self, tmp_path):
+        """A file listed in RECORD belongs to the distribution."""
+        origin = tmp_path / 'site' / 'half_orm_x' / '__init__.py'
+        origin.parent.mkdir(parents=True)
+        origin.write_text('')
+
+        dist = Mock()
+        dist.files = [Path('half_orm_x/__init__.py')]
+        dist.locate_file = lambda name: tmp_path / 'site' / str(name)
+        dist.read_text = Mock(return_value=None)
+
+        assert half_orm_cli._distribution_owns(dist, 'half_orm_x', origin.resolve()) is True
+
+    def test_editable_install_is_owned(self, tmp_path):
+        """PEP 660 records only its .pth shim, never the source files.
+
+        Rejecting editable installs would break the way extensions are
+        developed, so direct_url.json has to be consulted.
+        """
+        source = tmp_path / 'src'
+        origin = source / 'half_orm_x' / '__init__.py'
+        origin.parent.mkdir(parents=True)
+        origin.write_text('')
+        site = tmp_path / 'site'
+        site.mkdir()
+
+        direct_url = json.dumps(
+            {'dir_info': {'editable': True}, 'url': source.resolve().as_uri()})
+        dist = Mock()
+        dist.files = [Path('__editable__.half_orm_x.pth')]
+        dist.locate_file = lambda name: site / str(name)
+        dist.read_text = lambda name: (
+            direct_url if name == 'direct_url.json' else None)
+
+        assert half_orm_cli._distribution_owns(dist, 'half_orm_x', origin.resolve()) is True
+
+    def test_non_editable_direct_url_grants_nothing(self, tmp_path):
+        """Only the editable case needs the exemption, so only it gets it."""
+        outside = tmp_path / 'elsewhere' / 'half_orm_x' / '__init__.py'
+        outside.parent.mkdir(parents=True)
+        outside.write_text('')
+        site = tmp_path / 'site'
+        site.mkdir()
+
+        direct_url = json.dumps(
+            {'dir_info': {}, 'url': (tmp_path / 'elsewhere').resolve().as_uri()})
+        dist = Mock()
+        dist.files = [Path('half_orm_x/__init__.py')]
+        dist.locate_file = lambda name: site / str(name)
+        dist.read_text = lambda name: (
+            direct_url if name == 'direct_url.json' else None)
+
+        assert half_orm_cli._distribution_owns(dist, 'half_orm_x', outside.resolve()) is False
+
+    def test_vcs_install_gets_no_exemption(self, tmp_path):
+        """`pip install git+URL` copies its files in, so RECORD covers it.
+
+        Its direct_url.json carries vcs_info and no dir_info, and must not be
+        read as an editable install: the exemption exists only because PEP 660
+        keeps its sources outside RECORD.
+        """
+        site = tmp_path / 'site'
+        site.mkdir()
+        dist = Mock()
+        dist.files = []
+        dist.locate_file = lambda name: site / str(name)
+        dist.read_text = lambda name: (
+            json.dumps({'url': 'file:///home/joel/devel/half-orm',
+                        'vcs_info': {'vcs': 'git', 'commit_id': '8e991c0'}})
+            if name == 'direct_url.json' else None)
+
+        assert half_orm_cli._editable_source_root(dist) is None
+
+    def test_module_origin_does_not_import(self, tmp_path, monkeypatch):
+        """Looking must not be loading: find_spec runs no module code."""
+        package = tmp_path / 'half_orm_boom'
+        package.mkdir()
+        (package / '__init__.py').write_text('raise RuntimeError("imported!")\n')
+        monkeypatch.syspath_prepend(str(tmp_path))
+
+        origin = half_orm_cli._module_origin('half_orm_boom')
+
+        assert origin == (package / '__init__.py').resolve()
+
+
+class TestProvenanceInPrompt:
+    """Consent to a name and a version number is consent to nothing checkable."""
+
+    def _dist(self, installer=None, direct_url=None):
+        dist = Mock()
+        dist.read_text = lambda name: {
+            'INSTALLER': installer, 'direct_url.json': direct_url}.get(name)
+        return dist
+
+    def test_prompt_names_the_file_that_will_run(self, capsys):
+        origin = Path('/opt/somewhere/half_orm_x/__init__.py')
+        lines = half_orm_cli._describe_provenance(self._dist(), origin)
+
+        assert any(str(origin) in line for line in lines)
+
+    def test_prompt_reports_the_installer(self):
+        lines = half_orm_cli._describe_provenance(
+            self._dist(installer='pip\n'), Path('/x'))
+
+        assert any('pip' in line for line in lines)
+
+    def test_prompt_flags_an_editable_install(self):
+        direct_url = json.dumps(
+            {'dir_info': {'editable': True}, 'url': 'file:///home/dev/x'})
+        lines = half_orm_cli._describe_provenance(
+            self._dist(direct_url=direct_url), Path('/x'))
+
+        assert any('editable' in line for line in lines)
+
+    def test_provenance_reaches_the_warning(self, capsys):
+        with patch('half_orm.cli._stdin_is_interactive', return_value=False), \
+                patch('half_orm.cli.is_official_extension', return_value=False), \
+                patch('half_orm.cli.is_trusted_extension', return_value=False), \
+                patch('half_orm.cli._trust_extensions', False):
+            with pytest.raises(SystemExit):
+                half_orm_cli.warn_unofficial_extension(
+                    'half-orm-x', '1.0.0', ['   Code: /opt/x/__init__.py'])
+
+        assert '/opt/x/__init__.py' in capsys.readouterr().err
+
+
 class TestUnattendedConsent:
     """What happens when there is nobody to answer the prompt."""
 
@@ -693,6 +926,11 @@ class TestOfficialExtensionList:
 
 class TestPreCheck:
     """Test pre_check hook in the extension mechanism."""
+
+    @pytest.fixture(autouse=True)
+    def _fabricated_distributions_own_their_modules(self):
+        with identity_checks_satisfied():
+            yield
 
     def setup_method(self):
         self.runner = CliRunner()

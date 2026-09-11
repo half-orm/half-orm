@@ -14,6 +14,7 @@ Usage:
 
 import functools
 import importlib
+import importlib.util
 import json
 import os
 import sys
@@ -22,6 +23,7 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
+from urllib.parse import unquote, urlparse
 
 # Modern import to replace pkg_resources
 try:
@@ -328,7 +330,7 @@ def _stdin_is_interactive():
     except (AttributeError, ValueError):
         return False
 
-def warn_unofficial_extension(package_name, current_version):
+def warn_unofficial_extension(package_name, current_version, provenance=None):
     """Show warning for non-official extensions."""
     # Skip warning if global trust mode or already trusted
     if (_trust_extensions or
@@ -338,6 +340,8 @@ def warn_unofficial_extension(package_name, current_version):
 
     click.echo(f"⚠️  WARNING: '{package_name}' v{current_version} is not official", err=True)
     click.echo("   This extension could execute arbitrary code.", err=True)
+    for line in provenance or ():
+        click.echo(line, err=True)
     click.echo()
 
     if not _stdin_is_interactive():
@@ -368,6 +372,125 @@ def warn_unofficial_extension(package_name, current_version):
         add_trusted_extension(package_name, current_version)
         click.echo(f"✅ Trusted '{package_name}' v{current_version}")
 
+def _read_dist_text(dist, name):
+    """Read one metadata file, treating any failure as absence."""
+    try:
+        return dist.read_text(name)
+    except (OSError, UnicodeDecodeError):
+        return None
+
+def _editable_source_root(dist):
+    """The source tree an editable install points at, if it is one.
+
+    A PEP 660 install records only its .pth shim in RECORD, so its real files
+    appear nowhere else; direct_url.json is the only place that names them.
+    It sits in the same metadata directory as everything else read here, so
+    consulting it adds no surface that shipping the module would not.
+    """
+    raw = _read_dist_text(dist, 'direct_url.json')
+    if not raw:
+        return None
+    try:
+        info = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(info, dict):
+        return None
+    dir_info = info.get('dir_info')
+    if not isinstance(dir_info, dict) or not dir_info.get('editable'):
+        return None
+    url = info.get('url') or ''
+    if not url.startswith('file://'):
+        return None
+    try:
+        return Path(unquote(urlparse(url).path)).resolve()
+    except (OSError, ValueError):
+        return None
+
+def _module_origin(module_name):
+    """Where importing `module_name` would actually take its code from.
+
+    find_spec does not execute anything, and `module_name` is top level, so
+    no parent package runs either -- the point is to look before loading.
+    """
+    try:
+        spec = importlib.util.find_spec(module_name)
+    except (ImportError, ValueError, AttributeError):
+        return None
+    if spec is None:
+        return None
+
+    location = spec.origin
+    if location is None:
+        # Namespace package: no __init__ to point at, but its search path is
+        # still where the code would be found.
+        locations = list(spec.submodule_search_locations or [])
+        location = locations[0] if locations else None
+    if not location:
+        return None
+    try:
+        return Path(location).resolve()
+    except (OSError, ValueError):
+        return None
+
+def _distribution_owns(dist, module_name, origin):
+    """Whether `origin` is really part of `dist`.
+
+    Every other check here describes the distribution's metadata, but the
+    import resolves through sys.path and is under no obligation to land in
+    that distribution's files. A bare directory carrying the right name and
+    no metadata at all shadows an installed extension and inherits its
+    verdict, [OFFICIAL] included.
+    """
+    for recorded in (dist.files or ()):
+        try:
+            if Path(dist.locate_file(recorded)).resolve() == origin:
+                return True
+        except (OSError, ValueError):
+            continue
+
+    root = _editable_source_root(dist)
+    if root is None and not dist.files:
+        # No RECORD to compare against; the installation root is all we have.
+        try:
+            root = Path(dist.locate_file('')).resolve()
+        except (OSError, ValueError):
+            return False
+    if root is None:
+        return False
+
+    # Exactly where that root would place this module, and nowhere else:
+    # "somewhere under the root" would accept any subdirectory of
+    # site-packages, which is most of the shadowing it is meant to catch.
+    return origin in (
+        root / module_name / '__init__.py',   # package
+        root / f'{module_name}.py',           # single-file module
+        root / module_name,                   # namespace package
+    )
+
+def _describe_provenance(dist, origin):
+    """Say where the code about to run actually comes from.
+
+    A name and a version number are what the package asserts about itself.
+    The path is the part a user can recognise, or fail to recognise.
+    """
+    lines = [f"   Code: {origin}"]
+
+    installer = (_read_dist_text(dist, 'INSTALLER') or '').strip()
+    if installer:
+        lines.append(f"   Installed by: {installer}")
+
+    raw = _read_dist_text(dist, 'direct_url.json')
+    if raw:
+        try:
+            url = json.loads(raw).get('url')
+        except (json.JSONDecodeError, AttributeError):
+            url = None
+        if url:
+            editable = ' (editable)' if _editable_source_root(dist) else ''
+            lines.append(f"   Installed from: {url}{editable}")
+    return lines
+
 def discover_extensions() -> Dict[str, Any]:
     """Discover all installed halfORM extensions."""
     global _cached_extensions
@@ -390,17 +513,44 @@ def discover_extensions() -> Dict[str, Any]:
 
             # Get extension version
             current_version = dist.version
+            module_name = package_name.replace('-', '_')
 
-            # Version compatibility check (applies to all extensions)
+            # Identity before anything else: every check below reasons about
+            # `dist`, so they are worth nothing unless what gets imported is
+            # actually this distribution's code.
+            origin = _module_origin(module_name)
+            if origin is None or not _distribution_owns(dist, module_name, origin):
+                click.echo(
+                    f"⚠️  Ignoring '{package_name}': '{module_name}' resolves to "
+                    f"{origin or 'nothing importable'}, which is not part of "
+                    "that distribution.", err=True)
+                continue
+
+            approved = (
+                _trust_extensions
+                or is_official_extension(package_name)
+                or is_trusted_extension(package_name, current_version))
+
+            # Version compatibility check
             if not check_version_compatibility(current_version, core_version):
-                warn_version_incompatibility(package_name, current_version, core_version)
+                if approved:
+                    warn_version_incompatibility(
+                        package_name, current_version, core_version)
+                else:
+                    # Never approved by anyone, so it does not get to take the
+                    # whole CLI down -- including the commands used to find it.
+                    click.echo(
+                        f"⚠️  Ignoring '{package_name}' v{current_version}: "
+                        f"incompatible with halfORM v{core_version}.", err=True)
+                continue
 
             # Security check for non-official extensions
             if not is_official_extension(package_name):
-                warn_unofficial_extension(package_name, current_version)
+                warn_unofficial_extension(
+                    package_name, current_version,
+                    _describe_provenance(dist, origin))
 
             # Import extension
-            module_name = package_name.replace('-', '_')
             extension_module = importlib.import_module(f'{module_name}.cli_extension')
 
             if hasattr(extension_module, 'add_commands'):
