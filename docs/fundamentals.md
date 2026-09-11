@@ -682,6 +682,6 @@ Understanding these concepts will make all other halfORM features more intuitive
 !!! tip "Next Steps"
     Now that you understand the fundamentals, explore:
     
-    - **[Queries](queries.md)** - Advanced filtering and query patterns
-    - **[Foreign Keys](foreign-keys.md)** - Relationship navigation
-    - **[Models & Relations](models-relations.md)** - Custom classes and business logic
+    - **[Relation API](api/relation.md)** - Filtering, set operations and query patterns
+    - **[FKey API](api/fkey.md)** - Relationship navigation
+    - **[Model API](api/model.md)** - Custom classes and business logic

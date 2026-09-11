@@ -1,6 +1,6 @@
 # halfORM Extensions
 
-halfORM 0.16 introduces a powerful extension system that automatically discovers and integrates additional functionality through the unified `half_orm` CLI.
+halfORM discovers additional functionality through the unified `half_orm` CLI: any installed package following the naming convention becomes a set of subcommands.
 
 ## How Extensions Work
 

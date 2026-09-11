@@ -41,6 +41,11 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
+# docs/README.md documents how this site is built; it is not a page of it,
+# and mkdocs would otherwise drop it with a warning for clashing with index.md.
+exclude_docs: |
+  README.md
+
 plugins:
   - search
   - mkdocstrings:
@@ -50,6 +55,14 @@ plugins:
             extensions:
               - griffe_sphinx
             docstring_style: google
+            docstring_options:
+              # Silences griffe's "No type or annotation for ..." notes, and
+              # only those. They report signatures without annotations, not
+              # documentation defects -- the docstrings already state the
+              # types, and the rendered pages show them. Left on, they would
+              # be the only thing standing between this build and --strict,
+              # which is what actually catches dead links.
+              warn_missing_types: false
             show_source: true
             show_root_heading: true
             show_root_full_path: false
