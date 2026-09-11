@@ -41,8 +41,19 @@ DEBUG_EXTENSIONS = os.environ.get('HALF_ORM_DEBUG_EXTENSIONS', '').lower() in ('
 class CustomGroup(click.Group):
     """Custom Click Group that provides better error messages for unknown commands."""
 
+    def list_commands(self, ctx):
+        """Override to register extension commands before listing them."""
+        _ensure_extensions_registered()
+        return super().list_commands(ctx)
+
+    def get_command(self, ctx, cmd_name):
+        """Override to register extension commands before looking one up."""
+        _ensure_extensions_registered()
+        return super().get_command(ctx, cmd_name)
+
     def resolve_command(self, ctx, args):
         """Override to show available commands when command not found."""
+        _ensure_extensions_registered()
         extensions = discover_extensions()
         for ext_data in extensions.values():
             pre_check = ext_data.get('pre_check')
@@ -89,13 +100,37 @@ class CustomGroup(click.Group):
                 # Re-raise other UsageErrors as-is
                 raise
 
+# Skipping the security prompt has to be expressible without a terminal, for
+# CI and other unattended runs; the command-line flag alone cannot serve there.
+TRUST_EXTENSIONS_ENV = 'HALF_ORM_TRUST_EXTENSIONS'
+
 # Global cache for extensions
 _cached_extensions = None
-_trust_extensions = False
+_trust_extensions = os.environ.get(TRUST_EXTENSIONS_ENV, '').lower() in ('1', 'true', 'yes')
+_extensions_registered = False
 
-# Liste des extensions officielles
+def _set_trust_extensions(ctx, param, value):
+    """Record --trusted-extensions as click parses it.
+
+    Eager, and handled here rather than in the group callback, because --help
+    is eager too: it renders the command list, which loads extensions. Read
+    any later, the flag would arrive after the warnings it is meant to skip.
+    An absent flag must not clear the environment variable.
+
+    Click orders eager options by their position on the command line, so
+    `--help --trusted-extensions` still resolves help first and refuses. That
+    fails closed, which is the acceptable direction; TRUST_EXTENSIONS_ENV
+    covers the case where order cannot be relied upon.
+    """
+    global _trust_extensions
+    if value:
+        _trust_extensions = True
+    return value
+
+# Extensions trusted without asking. Every name here must be a project the
+# halfORM maintainers actually own on PyPI: an unclaimed name on this list is
+# a free pass for whoever registers it first.
 OFFICIAL_EXTENSIONS = {
-    'half_orm_test_extension',
     'half_orm_inspect',
     'half_orm_dev',
     'half_orm_gen'
@@ -283,6 +318,16 @@ def remove_trusted_extension(package_name):
     save_cli_config(config)
     return True
 
+def _stdin_is_interactive():
+    """Whether a human can answer a prompt on stdin.
+
+    sys.stdin is None under pythonw, and closed streams raise on isatty().
+    """
+    try:
+        return bool(sys.stdin) and sys.stdin.isatty()
+    except (AttributeError, ValueError):
+        return False
+
 def warn_unofficial_extension(package_name, current_version):
     """Show warning for non-official extensions."""
     # Skip warning if global trust mode or already trusted
@@ -295,12 +340,26 @@ def warn_unofficial_extension(package_name, current_version):
     click.echo("   This extension could execute arbitrary code.", err=True)
     click.echo()
 
+    if not _stdin_is_interactive():
+        # Nobody is there to answer. Refusing out loud beats the two silent
+        # outcomes: loading the extension unasked, or dropping it without a
+        # word -- which is what happened while click.Abort, a RuntimeError,
+        # was being swallowed by the caller's `except Exception: continue`.
+        click.echo("   Refusing to load it: no terminal is attached to confirm.", err=True)
+        click.echo("   Run the command interactively to trust this version, or set "
+                   f"{TRUST_EXTENSIONS_ENV}=1 to load extensions unprompted.", err=True)
+        sys.exit(1)
+
     click.echo("Choose an option:")
     click.echo("  [y] Continue once")
     click.echo(f"  [t] Trust version {current_version}")
     click.echo("  [n] Cancel (default)")
 
-    choice = click.prompt("Your choice", type=click.Choice(['y', 't', 'n']), default='n')
+    try:
+        choice = click.prompt("Your choice", type=click.Choice(['y', 't', 'n']), default='n')
+    except click.Abort:
+        # Ctrl-C at the prompt means no, and must read as no to the caller.
+        choice = 'n'
 
     if choice == 'n':
         click.echo("Extension loading cancelled.")
@@ -362,6 +421,10 @@ def discover_extensions() -> Dict[str, Any]:
                     'pre_check': getattr(extension_module, 'pre_check', None),
                 }
 
+        except click.Abort:
+            # A refusal is a decision, not a loading failure: it must reach the
+            # caller instead of being downgraded to "extension unavailable".
+            raise
         except ImportError as exc:
             # Only show import errors if in debug mode or for official extensions
             if is_official_extension(package_name):
@@ -416,7 +479,9 @@ def get_extension_info(extensions: Dict[str, Any]) -> str:
 @click.version_option(version=half_orm.__version__, prog_name='halfORM')
 @click.option('--list-extensions', is_flag=True, help='List all installed extensions')
 @click.option('--untrust', metavar='EXTENSION', help="Remove extension from this project's trusted list")
-@click.option('--trusted-extensions', is_flag=True, help='Skip security warnings')
+@click.option('--trusted-extensions', is_flag=True, is_eager=True,
+              callback=_set_trust_extensions,
+              help=f'Skip security warnings (or set {TRUST_EXTENSIONS_ENV}=1)')
 @click.pass_context
 def main(ctx, list_extensions, untrust, trusted_extensions):
     """
@@ -437,9 +502,8 @@ def main(ctx, list_extensions, untrust, trusted_extensions):
     • pip install half-orm-dev        # Development tools
     • pip install half-orm-api        # API generation
     """
-    global _trust_extensions
-    _trust_extensions = trusted_extensions
-
+    # --trusted-extensions is recorded by its own eager callback, which runs
+    # before --help can render the command list and load extensions.
     if list_extensions:
         extensions = discover_extensions()
         click.echo(get_extension_info(extensions))
@@ -503,6 +567,22 @@ def safe_command_wrapper(func):
             raise click.ClickException(str(e))
     return wrapper
 
+def _ensure_extensions_registered():
+    """Register extension commands on first use rather than at import.
+
+    Registration prompts for consent, imports third-party code and can abort
+    the process. Doing that while `half_orm.cli` is merely being imported made
+    it a side effect of `import`, and -- worse -- put it before click had
+    parsed the very options meant to govern it: `--trusted-extensions` could
+    never skip a warning, and `--untrust` could not be reached without first
+    clearing the prompt it exists to remove.
+    """
+    global _extensions_registered
+    if _extensions_registered:
+        return
+    _extensions_registered = True
+    register_extensions()
+
 def register_extensions():
     """Discover and register all halfORM extensions."""
     extensions = discover_extensions()
@@ -533,8 +613,8 @@ def register_extensions():
                 click.echo(f"Use `{utils.Color.bold('HALF_ORM_DEBUG_EXTENSIONS=1')} half_orm ...` to display the complete traceback.\n")
             continue
 
-# Auto-register extensions when module is imported
-register_extensions()
+# Extensions are registered lazily, on the first command lookup: see
+# _ensure_extensions_registered().
 
 if __name__ == '__main__':
     main()

@@ -13,6 +13,7 @@ import pytest
 import json
 import os
 import stat
+import subprocess
 import tempfile
 import shutil
 from pathlib import Path
@@ -22,12 +23,13 @@ from click.testing import CliRunner
 # Import the CLI module
 import sys
 sys.path.insert(0, '.')
+import half_orm
 from half_orm import cli as half_orm_cli
 from half_orm.cli import (
     main, discover_extensions, check_version_compatibility,
-    is_trusted_extension, add_trusted_extension, remove_trusted_extension,
-    load_cli_config, save_cli_config, get_config_file, get_project_key,
-    LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
+    is_trusted_extension, is_official_extension, add_trusted_extension,
+    remove_trusted_extension, load_cli_config, save_cli_config,
+    get_config_file, get_project_key, LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
 )
 
 
@@ -39,7 +41,10 @@ def isolated_cli_config(tmp_path, monkeypatch):
     this the suite would read -- and write -- the real configuration.
     """
     monkeypatch.setenv('HALF_ORM_CLI_CONFIG', str(tmp_path / 'cli.json'))
+    monkeypatch.delenv('HALF_ORM_TRUST_EXTENSIONS', raising=False)
     monkeypatch.setattr(half_orm_cli, '_legacy_config_warned', False)
+    monkeypatch.setattr(half_orm_cli, '_extensions_registered', False)
+    monkeypatch.setattr(half_orm_cli, '_cached_extensions', None)
 
 
 class TestVersionCompatibility:
@@ -332,7 +337,8 @@ class TestSecurityWarnings:
     
     def test_unofficial_extension_warning_cancel(self):
         """Test that unofficial extensions show warning and can be cancelled."""
-        with patch('half_orm.cli.is_official_extension', return_value=False):
+        with patch('half_orm.cli._stdin_is_interactive', return_value=True), \
+                patch('half_orm.cli.is_official_extension', return_value=False):
             with patch('half_orm.cli.is_trusted_extension', return_value=False):
                 with patch('half_orm.cli._trust_extensions', False):
                     with patch('half_orm.cli.click.prompt', return_value='n') as mock_prompt:
@@ -344,7 +350,8 @@ class TestSecurityWarnings:
     
     def test_unofficial_extension_warning_trust(self):
         """Test that unofficial extensions can be trusted."""
-        with patch('half_orm.cli.is_official_extension', return_value=False):
+        with patch('half_orm.cli._stdin_is_interactive', return_value=True), \
+                patch('half_orm.cli.is_official_extension', return_value=False):
             with patch('half_orm.cli.is_trusted_extension', return_value=False):
                 with patch('half_orm.cli._trust_extensions', False):
                     with patch('half_orm.cli.click.prompt', return_value='t') as mock_prompt:
@@ -504,6 +511,184 @@ class TestTrustStoreLocation:
         get_config_file().write_text(content)
 
         assert is_trusted_extension('half-orm-ext', '1.0.0') is False
+
+
+def _write_probe_extension(tmp_path):
+    """Install a discoverable extension that records the fact it was imported.
+
+    A real .dist-info on sys.path is the only faithful way to test what
+    `import half_orm.cli` does: mocking `distributions` would test the mock.
+    """
+    marker = tmp_path / 'probe-was-imported'
+    package = tmp_path / 'half_orm_probe'
+    package.mkdir()
+    (package / '__init__.py').write_text('')
+    (package / 'cli_extension.py').write_text(
+        'import pathlib\n'
+        f'pathlib.Path({str(marker)!r}).write_text("imported")\n'
+        'def add_commands(group):\n'
+        '    pass\n')
+
+    dist_info = tmp_path / f'half_orm_probe-{half_orm.__version__}.dist-info'
+    dist_info.mkdir()
+    (dist_info / 'METADATA').write_text(
+        'Metadata-Version: 2.1\n'
+        'Name: half-orm-probe\n'
+        f'Version: {half_orm.__version__}\n')
+    (dist_info / 'WHEEL').write_text('Wheel-Version: 1.0\n')
+    return marker
+
+
+def _run_in_subprocess(code, tmp_path, env_extra=None):
+    """Run `code` in a fresh interpreter that can discover the probe."""
+    repo_root = Path(half_orm.__file__).resolve().parent.parent
+    env = dict(os.environ)
+    env['PYTHONPATH'] = os.pathsep.join([str(repo_root), str(tmp_path)])
+    env['HALF_ORM_CLI_CONFIG'] = str(tmp_path / 'cli.json')
+    env.pop('HALF_ORM_TRUST_EXTENSIONS', None)
+    env.update(env_extra or {})
+    return subprocess.run(
+        [sys.executable, '-c', code], env=env, stdin=subprocess.DEVNULL,
+        capture_output=True, text=True, timeout=120)
+
+
+class TestRegistrationTiming:
+    """Extension loading must not outrun the options that govern it.
+
+    It used to run at module import: before click had parsed argv, and as a
+    side effect of `import half_orm.cli` in any program at all.
+    """
+
+    def test_import_loads_no_extension(self, tmp_path):
+        """Importing the module must not execute third-party code."""
+        marker = _write_probe_extension(tmp_path)
+
+        result = _run_in_subprocess('import half_orm.cli', tmp_path)
+
+        assert result.returncode == 0, result.stderr
+        assert not marker.exists()
+        assert result.stderr == ''
+
+    def test_import_asks_nothing_and_exits_nothing(self, tmp_path):
+        """A consent prompt on stdin must never be an import side effect."""
+        _write_probe_extension(tmp_path)
+
+        result = _run_in_subprocess(
+            'import half_orm.cli\nprint("still running")', tmp_path)
+
+        assert result.returncode == 0, result.stderr
+        assert 'still running' in result.stdout
+
+    def test_trusted_extensions_flag_actually_skips_the_warning(self, tmp_path):
+        """The flag was parsed after registration, so it could skip nothing."""
+        marker = _write_probe_extension(tmp_path)
+        code = ("import sys\n"
+                "sys.argv = ['half_orm', '--trusted-extensions', '--list-extensions']\n"
+                "from half_orm.cli import main\n"
+                "main()\n")
+
+        result = _run_in_subprocess(code, tmp_path)
+
+        assert result.returncode == 0, result.stderr
+        assert marker.exists()
+        assert 'WARNING' not in result.stderr
+
+    def test_environment_variable_skips_the_warning(self, tmp_path):
+        """CI has no terminal, so the escape hatch cannot be a prompt."""
+        marker = _write_probe_extension(tmp_path)
+        code = ("import sys\n"
+                "sys.argv = ['half_orm', '--list-extensions']\n"
+                "from half_orm.cli import main\n"
+                "main()\n")
+
+        result = _run_in_subprocess(
+            code, tmp_path, {'HALF_ORM_TRUST_EXTENSIONS': '1'})
+
+        assert result.returncode == 0, result.stderr
+        assert marker.exists()
+
+    def test_unattended_run_refuses_loudly(self, tmp_path):
+        """Without a terminal the extension is refused, not silently dropped."""
+        marker = _write_probe_extension(tmp_path)
+        code = ("import sys\n"
+                "sys.argv = ['half_orm', '--list-extensions']\n"
+                "from half_orm.cli import main\n"
+                "main()\n")
+
+        result = _run_in_subprocess(code, tmp_path)
+
+        assert result.returncode == 1
+        assert not marker.exists()
+        assert 'Refusing to load it' in result.stderr
+
+    def test_untrust_needs_no_extension_loading(self):
+        """Clearing trust must not require clearing the prompt first."""
+        runner = CliRunner()
+        with patch('half_orm.cli.register_extensions') as mock_register:
+            result = runner.invoke(main, ['--untrust', 'probe'])
+
+        assert result.exit_code == 0
+        mock_register.assert_not_called()
+
+    def test_registration_happens_once(self):
+        with patch('half_orm.cli.register_extensions') as mock_register:
+            half_orm_cli._ensure_extensions_registered()
+            half_orm_cli._ensure_extensions_registered()
+
+        mock_register.assert_called_once()
+
+
+class TestUnattendedConsent:
+    """What happens when there is nobody to answer the prompt."""
+
+    def test_refusal_is_an_error_not_a_silent_skip(self):
+        with patch('half_orm.cli._stdin_is_interactive', return_value=False), \
+                patch('half_orm.cli.is_official_extension', return_value=False), \
+                patch('half_orm.cli.is_trusted_extension', return_value=False), \
+                patch('half_orm.cli._trust_extensions', False), \
+                patch('half_orm.cli.click.prompt') as mock_prompt:
+            with pytest.raises(SystemExit) as exc:
+                half_orm_cli.warn_unofficial_extension('half-orm-x', '1.0.0')
+
+        assert exc.value.code == 1
+        mock_prompt.assert_not_called()
+
+    def test_ctrl_c_at_the_prompt_reads_as_no(self):
+        """click.Abort is a RuntimeError, and used to be swallowed upstream."""
+        with patch('half_orm.cli._stdin_is_interactive', return_value=True), \
+                patch('half_orm.cli.is_official_extension', return_value=False), \
+                patch('half_orm.cli.is_trusted_extension', return_value=False), \
+                patch('half_orm.cli._trust_extensions', False), \
+                patch('half_orm.cli.click.prompt', side_effect=__import__('click').Abort), \
+                patch('half_orm.cli.add_trusted_extension') as mock_trust:
+            with pytest.raises(SystemExit) as exc:
+                half_orm_cli.warn_unofficial_extension('half-orm-x', '1.0.0')
+
+        assert exc.value.code == 1
+        mock_trust.assert_not_called()
+
+    def test_missing_stdin_is_not_interactive(self):
+        with patch('half_orm.cli.sys.stdin', None):
+            assert half_orm_cli._stdin_is_interactive() is False
+
+    def test_closed_stdin_is_not_interactive(self):
+        stream = Mock()
+        stream.isatty.side_effect = ValueError('I/O operation on closed file')
+        with patch('half_orm.cli.sys.stdin', stream):
+            assert half_orm_cli._stdin_is_interactive() is False
+
+
+class TestOfficialExtensionList:
+    """An unclaimed name on the allowlist is a free pass to whoever takes it."""
+
+    def test_test_extension_is_not_official(self):
+        """half-orm-test-extension is unregistered on PyPI, so squattable."""
+        assert is_official_extension('half-orm-test-extension') is False
+        assert is_official_extension('half_orm_test_extension') is False
+
+    def test_maintained_extensions_are_official(self):
+        for name in ('half-orm-inspect', 'half-orm-gen', 'half-orm-dev'):
+            assert is_official_extension(name) is True
 
 
 class TestPreCheck:
