@@ -828,6 +828,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Security Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-trust-is-recorded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where trust is recorded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-an-approval-covers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What an approval covers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unattended-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unattended runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -860,21 +899,38 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#half-orm-test-extension" class="md-nav__link">
+  <a href="#half-orm-inspect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        half-orm-test-extension
+        half-orm-inspect
       
     </span>
   </a>
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
           <li class="md-nav__item">
-  <a href="#half-orm-inspect" class="md-nav__link">
+  <a href="#reference-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
-        half-orm-inspect
+        🧪 Reference Extension
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Reference Extension">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half-orm-test-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        half-orm-test-extension
       
     </span>
   </a>
@@ -1191,6 +1247,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Security Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-trust-is-recorded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where trust is recorded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-an-approval-covers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What an approval covers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unattended-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unattended runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1223,21 +1318,38 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#half-orm-test-extension" class="md-nav__link">
+  <a href="#half-orm-inspect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        half-orm-test-extension
+        half-orm-inspect
       
     </span>
   </a>
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
           <li class="md-nav__item">
-  <a href="#half-orm-inspect" class="md-nav__link">
+  <a href="#reference-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
-        half-orm-inspect
+        🧪 Reference Extension
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Reference Extension">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half-orm-test-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        half-orm-test-extension
       
     </span>
   </a>
@@ -1347,7 +1459,7 @@
 
 
 <h1 id="halform-extensions">halfORM Extensions<a class="headerlink" href="#halform-extensions" title="Permanent link">&para;</a></h1>
-<p>halfORM 0.16 introduces a powerful extension system that automatically discovers and integrates additional functionality through the unified <code>half_orm</code> CLI.</p>
+<p>halfORM discovers additional functionality through the unified <code>half_orm</code> CLI: any installed package following the naming convention becomes a set of subcommands.</p>
 <h2 id="how-extensions-work">How Extensions Work<a class="headerlink" href="#how-extensions-work" title="Permanent link">&para;</a></h2>
 <p>Extensions are Python packages that follow the <code>half-orm-*</code> naming convention and provide CLI integration through a simple discovery mechanism.</p>
 <h3 id="installation-discovery">Installation &amp; Discovery<a class="headerlink" href="#installation-discovery" title="Permanent link">&para;</a></h3>
@@ -1368,82 +1480,117 @@
 <li><strong>Version compatibility</strong>: Extensions must match halfORM core major.minor version</li>
 </ul>
 <h3 id="security-model">Security Model<a class="headerlink" href="#security-model" title="Permanent link">&para;</a></h3>
-<p>halfORM has a built-in security model for extensions:</p>
+<p>An extension is ordinary Python code that the CLI imports, so loading one is
+running it. halfORM asks before doing that, and remembers what it ran.</p>
 <ul>
-<li><strong>Official extensions</strong> - Automatically trusted and loaded</li>
-<li><strong>Community extensions</strong> - Require user approval on first use</li>
-<li><strong>Trusted extensions</strong> - Previously approved versions</li>
-<li><strong>Version compatibility</strong> - Extensions must match core major.minor version</li>
+<li><strong>Official extensions</strong> — maintained by the halfORM team. Loaded without
+  asking, but the build is recorded on first sight and checked afterwards.</li>
+<li><strong>Community extensions</strong> — approved by you, per project. Approving one in
+  a checkout does not approve it anywhere else.</li>
+<li><strong>Module ownership</strong> — the module that gets imported must belong to the
+  distribution that was checked. A directory of the right name earlier on
+  <code>sys.path</code> does not inherit its verdict.</li>
+<li><strong>Version compatibility</strong> — an extension you rely on must match the core
+  <code>major.minor</code>; one you never approved is skipped rather than fatal.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Trust a community extension version</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>half_orm<span class="w"> </span>my-extension<span class="w"> </span><span class="nb">command</span><span class="w">  </span><span class="c1"># Shows security prompt first time</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Approving a community extension: prompted on first use</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>half_orm<span class="w"> </span>my-extension<span class="w"> </span><span class="nb">command</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Remove trust for an extension</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Forget an approval, or a recorded build</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>half_orm<span class="w"> </span>--untrust<span class="w"> </span>my-extension
 </code></pre></div>
+<h4 id="where-trust-is-recorded">Where trust is recorded<a class="headerlink" href="#where-trust-is-recorded" title="Permanent link">&para;</a></h4>
+<p>In <code>~/.config/half_orm/cli.json</code> — <code>%APPDATA%</code> on Windows, <code>$XDG_CONFIG_HOME</code>
+when set — created <code>0600</code>. Deliberately outside your project: a checkout is
+untrusted input, and one able to write its own approvals would grant itself
+silent consent.</p>
+<p>Set <code>HALF_ORM_CLI_CONFIG</code> to place the file elsewhere.</p>
+<h4 id="what-an-approval-covers">What an approval covers<a class="headerlink" href="#what-an-approval-covers" title="Permanent link">&para;</a></h4>
+<p>A digest of the extension's code, not just its version number. Republishing
+different code under the same version does not inherit the approval — you are
+asked again, and told why.</p>
+<p>The same applies to official extensions, which are skipped rather than loaded
+when their content changes while their version does not:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># After reinstalling an extension at the same version</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>half_orm<span class="w"> </span>--untrust<span class="w"> </span>my-extension<span class="w">   </span><span class="c1"># accepts the new build, everywhere</span>
+</code></pre></div>
+<p>Editable installs (<code>pip install -e</code>) are not pinned. Their code is a working
+tree meant to change between two commands, so approving one pins where it is
+rather than what it contains.</p>
+<h4 id="unattended-runs">Unattended runs<a class="headerlink" href="#unattended-runs" title="Permanent link">&para;</a></h4>
+<p>There is nobody to answer a prompt in CI, and an extension that quietly fails
+to load turns its commands into "No such command". halfORM refuses instead,
+with a non-zero exit:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">HALF_ORM_TRUST_EXTENSIONS</span><span class="o">=</span><span class="m">1</span><span class="w">   </span><span class="c1"># load extensions without prompting</span>
+</code></pre></div>
+<p><code>--trusted-extensions</code> does the same on the command line.</p>
 <h2 id="available-extensions">Available Extensions<a class="headerlink" href="#available-extensions" title="Permanent link">&para;</a></h2>
 <h3 id="official-extensions">✅ Official Extensions<a class="headerlink" href="#official-extensions" title="Permanent link">&para;</a></h3>
-<h4 id="half-orm-test-extension">half-orm-test-extension<a class="headerlink" href="#half-orm-test-extension" title="Permanent link">&para;</a></h4>
-<p><strong>Purpose</strong>: Demonstration and testing of the extension system<br />
-<strong>Repository</strong>: <a href="https://github.com/half-orm/half-orm-test-extension">half-orm/half-orm-test-extension</a></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Installation</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/half-orm/half-orm-test-extension
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Usage</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>half_orm<span class="w"> </span>test-extension<span class="w"> </span>greet<span class="w"> </span>--name<span class="w"> </span><span class="s2">"World"</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>half_orm<span class="w"> </span>test-extension<span class="w"> </span>status
-</code></pre></div>
 <h4 id="half-orm-inspect">half-orm-inspect<a class="headerlink" href="#half-orm-inspect" title="Permanent link">&para;</a></h4>
 <p><strong>Purpose</strong>: Enhanced database inspection and exploration<br />
 <strong>Status</strong>: In development</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># When available</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span>half-orm-inspect
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Usage  </span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>half_orm<span class="w"> </span>inspect<span class="w"> </span>my_database
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>half_orm<span class="w"> </span>inspect<span class="w"> </span>my_database<span class="w"> </span>public.users<span class="w"> </span>--details
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># When available</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pip<span class="w"> </span>install<span class="w"> </span>half-orm-inspect
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Usage  </span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>half_orm<span class="w"> </span>inspect<span class="w"> </span>my_database
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>half_orm<span class="w"> </span>inspect<span class="w"> </span>my_database<span class="w"> </span>public.users<span class="w"> </span>--details
+</code></pre></div>
+<h3 id="reference-extension">🧪 Reference Extension<a class="headerlink" href="#reference-extension" title="Permanent link">&para;</a></h3>
+<h4 id="half-orm-test-extension">half-orm-test-extension<a class="headerlink" href="#half-orm-test-extension" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Demonstration and testing of the extension system
+<strong>Repository</strong>: <a href="https://github.com/half-orm/half-orm-test-extension">half-orm/half-orm-test-extension</a></p>
+<p>Distributed through GitHub rather than PyPI, so it is approved like any
+community extension: the allowlist grants trust by name, and a name nobody
+has registered on PyPI is a name anyone can take.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Installation</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/half-orm/half-orm-test-extension
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Usage — prompts for approval the first time</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>half_orm<span class="w"> </span>test-extension<span class="w"> </span>greet<span class="w"> </span>--name<span class="w"> </span><span class="s2">"World"</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>half_orm<span class="w"> </span>test-extension<span class="w"> </span>status
 </code></pre></div>
 <h3 id="more-extensions-in-development">📋 More Extensions in Development<a class="headerlink" href="#more-extensions-in-development" title="Permanent link">&para;</a></h3>
 <p>Official extensions are maintained by the halfORM team and follow strict quality and compatibility standards. More extensions are in active development to support various use cases like API generation, admin interfaces, and monitoring tools.</p>
 <h2 id="creating-extensions">Creating Extensions<a class="headerlink" href="#creating-extensions" title="Permanent link">&para;</a></h2>
 <p>Building halfORM extensions is straightforward with the new simplified architecture:</p>
 <h3 id="simple-extension-template">Simple Extension Template<a class="headerlink" href="#simple-extension-template" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># your_extension/cli_extension.py</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.cli_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_and_register_extension</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">add_commands</span><span class="p">(</span><span class="n">main_group</span><span class="p">):</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="sd">"""Required entry point for halfORM extensions."""</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="nd">@create_and_register_extension</span><span class="p">(</span><span class="n">main_group</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">])</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">your_extension</span><span class="p">():</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">        </span><span class="sd">"""Your extension description"""</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>        <span class="k">pass</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="nd">@your_extension</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">'--name'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">'World'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'Name to greet'</span><span class="p">)</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">        </span><span class="sd">"""Say hello command"""</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Hello, </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">!"</span><span class="p">)</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="nd">@your_extension</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">():</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">        </span><span class="sd">"""Show extension status"""</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.cli_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_package_metadata</span><span class="p">,</span> <span class="n">get_extension_commands</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_package_metadata</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">])</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>        <span class="n">commands</span> <span class="o">=</span> <span class="n">get_extension_commands</span><span class="p">(</span><span class="n">your_extension</span><span class="p">)</span>
-<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>
-<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Extension: </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'package_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Version: </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'version'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Commands: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">commands</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># your_extension/cli_extension.py</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.cli_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_and_register_extension</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">add_commands</span><span class="p">(</span><span class="n">main_group</span><span class="p">):</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="sd">"""Required entry point for halfORM extensions."""</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="nd">@create_and_register_extension</span><span class="p">(</span><span class="n">main_group</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">])</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">your_extension</span><span class="p">():</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">        </span><span class="sd">"""Your extension description"""</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="k">pass</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="nd">@your_extension</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">'--name'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">'World'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'Name to greet'</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">        </span><span class="sd">"""Say hello command"""</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Hello, </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">!"</span><span class="p">)</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="nd">@your_extension</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">():</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">        </span><span class="sd">"""Show extension status"""</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.cli_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_package_metadata</span><span class="p">,</span> <span class="n">get_extension_commands</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_package_metadata</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">])</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>        <span class="n">commands</span> <span class="o">=</span> <span class="n">get_extension_commands</span><span class="p">(</span><span class="n">your_extension</span><span class="p">)</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Extension: </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'package_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Version: </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'version'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Commands: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">commands</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Auto-registration</strong>: Use <code>@create_and_register_extension</code> decorator</li>
 <li><strong>Automatic metadata</strong>: Version, description, and commands discovered automatically</li>
-<li><strong>Security model</strong>: Official extensions trusted, community extensions require approval</li>
+<li><strong>Security model</strong>: official extensions loaded without prompting but watched, community extensions approved per project</li>
 <li><strong>Version compatibility</strong>: Must match halfORM core major.minor version</li>
 </ul>
 <p>For a complete working example, see <a href="https://github.com/half-orm/half-orm-test-extension">half-orm-test-extension</a> which demonstrates all the essential patterns.</p>
@@ -1484,7 +1631,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 19, 2025 06:57:51 UTC">August 19, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 11, 2026 09:03:39 UTC">September 11, 2026</span>
   </span>
 
     
