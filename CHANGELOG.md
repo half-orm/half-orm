@@ -76,6 +76,45 @@ It is distributed through GitHub, so its PyPI name is unclaimed, and an
 allowlist entry pointing at a name anyone can register is a free pass to
 whoever registers it. It now prompts like any other community extension.
 
+## Relations
+
+### A broken module in the scope package is now reported
+
+`Model._import_class` caught every exception with a bare `except:` and
+returned a generated class instead. A typo in one of your own modules -- a
+`from .helpers import x` that no longer resolves -- silently removed your
+class from the program: the generated one arrived without your methods on it,
+and nothing said why.
+
+Only "there is no module for this relation" still falls back, which is the
+ordinary case. Everything else raises, with the error Python had for you.
+
+**What to do:** nothing, unless a module of yours was already failing to
+import without your knowing. You will now hear about it.
+
+### A scope package is required before any module is loaded
+
+The module path is built from the relation's schema and name, which are
+database data. With no scope package to root it in, `__import__` was handed a
+top-level module name chosen by whoever can create a schema -- and importing
+a module runs it. A model without a scope no longer attempts an import.
+
+### Columns whose name is not a Python identifier now work
+
+`a = 1` is a legitimate column name in PostgreSQL and impossible as an
+attribute, so halfORM exposes such a column as `columnN`. The projection list
+and RETURNING then asked PostgreSQL for a column called `column5`, which no
+table has, while WHERE and INSERT resolved correctly. All four now agree, and
+a renamed column is labelled back so `row['column5']` reads as expected.
+
+### COPY column names are checked against the relation
+
+`ho_copy` and `ho_acopy` took their column names from a CSV header or from the
+keys of the caller's dicts and interpolated them into the statement unchecked.
+Unknown names now raise `UnknownAttributeError`. The header is parsed as CSV
+rather than split on ',', so a file whose header quotes every field -- which
+used to be rejected as a zero-length identifier -- now loads.
+
 # 1.0.0 (2026-09-04)
 
 * docs(model): fix stale docstrings and a dead doc link (609aa23)

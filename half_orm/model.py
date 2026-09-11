@@ -148,6 +148,19 @@ def _check_named_params(kwargs, what):
     return kwargs
 
 
+def _module_is_absent(exc, module_path):
+    """Whether `exc` reports `module_path` missing, not something it imports.
+
+    Both read as ModuleNotFoundError: a relation with no module in the scope
+    package is ordinary, while a module whose own imports are broken is a
+    defect its author needs to hear about. `exc.name` tells them apart.
+    """
+    name = getattr(exc, 'name', None)
+    if not name:
+        return False
+    return module_path == name or module_path.startswith(f'{name}.')
+
+
 def _describe_values(values):
     """Describe query parameters by shape, never by content.
 
@@ -929,22 +942,44 @@ class Model:
         return self.__pg_meta.has_relation(self.__dbname, *qtn.rsplit('.', 1))
 
     def _import_class(self, qtn, scope=None):
-        """Used to return the class from the scope module.
+        """Return the class for `qtn` from the scope package, if there is one.
 
-        This method is used to import a class from a module. The module
-        must reside in an accessible python package named `scope`.
+        Falls back to a generated class when the scope package has no module
+        for this relation.
         """
-        t_qtn = qtn.replace('"', '').rsplit('.', 1)
         self._scope = scope or self._scope
-        module_path = ".".join(t_qtn)
-        if self._scope:
-            module_path = f'{self._scope}.{module_path}'
-        _class_name = pg_meta.class_name(qtn) # XXX
+        if not self._scope:
+            # The module path is built from the relation's schema and name,
+            # which are database data. Without a scope package to root it in,
+            # `__import__` would be handed a top-level module name chosen by
+            # whoever can create a schema -- and importing a module runs it,
+            # which makes that execution, not lookup.
+            return self.get_relation_class(qtn)
+
+        plain_qtn = qtn.replace('"', '')
+        if not all(part.isidentifier() for part in plain_qtn.split('.')):
+            # Nothing importable can be named this; asking would only probe
+            # the import system with a name out of the database.
+            return self.get_relation_class(qtn)
+
+        module_path = f'{self._scope}.{plain_qtn}'
+        _class_name = pg_meta.class_name(qtn)
+
         try:
             module = __import__(
                 module_path, globals(), locals(), [_class_name], 0)
+        except ModuleNotFoundError as exc:
+            if not _module_is_absent(exc, module_path):
+                # The module is there; something it imports is not. Swallowing
+                # that removed the caller's own code from the program without
+                # a word -- the generated class simply arrived without their
+                # methods on it.
+                raise
+            return self.get_relation_class(qtn)
+
+        try:
             return module.__dict__[_class_name]
-        except:
+        except KeyError:
             return self.get_relation_class(qtn)
 
     def _relations(self):
