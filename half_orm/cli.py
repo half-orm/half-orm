@@ -101,28 +101,105 @@ OFFICIAL_EXTENSIONS = {
     'half_orm_gen'
 }
 
+# Pre-1.0 trust store, kept only to warn that it is no longer honoured.
+LEGACY_CONFIG_NAME = '.half_orm_cli'
+
+# Directory entries that mark the root of a project.
+PROJECT_MARKERS = ('.hop', '.git')
+
+_legacy_config_warned = False
+
 def get_config_file():
-    """Get path to project-specific halfORM CLI configuration."""
-    return Path.cwd() / '.half_orm_cli'
+    """Get path to the per-user halfORM CLI configuration.
+
+    This file holds the extension trust store, which suppresses the security
+    prompt raised for unofficial extensions. It therefore lives outside any
+    project directory: a checkout is untrusted input, and a repository able to
+    write its own trust store would silently grant itself consent.
+
+    Honours HALF_ORM_CLI_CONFIG, then the platform's per-user configuration
+    directory: %APPDATA% on Windows, $XDG_CONFIG_HOME (default ~/.config)
+    elsewhere. Both live inside the user's profile, which is what keeps the
+    file confidential -- the explicit 0600 applied on save is a Unix-only
+    reinforcement, where a permissive umask could otherwise widen it.
+    """
+    override = os.environ.get('HALF_ORM_CLI_CONFIG')
+    if override:
+        return Path(override).expanduser()
+
+    if sys.platform == 'win32':
+        appdata = os.environ.get('APPDATA')
+        base = Path(appdata) if appdata else Path.home() / 'AppData' / 'Roaming'
+    else:
+        xdg = os.environ.get('XDG_CONFIG_HOME')
+        base = Path(xdg).expanduser() if xdg else Path.home() / '.config'
+    return base / 'half_orm' / 'cli.json'
+
+def get_project_key(start=None):
+    """Identify the project a trust decision applies to.
+
+    Walks up from `start` (default: the current directory) to the nearest
+    project marker, so that running a command from a subdirectory reuses the
+    decision already recorded for the project instead of asking again -- a
+    prompt that keeps reappearing is a prompt that gets answered unread.
+    """
+    try:
+        current = Path(start) if start else Path.cwd()
+        current = current.resolve()
+    except OSError:
+        return os.path.normcase(str(start or ''))
+
+    for directory in (current, *current.parents):
+        for marker in PROJECT_MARKERS:
+            if (directory / marker).exists():
+                return os.path.normcase(str(directory))
+    # normcase is a no-op on POSIX; on Windows it keeps C:\Proj and c:\proj
+    # from becoming two separate trust scopes for one directory.
+    return os.path.normcase(str(current))
+
+def _warn_legacy_config():
+    """Warn once that a pre-1.0 project-local trust store is being ignored."""
+    global _legacy_config_warned
+    if _legacy_config_warned:
+        return
+    _legacy_config_warned = True
+
+    try:
+        legacy = Path.cwd() / LEGACY_CONFIG_NAME
+        if not legacy.exists():
+            return
+    except OSError:
+        return
+
+    click.echo(
+        f"⚠️  Ignoring '{legacy}': extension trust is no longer read from the "
+        "project directory, where a checkout could grant itself consent.",
+        err=True)
+    click.echo(f"   Trust is now recorded in {get_config_file()}", err=True)
 
 def load_cli_config():
-    """Load project-specific CLI configuration."""
-    config_file = get_config_file()
-    if config_file.exists():
-        try:
-            with open(config_file, 'r') as f:
-                return json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return {}
-    return {}
+    """Load the per-user CLI configuration."""
+    _warn_legacy_config()
+    try:
+        with open(get_config_file(), 'r') as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return config if isinstance(config, dict) else {}
 
 def save_cli_config(config):
-    """Save project-specific CLI configuration."""
+    """Save the per-user CLI configuration, readable by its owner only."""
     config_file = get_config_file()
     try:
+        config_file.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         config['last_updated'] = datetime.now().isoformat()
-        with open(config_file, 'w') as f:
+        fd = os.open(config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w') as f:
             json.dump(config, f, indent=2)
+        # O_CREAT only applies the mode on creation; an existing file keeps its
+        # own, so narrow it explicitly. On Windows this only clears the
+        # read-only flag, and confidentiality comes from the profile ACL.
+        os.chmod(config_file, 0o600)
         return True
     except OSError:
         return False
@@ -154,41 +231,57 @@ def is_official_extension(package_name):
     hyph_package_name = package_name.replace('-', '_')
     return package_name in OFFICIAL_EXTENSIONS or hyph_package_name in OFFICIAL_EXTENSIONS
 
+def _trusted_for_project(config, project_key):
+    """Return the trust entries recorded for one project.
+
+    Tolerates a malformed store rather than raising: a corrupt file must not
+    break the CLI, and every shape it can take here means "not trusted".
+    """
+    trusted = config.get('trusted_extensions')
+    if not isinstance(trusted, dict):
+        return {}
+    entries = trusted.get(project_key)
+    return entries if isinstance(entries, dict) else {}
+
 def is_trusted_extension(package_name, current_version=None):
-    """Check if specific version of extension is trusted."""
-    config = load_cli_config()
-    trusted_extensions = config.get('trusted_extensions', {})
-
-    if package_name in trusted_extensions:
-        trusted_version = trusted_extensions[package_name].get('version')
-        return trusted_version == current_version
-
-    return False
+    """Check if this version of an extension is trusted for this project."""
+    entries = _trusted_for_project(load_cli_config(), get_project_key())
+    entry = entries.get(package_name)
+    if not isinstance(entry, dict):
+        return False
+    return entry.get('version') == current_version
 
 def add_trusted_extension(package_name, version):
-    """Add specific version of extension to trusted list."""
+    """Trust a specific version of an extension, for this project only."""
     config = load_cli_config()
-    trusted = config.get('trusted_extensions', {})
+    project_key = get_project_key()
 
-    trusted[package_name] = {
+    trusted = config.get('trusted_extensions')
+    if not isinstance(trusted, dict):
+        trusted = {}
+    entries = dict(_trusted_for_project(config, project_key))
+    entries[package_name] = {
         'version': version,
         'trusted_at': datetime.now().isoformat()
     }
 
+    trusted[project_key] = entries
     config['trusted_extensions'] = trusted
     save_cli_config(config)
 
 def remove_trusted_extension(package_name):
-    """Remove extension from trusted list."""
+    """Remove an extension from this project's trusted list."""
     config = load_cli_config()
-    trusted = config.get('trusted_extensions', {})
+    project_key = get_project_key()
+    entries = dict(_trusted_for_project(config, project_key))
 
-    if package_name in trusted:
-        del trusted[package_name]
-        config['trusted_extensions'] = trusted
-        save_cli_config(config)
-        return True
-    return False
+    if package_name not in entries:
+        return False
+
+    del entries[package_name]
+    config['trusted_extensions'][project_key] = entries
+    save_cli_config(config)
+    return True
 
 def warn_unofficial_extension(package_name, current_version):
     """Show warning for non-official extensions."""
@@ -322,7 +415,7 @@ def get_extension_info(extensions: Dict[str, Any]) -> str:
 )
 @click.version_option(version=half_orm.__version__, prog_name='halfORM')
 @click.option('--list-extensions', is_flag=True, help='List all installed extensions')
-@click.option('--untrust', metavar='EXTENSION', help='Remove extension from trusted list')
+@click.option('--untrust', metavar='EXTENSION', help="Remove extension from this project's trusted list")
 @click.option('--trusted-extensions', is_flag=True, help='Skip security warnings')
 @click.pass_context
 def main(ctx, list_extensions, untrust, trusted_extensions):

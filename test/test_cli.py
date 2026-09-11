@@ -11,6 +11,8 @@ Tests cover:
 
 import pytest
 import json
+import os
+import stat
 import tempfile
 import shutil
 from pathlib import Path
@@ -20,11 +22,24 @@ from click.testing import CliRunner
 # Import the CLI module
 import sys
 sys.path.insert(0, '.')
+from half_orm import cli as half_orm_cli
 from half_orm.cli import (
     main, discover_extensions, check_version_compatibility,
     is_trusted_extension, add_trusted_extension, remove_trusted_extension,
-    load_cli_config, save_cli_config, get_config_file, OFFICIAL_EXTENSIONS
+    load_cli_config, save_cli_config, get_config_file, get_project_key,
+    LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
 )
+
+
+@pytest.fixture(autouse=True)
+def isolated_cli_config(tmp_path, monkeypatch):
+    """Keep every test out of the developer's own trust store.
+
+    get_config_file() deliberately resolves under the user's home, so without
+    this the suite would read -- and write -- the real configuration.
+    """
+    monkeypatch.setenv('HALF_ORM_CLI_CONFIG', str(tmp_path / 'cli.json'))
+    monkeypatch.setattr(half_orm_cli, '_legacy_config_warned', False)
 
 
 class TestVersionCompatibility:
@@ -67,10 +82,9 @@ class TestConfigManagement:
         with patch('half_orm.cli.Path.cwd', return_value=Path(self.temp_dir)):
             config = {'test': 'value'}
             assert save_cli_config(config) == True
-            
-            config_file = Path(self.temp_dir) / '.half_orm_cli'
-            assert config_file.exists()
-            
+
+            assert get_config_file().exists()
+
             loaded = load_cli_config()
             assert loaded['test'] == 'value'
             assert 'last_updated' in loaded
@@ -339,6 +353,157 @@ class TestSecurityWarnings:
                             warn_unofficial_extension('half-orm-test', '0.16.0')
                             mock_prompt.assert_called_once()
                             mock_trust.assert_called_once_with('half-orm-test', '0.16.0')
+
+
+class TestTrustStoreLocation:
+    """The trust store must not be writable by the code it is protecting.
+
+    It suppresses the consent prompt for unofficial extensions, so a checkout
+    able to write its own entries would grant itself silent consent -- and a
+    `git clone` produces files owned by the victim, which is why no permission
+    check can substitute for keeping the store out of the project.
+    """
+
+    def test_store_lives_outside_any_project(self, monkeypatch, tmp_path):
+        """The default location is under the user's profile, not the CWD."""
+        monkeypatch.delenv('HALF_ORM_CLI_CONFIG', raising=False)
+        monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
+        monkeypatch.chdir(tmp_path)
+
+        config_file = get_config_file()
+        assert config_file.name == 'cli.json'
+        assert config_file.parent.name == 'half_orm'
+        assert Path.home() in config_file.parents
+        assert tmp_path not in config_file.parents
+
+    @pytest.mark.skipif(sys.platform == 'win32',
+                        reason='Windows uses %APPDATA%, not XDG')
+    def test_xdg_config_home_is_honoured(self, monkeypatch, tmp_path):
+        monkeypatch.delenv('HALF_ORM_CLI_CONFIG', raising=False)
+        monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path))
+        assert get_config_file() == tmp_path / 'half_orm' / 'cli.json'
+
+    @pytest.mark.skipif(sys.platform != 'win32', reason='Windows-only layout')
+    def test_appdata_is_honoured(self, monkeypatch, tmp_path):
+        monkeypatch.delenv('HALF_ORM_CLI_CONFIG', raising=False)
+        monkeypatch.setenv('APPDATA', str(tmp_path))
+        assert get_config_file() == tmp_path / 'half_orm' / 'cli.json'
+
+    def test_explicit_override_wins(self, monkeypatch, tmp_path):
+        monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / 'xdg'))
+        monkeypatch.setenv('HALF_ORM_CLI_CONFIG', str(tmp_path / 'chosen.json'))
+        assert get_config_file() == tmp_path / 'chosen.json'
+
+    def test_project_local_store_grants_nothing(self, monkeypatch, tmp_path):
+        """A .half_orm_cli shipped in a repository must not be honoured."""
+        project = tmp_path / 'hostile'
+        project.mkdir()
+        (project / LEGACY_CONFIG_NAME).write_text(json.dumps({
+            'trusted_extensions': {
+                'half-orm-evil': {'version': '1.0.0'}
+            }
+        }))
+        monkeypatch.chdir(project)
+
+        assert is_trusted_extension('half-orm-evil', '1.0.0') is False
+
+    def test_project_local_store_is_reported_not_ignored_silently(
+            self, monkeypatch, tmp_path, capsys):
+        """Silently dropping the old file would look like a bug to its owner."""
+        project = tmp_path / 'legacy'
+        project.mkdir()
+        (project / LEGACY_CONFIG_NAME).write_text('{}')
+        monkeypatch.chdir(project)
+
+        load_cli_config()
+        first = capsys.readouterr().err
+        assert LEGACY_CONFIG_NAME in first
+
+        # ...but only once, so it cannot drown the security prompt itself.
+        load_cli_config()
+        assert capsys.readouterr().err == ''
+
+    def test_trust_does_not_leak_to_another_project(self, monkeypatch, tmp_path):
+        one = tmp_path / 'one'
+        two = tmp_path / 'two'
+        for path in (one, two):
+            (path / '.git').mkdir(parents=True)
+
+        monkeypatch.chdir(one)
+        add_trusted_extension('half-orm-ext', '1.0.0')
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is True
+
+        monkeypatch.chdir(two)
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is False
+
+    def test_trust_is_reused_from_a_subdirectory(self, monkeypatch, tmp_path):
+        """Re-prompting inside the same project trains users to answer blind."""
+        project = tmp_path / 'proj'
+        (project / '.git').mkdir(parents=True)
+        deep = project / 'a' / 'b'
+        deep.mkdir(parents=True)
+
+        monkeypatch.chdir(project)
+        add_trusted_extension('half-orm-ext', '1.0.0')
+
+        monkeypatch.chdir(deep)
+        assert get_project_key() == str(project.resolve())
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is True
+
+    def test_untrust_only_clears_the_current_project(self, monkeypatch, tmp_path):
+        one = tmp_path / 'one'
+        two = tmp_path / 'two'
+        for path in (one, two):
+            (path / '.git').mkdir(parents=True)
+
+        for path in (one, two):
+            monkeypatch.chdir(path)
+            add_trusted_extension('half-orm-ext', '1.0.0')
+
+        monkeypatch.chdir(one)
+        assert remove_trusted_extension('half-orm-ext') is True
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is False
+
+        monkeypatch.chdir(two)
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is True
+
+    @pytest.mark.skipif(sys.platform == 'win32',
+                        reason='POSIX permission bits; Windows relies on the '
+                               'profile ACL of %APPDATA%')
+    def test_store_is_written_owner_only(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        add_trusted_extension('half-orm-ext', '1.0.0')
+
+        config_file = get_config_file()
+        assert stat.S_IMODE(config_file.stat().st_mode) == 0o600
+        assert stat.S_IMODE(config_file.parent.stat().st_mode) == 0o700
+
+    @pytest.mark.skipif(sys.platform == 'win32',
+                        reason='os.chmod only toggles the read-only flag there')
+    def test_widened_permissions_are_narrowed_again(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        add_trusted_extension('half-orm-ext', '1.0.0')
+        config_file = get_config_file()
+
+        os.chmod(config_file, 0o644)
+        add_trusted_extension('half-orm-other', '1.0.0')
+        assert stat.S_IMODE(config_file.stat().st_mode) == 0o600
+
+    @pytest.mark.parametrize('content', [
+        'not json at all {{{',
+        '[1, 2, 3]',
+        '{"trusted_extensions": "everything"}',
+        '{"trusted_extensions": {"__project__": "everything"}}',
+        '{"trusted_extensions": {"__project__": {"half-orm-ext": "yes"}}}',
+    ])
+    def test_malformed_store_grants_nothing(self, monkeypatch, tmp_path, content):
+        """Every shape a broken store can take must read as "not trusted"."""
+        monkeypatch.chdir(tmp_path)
+        content = content.replace('__project__', get_project_key())
+        get_config_file().parent.mkdir(parents=True, exist_ok=True)
+        get_config_file().write_text(content)
+
+        assert is_trusted_extension('half-orm-ext', '1.0.0') is False
 
 
 class TestPreCheck:
