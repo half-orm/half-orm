@@ -4,6 +4,19 @@ import unittest
 from typing import List
 from half_orm.relation import Relation
 
+def _walk_attributes(obj, path: str):
+    """Follow `path` as a dotted attribute path on `obj`.
+
+    This was `eval(f"relation().{alias}")`, which let the string be any Python
+    expression while every caller only ever named an attribute -- including
+    the test files half-orm-dev generates, which reach the same object through
+    `rel.__dict__[alias]`.
+    """
+    for name in path.split('.'):
+        obj = getattr(obj, name)
+    return obj
+
+
 class HoTestCase(unittest.TestCase):
     def hotAssertIsPkey(self, relation: Relation, field_names: List[str]):
         "it shoud be the primary key"
@@ -30,7 +43,11 @@ class HoTestCase(unittest.TestCase):
             raise self.fail(f"{relation.__class__.__name__}()._ho_fkeys['{fk_name}']() does not reference {f_relation.__name__}")
 
     def hotAssertAliasReferences(self, relation: Relation, alias: str, f_relation: Relation):
-        referenced = eval(f"relation().{alias}")
+        """Check that `alias` on `relation` points at `f_relation`.
+
+        `alias` names an attribute, or a dotted path of them.
+        """
+        referenced = _walk_attributes(relation(), alias)
         if referenced()._qrn != f_relation._qrn:
             raise self.fail(f"{relation.__class__.__name__}.{alias}() does not reference {f_relation.__name__}")
 

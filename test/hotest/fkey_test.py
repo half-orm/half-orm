@@ -31,3 +31,20 @@ class Test(HoTestCase):
         with self.assertRaises(AssertionError) as exc:
             self.hotAssertAliasReferences(self.post, 'author_fk', halftest.comment_cls)
         self.assertEqual(str(exc.exception), "Post.author_fk() does not reference Comment")
+
+    def test_alias_is_not_evaluated(self):
+        """The alias was spliced into eval(); it names an attribute now.
+
+        Under eval, 'author_fk()' called the foreign key and the assertion
+        went on to compare its result. It is not an attribute name, so it
+        raises instead.
+        """
+        with self.assertRaises(AttributeError):
+            self.hotAssertAliasReferences(
+                self.post, 'author_fk()', halftest.person_cls)
+
+    def test_an_unknown_alias_names_itself(self):
+        with self.assertRaises(AttributeError) as exc:
+            self.hotAssertAliasReferences(
+                self.post, 'no_such_alias', halftest.person_cls)
+        self.assertIn('no_such_alias', str(exc.exception))
