@@ -14,6 +14,7 @@ Usage:
 
 import functools
 import hashlib
+import re
 import importlib
 import importlib.util
 import json
@@ -302,8 +303,7 @@ def is_trusted_extension(package_name, current_version=None,
         return True
     return entry.get('fingerprint') == fingerprint
 
-def add_trusted_extension(package_name, version, fingerprint=None,
-                          official=False):
+def add_trusted_extension(package_name, version, fingerprint=None):
     """Trust a specific build of an extension, for this project only."""
     config = load_cli_config()
     project_key = get_project_key()
@@ -316,26 +316,82 @@ def add_trusted_extension(package_name, version, fingerprint=None,
         'version': version,
         'fingerprint': fingerprint,
         'trusted_at': datetime.now().isoformat(),
-        # Recorded so the file explains itself: an official extension is
-        # written here without anyone being asked.
-        'official': official,
     }
 
     trusted[project_key] = entries
     config['trusted_extensions'] = trusted
     save_cli_config(config)
 
+def canonical_name(name):
+    """PEP 503 normalisation: 'half_orm_dev' and 'half-orm-dev' are one name."""
+    return re.sub(r'[-_.]+', '-', str(name)).lower()
+
+def _matching_keys(entries, package_name):
+    """Keys naming `package_name`, with the half-orm- prefix optional."""
+    wanted = {canonical_name(package_name),
+              canonical_name(f'half-orm-{package_name}')}
+    return [key for key in entries if canonical_name(key) in wanted]
+
 def remove_trusted_extension(package_name):
-    """Remove an extension from this project's trusted list."""
+    """Remove an extension from this project's trusted list.
+
+    Matched on the canonical name, and with the half-orm- prefix optional. The
+    key is recorded from the distribution's own spelling, so demanding that
+    spelling back would make the message that suggests this command wrong for
+    any extension named with underscores.
+    """
     config = load_cli_config()
     project_key = get_project_key()
     entries = dict(_trusted_for_project(config, project_key))
 
-    if package_name not in entries:
+    matches = _matching_keys(entries, package_name)
+    if not matches:
         return False
 
-    del entries[package_name]
+    for key in matches:
+        del entries[key]
     config['trusted_extensions'][project_key] = entries
+    save_cli_config(config)
+    return True
+
+def _official_builds(config):
+    """The recorded builds of official extensions, tolerating a broken store."""
+    builds = config.get('official_builds')
+    return builds if isinstance(builds, dict) else {}
+
+def recorded_official_build(package_name):
+    """The build an official extension was last seen as, if any."""
+    entry = _official_builds(load_cli_config()).get(canonical_name(package_name))
+    return entry if isinstance(entry, dict) else None
+
+def record_official_build(package_name, version, fingerprint):
+    """Remember the build an official extension is currently seen as.
+
+    Global, unlike consent: which build is installed is a property of the
+    installation, not of the directory a command runs from. Recording it per
+    project would demand one --untrust per project after every reinstall.
+    """
+    config = load_cli_config()
+    builds = dict(_official_builds(config))
+    builds[canonical_name(package_name)] = {
+        'version': version,
+        'fingerprint': fingerprint,
+        'seen_at': datetime.now().isoformat(),
+    }
+    config['official_builds'] = builds
+    save_cli_config(config)
+
+def forget_official_build(package_name):
+    """Drop the recorded build, so the next sighting counts as the first."""
+    config = load_cli_config()
+    builds = dict(_official_builds(config))
+    matches = _matching_keys(builds, package_name)
+    if not matches:
+        return False
+
+    for key in matches:
+        del builds[key]
+    config['official_builds'] = builds
     save_cli_config(config)
     return True
 
@@ -360,22 +416,21 @@ def check_official_extension(package_name, current_version, fingerprint):
     if _trust_extensions:
         return True
 
-    entries = _trusted_for_project(load_cli_config(), get_project_key())
-    entry = entries.get(package_name)
+    recorded = recorded_official_build(package_name)
 
-    if not isinstance(entry, dict) or entry.get('version') != current_version:
+    if recorded is None or recorded.get('version') != current_version:
         # First sight, or a version change -- which is what an upgrade is.
-        add_trusted_extension(
-            package_name, current_version, fingerprint, official=True)
+        record_official_build(package_name, current_version, fingerprint)
         return True
 
-    if entry.get('fingerprint') == fingerprint:
+    if recorded.get('fingerprint') == fingerprint:
         return True
 
     click.echo(
         f"⚠️  '{package_name}' v{current_version} is not the build recorded "
-        "for this project, and its version number has not changed.", err=True)
-    click.echo(f"   Recorded: {entry.get('fingerprint')}", err=True)
+        "for this installation, and its version number has not changed.",
+        err=True)
+    click.echo(f"   Recorded: {recorded.get('fingerprint')}", err=True)
     click.echo(f"   Found:    {fingerprint}", err=True)
     click.echo(
         f"   Not loading it. `half_orm --untrust {package_name}` accepts the "
@@ -784,13 +839,15 @@ def main(ctx, list_extensions, untrust, trusted_extensions):
         ctx.exit(0)
 
     if untrust:
-        # Validate extension name format
-        if not untrust.startswith('half-orm-'):
-            untrust = f'half-orm-{untrust}'
-
-        if remove_trusted_extension(untrust):
+        # Consent is per project, the recorded build is global; --untrust is
+        # the one gesture the user is told about, so it clears both.
+        untrusted = remove_trusted_extension(untrust)
+        forgotten = forget_official_build(untrust)
+        if untrusted:
             click.echo(f"✅ Removed '{untrust}' from trusted extensions")
-        else:
+        if forgotten:
+            click.echo(f"✅ Forgot the recorded build of '{untrust}'")
+        if not (untrusted or forgotten):
             click.echo(f"'{untrust}' was not in trusted list")
         ctx.exit(0)
 

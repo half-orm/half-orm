@@ -29,6 +29,7 @@ from half_orm import cli as half_orm_cli
 from half_orm.cli import (
     main, discover_extensions, check_version_compatibility,
     is_trusted_extension, is_official_extension, add_trusted_extension,
+    canonical_name, recorded_official_build, forget_official_build,
     remove_trusted_extension, load_cli_config, save_cli_config,
     get_config_file, get_project_key, LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
 )
@@ -507,6 +508,31 @@ class TestTrustStoreLocation:
         assert get_project_key() == str(project.resolve())
         assert is_trusted_extension('half-orm-ext', '1.0.0') is True
 
+    @pytest.mark.parametrize('typed', [
+        'half_orm_dev',    # the distribution's own spelling
+        'half-orm-dev',    # the PyPI spelling
+        'dev',             # the short form the help text suggests
+        'Half-ORM-Dev',    # PEP 503 folds case too
+    ])
+    def test_untrust_accepts_any_spelling_of_the_name(
+            self, monkeypatch, tmp_path, typed):
+        """The refusal message names this command; it has to work.
+
+        Keys are recorded from the distribution's own spelling, and half-orm-dev
+        calls itself half_orm_dev, which the old prefixing turned into
+        'half-orm-half_orm_dev'.
+        """
+        (tmp_path / '.git').mkdir()
+        monkeypatch.chdir(tmp_path)
+        add_trusted_extension('half_orm_dev', '1.0.0', 'sha256:aaa')
+
+        assert remove_trusted_extension(typed) is True
+        assert is_trusted_extension('half_orm_dev', '1.0.0') is False
+
+    def test_canonical_name_folds_separators_and_case(self):
+        assert canonical_name('Half_ORM.Dev') == 'half-orm-dev'
+        assert canonical_name('half--orm__dev') == 'half-orm-dev'
+
     def test_untrust_only_clears_the_current_project(self, monkeypatch, tmp_path):
         one = tmp_path / 'one'
         two = tmp_path / 'two'
@@ -931,7 +957,38 @@ class TestTrustOnFirstUse:
     def test_first_sight_is_recorded_without_asking(self):
         assert half_orm_cli.check_official_extension(
             'half-orm-dev', '1.0.0', 'sha256:aaa') is True
-        assert is_trusted_extension('half-orm-dev', '1.0.0', 'sha256:aaa') is True
+
+        recorded = recorded_official_build('half-orm-dev')
+        assert recorded['version'] == '1.0.0'
+        assert recorded['fingerprint'] == 'sha256:aaa'
+
+    def test_recorded_build_is_shared_across_projects(self, monkeypatch, tmp_path):
+        """Which build is installed is a property of the installation.
+
+        Scoping it per project would demand one --untrust per project after
+        every reinstall at the same version.
+        """
+        one, two = tmp_path / 'one', tmp_path / 'two'
+        for path in (one, two):
+            (path / '.git').mkdir(parents=True)
+
+        monkeypatch.chdir(one)
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+
+        monkeypatch.chdir(two)
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:aaa') is True
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:bbb') is False
+
+    def test_recorded_build_is_spelled_canonically(self):
+        """half-orm-dev calls itself half_orm_dev; one name, one record."""
+        half_orm_cli.check_official_extension(
+            'half_orm_dev', '1.0.0', 'sha256:aaa')
+
+        assert recorded_official_build('half-orm-dev') is not None
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:aaa') is True
 
     def test_same_build_loads_again(self):
         half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
@@ -959,9 +1016,22 @@ class TestTrustOnFirstUse:
     def test_untrust_accepts_the_new_build(self):
         half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
 
-        assert remove_trusted_extension('half-orm-dev') is True
+        assert forget_official_build('half-orm-dev') is True
         assert half_orm_cli.check_official_extension(
             'half-orm-dev', '1.0.0', 'sha256:bbb') is True
+
+    def test_untrust_command_clears_the_global_record(self, monkeypatch, tmp_path):
+        """--untrust is the one gesture the refusal message names."""
+        (tmp_path / '.git').mkdir()
+        monkeypatch.chdir(tmp_path)
+        half_orm_cli.check_official_extension('half_orm_dev', '1.0.0', 'sha256:aaa')
+
+        with patch('half_orm.cli.register_extensions'):
+            result = CliRunner().invoke(main, ['--untrust', 'half_orm_dev'])
+
+        assert result.exit_code == 0
+        assert 'Forgot the recorded build' in result.output
+        assert recorded_official_build('half_orm_dev') is None
 
     def test_global_trust_mode_skips_the_check(self):
         half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
