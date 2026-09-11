@@ -107,6 +107,21 @@ and RETURNING then asked PostgreSQL for a column called `column5`, which no
 table has, while WHERE and INSERT resolved correctly. All four now agree, and
 a renamed column is labelled back so `row['column5']` reads as expected.
 
+### Relation names are quoted properly, and no longer conflated
+
+`get_relation_class` deleted every quote from its argument before splitting
+it, so `"a""b"."t"` and `ab.t` were the same name: a relation whose name holds
+a quote -- legitimate in PostgreSQL, `create table "t""bl"` -- could not be
+reached, or reached a different one that happened to spell the same without
+it. Names are now split on the quoted grammar, falling back to a plain split
+on the last dot for anything outside it, so loose names keep working.
+
+`normalize_qrn` and `normalize_fqrn` wrapped each part in quotes without
+escaping the quotes inside, producing invalid SQL for the same names.
+
+`normalize_qrn`'s docstring described a `(schema, relation)` argument while
+every caller passes `(database, schema, relation)` and it drops the first.
+
 ### `ho_cast` narrows only; widening to an ancestor is refused
 
 `blog.event` inherits `blog.post`, so casting posts to events gives the posts

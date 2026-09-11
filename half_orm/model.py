@@ -83,6 +83,31 @@ def _config_bool(section, key, default, file_):
 #   Unicode-aware, which is what PostgreSQL accepts to start an identifier.
 _NAME_SEGMENT = r'(?:"(?:[^"]|"")+"|[^\W\d][\w$]*)'
 _QUALIFIED_NAME_RE = re.compile(rf'^{_NAME_SEGMENT}(?:\.{_NAME_SEGMENT})*$')
+_NAME_SEGMENT_RE = re.compile(_NAME_SEGMENT)
+
+
+def _split_qualified_name(name):
+    """Split ``schema.relation`` into its parts, or return None.
+
+    Understands the quoted form, so ``"a""b"."t"`` yields ``['a"b', 't']``.
+    Returns None for anything that is not a sequence of quoted or bare
+    segments, leaving the caller to fall back on a plain split.
+    """
+    parts = []
+    pos = 0
+    while True:
+        match = _NAME_SEGMENT_RE.match(name, pos)
+        if match is None:
+            return None
+        segment = match.group(0)
+        parts.append(segment[1:-1].replace('""', '"')
+                     if segment.startswith('"') else segment)
+        pos = match.end()
+        if pos == len(name):
+            return parts
+        if name[pos] != '.':
+            return None
+        pos += 1
 
 
 def _check_config_file_name(name):
@@ -533,10 +558,18 @@ class Model:
                 ```
 
         """
-        try:
-            schema, table = relation_name.replace('"', '').rsplit('.', 1)
-        except ValueError as err:
-            raise model_errors.MissingSchemaInName(relation_name) from err
+        # Not `relation_name.replace('"', '')`: deleting the quotes made
+        # `"a""b"."t"` and `ab.t` the same name, so a relation whose name
+        # holds one could not be reached -- or reached a different relation
+        # that happened to spell the same without it.
+        parts = _split_qualified_name(relation_name)
+        if parts is None:
+            # A name outside the quoted grammar (a dash, say) still splits on
+            # its last dot, as it always did.
+            parts = relation_name.rsplit('.', 1)
+        if len(parts) < 2:
+            raise model_errors.MissingSchemaInName(relation_name)
+        schema, table = '.'.join(parts[:-1]), parts[-1]
         return factory({'fqrn': (self.__dbname, schema, table), 'model': self.__deja_vu[self.__dbname], 'fields_aliases':fields_aliases})
 
 
