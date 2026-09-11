@@ -13,6 +13,7 @@ Usage:
 """
 
 import functools
+import hashlib
 import importlib
 import importlib.util
 import json
@@ -110,6 +111,10 @@ TRUST_EXTENSIONS_ENV = 'HALF_ORM_TRUST_EXTENSIONS'
 _cached_extensions = None
 _trust_extensions = os.environ.get(TRUST_EXTENSIONS_ENV, '').lower() in ('1', 'true', 'yes')
 _extensions_registered = False
+
+# Sentinel for callers that only render a status and have no fingerprint to
+# offer. The loading path always has one.
+_ANY_FINGERPRINT = object()
 
 def _set_trust_extensions(ctx, param, value):
     """Record --trusted-extensions as click parses it.
@@ -280,16 +285,26 @@ def _trusted_for_project(config, project_key):
     entries = trusted.get(project_key)
     return entries if isinstance(entries, dict) else {}
 
-def is_trusted_extension(package_name, current_version=None):
-    """Check if this version of an extension is trusted for this project."""
+def is_trusted_extension(package_name, current_version=None,
+                         fingerprint=_ANY_FINGERPRINT):
+    """Check if this version of an extension is trusted for this project.
+
+    The fingerprint is compared whenever one is supplied. A version number is
+    what a package says about itself; the digest is what it is.
+    """
     entries = _trusted_for_project(load_cli_config(), get_project_key())
     entry = entries.get(package_name)
     if not isinstance(entry, dict):
         return False
-    return entry.get('version') == current_version
+    if entry.get('version') != current_version:
+        return False
+    if fingerprint is _ANY_FINGERPRINT:
+        return True
+    return entry.get('fingerprint') == fingerprint
 
-def add_trusted_extension(package_name, version):
-    """Trust a specific version of an extension, for this project only."""
+def add_trusted_extension(package_name, version, fingerprint=None,
+                          official=False):
+    """Trust a specific build of an extension, for this project only."""
     config = load_cli_config()
     project_key = get_project_key()
 
@@ -299,7 +314,11 @@ def add_trusted_extension(package_name, version):
     entries = dict(_trusted_for_project(config, project_key))
     entries[package_name] = {
         'version': version,
-        'trusted_at': datetime.now().isoformat()
+        'fingerprint': fingerprint,
+        'trusted_at': datetime.now().isoformat(),
+        # Recorded so the file explains itself: an official extension is
+        # written here without anyone being asked.
+        'official': official,
     }
 
     trusted[project_key] = entries
@@ -320,6 +339,49 @@ def remove_trusted_extension(package_name):
     save_cli_config(config)
     return True
 
+def _content_changed_since_trusted(package_name, current_version, fingerprint):
+    """Whether a recorded build of the same version now hashes differently."""
+    if fingerprint is _ANY_FINGERPRINT:
+        return False
+    entry = _trusted_for_project(
+        load_cli_config(), get_project_key()).get(package_name)
+    return (isinstance(entry, dict)
+            and entry.get('version') == current_version
+            and entry.get('fingerprint') != fingerprint)
+
+def check_official_extension(package_name, current_version, fingerprint):
+    """Trust an official extension on first sight, then keep watching it.
+
+    Its name is on the allowlist, so nobody is asked to approve it -- but the
+    same release should keep answering to the same digest. Code that changes
+    while the version number does not is either tampering or a republished
+    release, and both are worth stopping for. Returns False to skip loading.
+    """
+    if _trust_extensions:
+        return True
+
+    entries = _trusted_for_project(load_cli_config(), get_project_key())
+    entry = entries.get(package_name)
+
+    if not isinstance(entry, dict) or entry.get('version') != current_version:
+        # First sight, or a version change -- which is what an upgrade is.
+        add_trusted_extension(
+            package_name, current_version, fingerprint, official=True)
+        return True
+
+    if entry.get('fingerprint') == fingerprint:
+        return True
+
+    click.echo(
+        f"⚠️  '{package_name}' v{current_version} is not the build recorded "
+        "for this project, and its version number has not changed.", err=True)
+    click.echo(f"   Recorded: {entry.get('fingerprint')}", err=True)
+    click.echo(f"   Found:    {fingerprint}", err=True)
+    click.echo(
+        f"   Not loading it. `half_orm --untrust {package_name}` accepts the "
+        "new build.", err=True)
+    return False
+
 def _stdin_is_interactive():
     """Whether a human can answer a prompt on stdin.
 
@@ -330,16 +392,25 @@ def _stdin_is_interactive():
     except (AttributeError, ValueError):
         return False
 
-def warn_unofficial_extension(package_name, current_version, provenance=None):
+def warn_unofficial_extension(package_name, current_version, provenance=None,
+                              fingerprint=_ANY_FINGERPRINT):
     """Show warning for non-official extensions."""
     # Skip warning if global trust mode or already trusted
     if (_trust_extensions or
-        is_trusted_extension(package_name, current_version) or
+        is_trusted_extension(package_name, current_version, fingerprint) or
         is_official_extension(package_name.replace('-', '_'))):
         return
 
     click.echo(f"⚠️  WARNING: '{package_name}' v{current_version} is not official", err=True)
     click.echo("   This extension could execute arbitrary code.", err=True)
+    if _content_changed_since_trusted(package_name, current_version, fingerprint):
+        # Otherwise the user re-reads a prompt they already answered and
+        # assumes the tool forgot, rather than that the code moved.
+        click.echo("   Its code has changed since you trusted it, while its "
+                   "version number has not.", err=True)
+    if fingerprint is None:
+        click.echo("   Editable install: its code can change at any time, so "
+                   "trusting it pins the location, not the content.", err=True)
     for line in provenance or ():
         click.echo(line, err=True)
     click.echo()
@@ -369,7 +440,9 @@ def warn_unofficial_extension(package_name, current_version, provenance=None):
         click.echo("Extension loading cancelled.")
         sys.exit(1)
     elif choice == 't':
-        add_trusted_extension(package_name, current_version)
+        add_trusted_extension(
+            package_name, current_version,
+            None if fingerprint is _ANY_FINGERPRINT else fingerprint)
         click.echo(f"✅ Trusted '{package_name}' v{current_version}")
 
 def _read_dist_text(dist, name):
@@ -392,7 +465,9 @@ def _editable_source_root(dist):
         return None
     try:
         info = json.loads(raw)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
+        # read_text is not obliged to hand back a string; a Distribution that
+        # returns something else must not take the CLI down with it.
         return None
     if not isinstance(info, dict):
         return None
@@ -468,6 +543,49 @@ def _distribution_owns(dist, module_name, origin):
         root / module_name,                   # namespace package
     )
 
+# What Python will actually execute. Data files are deliberately left out:
+# some packages write next to themselves at runtime, and a fingerprint that
+# changes on its own is a fingerprint nobody reads.
+_EXECUTABLE_SUFFIXES = frozenset({'.py', '.so', '.pyd', '.dylib'})
+
+
+def _code_fingerprint(dist, origin):
+    """Digest the code `origin` would run, or None when it cannot be pinned.
+
+    An editable install points at a working tree meant to change between one
+    command and the next, so pinning it would raise an alarm on every edit --
+    and an alarm that always fires is one nobody reads. Unreadable files also
+    yield None; they collide with the editable case harmlessly, since code
+    that cannot be read cannot be imported either.
+    """
+    if _editable_source_root(dist) is not None:
+        return None
+
+    root = origin.parent if origin.name == '__init__.py' else origin
+    digest = hashlib.sha256()
+    try:
+        if root.is_file():
+            base, paths = root.parent, [root]
+        else:
+            base = root
+            paths = sorted(
+                path for path in root.rglob('*')
+                if path.suffix in _EXECUTABLE_SUFFIXES
+                and '__pycache__' not in path.parts
+                and path.is_file())
+
+        for path in paths:
+            # Names are hashed alongside contents: moving code between files
+            # must not go unnoticed just because the bytes are unchanged.
+            digest.update(str(path.relative_to(base)).encode('utf-8', 'surrogateescape'))
+            digest.update(b'\0')
+            digest.update(path.read_bytes())
+            digest.update(b'\0')
+    except (OSError, ValueError):
+        return None
+
+    return f'sha256:{digest.hexdigest()}'
+
 def _describe_provenance(dist, origin):
     """Say where the code about to run actually comes from.
 
@@ -484,7 +602,7 @@ def _describe_provenance(dist, origin):
     if raw:
         try:
             url = json.loads(raw).get('url')
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, TypeError, AttributeError):
             url = None
         if url:
             editable = ' (editable)' if _editable_source_root(dist) else ''
@@ -544,11 +662,17 @@ def discover_extensions() -> Dict[str, Any]:
                         f"incompatible with halfORM v{core_version}.", err=True)
                 continue
 
-            # Security check for non-official extensions
-            if not is_official_extension(package_name):
+            # Trust checks, against the code itself rather than against what
+            # the distribution says about it.
+            fingerprint = _code_fingerprint(dist, origin)
+            if is_official_extension(package_name):
+                if not check_official_extension(
+                        package_name, current_version, fingerprint):
+                    continue
+            else:
                 warn_unofficial_extension(
                     package_name, current_version,
-                    _describe_provenance(dist, origin))
+                    _describe_provenance(dist, origin), fingerprint)
 
             # Import extension
             extension_module = importlib.import_module(f'{module_name}.cli_extension')

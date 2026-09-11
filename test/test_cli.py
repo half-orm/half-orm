@@ -409,7 +409,7 @@ class TestSecurityWarnings:
                             from half_orm.cli import warn_unofficial_extension
                             warn_unofficial_extension('half-orm-test', '0.16.0')
                             mock_prompt.assert_called_once()
-                            mock_trust.assert_called_once_with('half-orm-test', '0.16.0')
+                            mock_trust.assert_called_once_with('half-orm-test', '0.16.0', None)
 
 
 class TestTrustStoreLocation:
@@ -582,14 +582,15 @@ def _write_shadow_module(tmp_path, module='half_orm_probe'):
     return root, marker
 
 
-def _write_probe_extension(tmp_path):
+def _write_probe_extension(tmp_path, name='half-orm-probe',
+                           module='half_orm_probe'):
     """Install a discoverable extension that records the fact it was imported.
 
     A real .dist-info on sys.path is the only faithful way to test what
     `import half_orm.cli` does: mocking `distributions` would test the mock.
     """
     marker = tmp_path / 'probe-was-imported'
-    package = tmp_path / 'half_orm_probe'
+    package = tmp_path / module
     package.mkdir()
     (package / '__init__.py').write_text('')
     (package / 'cli_extension.py').write_text(
@@ -598,11 +599,11 @@ def _write_probe_extension(tmp_path):
         'def add_commands(group):\n'
         '    pass\n')
 
-    dist_info = tmp_path / f'half_orm_probe-{half_orm.__version__}.dist-info'
+    dist_info = tmp_path / f'{module}-{half_orm.__version__}.dist-info'
     dist_info.mkdir()
     (dist_info / 'METADATA').write_text(
         'Metadata-Version: 2.1\n'
-        'Name: half-orm-probe\n'
+        f'Name: {name}\n'
         f'Version: {half_orm.__version__}\n')
     (dist_info / 'WHEEL').write_text('Wheel-Version: 1.0\n')
     return marker
@@ -828,6 +829,190 @@ class TestModuleIdentity:
         origin = half_orm_cli._module_origin('half_orm_boom')
 
         assert origin == (package / '__init__.py').resolve()
+
+
+def _plain_dist():
+    """A distribution with no direct_url.json: an ordinary install."""
+    dist = Mock()
+    dist.read_text = Mock(return_value=None)
+    return dist
+
+
+def _editable_dist(source):
+    dist = Mock()
+    dist.read_text = lambda name: (
+        json.dumps({'dir_info': {'editable': True},
+                    'url': Path(source).resolve().as_uri()})
+        if name == 'direct_url.json' else None)
+    return dist
+
+
+def _write_module(root, name='half_orm_f', body='x = 1\n'):
+    package = root / name
+    package.mkdir(parents=True, exist_ok=True)
+    (package / '__init__.py').write_text('')
+    (package / 'cli_extension.py').write_text(body)
+    return package / '__init__.py'
+
+
+class TestCodeFingerprint:
+    """A version number is what a package says; the digest is what it is."""
+
+    def test_stable_across_calls(self, tmp_path):
+        origin = _write_module(tmp_path)
+        dist = _plain_dist()
+
+        assert (half_orm_cli._code_fingerprint(dist, origin)
+                == half_orm_cli._code_fingerprint(dist, origin))
+
+    def test_changes_when_code_changes(self, tmp_path):
+        origin = _write_module(tmp_path)
+        dist = _plain_dist()
+        before = half_orm_cli._code_fingerprint(dist, origin)
+
+        (origin.parent / 'cli_extension.py').write_text('x = 2\n')
+
+        assert half_orm_cli._code_fingerprint(dist, origin) != before
+
+    def test_ignores_compiled_bytecode(self, tmp_path):
+        """__pycache__ is derived, and churns on its own."""
+        origin = _write_module(tmp_path)
+        dist = _plain_dist()
+        before = half_orm_cli._code_fingerprint(dist, origin)
+
+        cache = origin.parent / '__pycache__'
+        cache.mkdir()
+        (cache / 'cli_extension.cpython-314.pyc').write_bytes(b'\x00\x01')
+
+        assert half_orm_cli._code_fingerprint(dist, origin) == before
+
+    def test_ignores_data_files(self, tmp_path):
+        """Some packages write beside themselves; an alarm that always fires
+        is one nobody reads."""
+        origin = _write_module(tmp_path)
+        dist = _plain_dist()
+        before = half_orm_cli._code_fingerprint(dist, origin)
+
+        (origin.parent / 'cache.json').write_text('{}')
+
+        assert half_orm_cli._code_fingerprint(dist, origin) == before
+
+    def test_moving_code_between_files_is_noticed(self, tmp_path):
+        """Paths are hashed with contents, not just the bytes."""
+        origin = _write_module(tmp_path, body='payload()\n')
+        dist = _plain_dist()
+        before = half_orm_cli._code_fingerprint(dist, origin)
+
+        (origin.parent / 'cli_extension.py').unlink()
+        (origin.parent / 'other.py').write_text('payload()\n')
+
+        assert half_orm_cli._code_fingerprint(dist, origin) != before
+
+    def test_native_extensions_are_covered(self, tmp_path):
+        origin = _write_module(tmp_path)
+        dist = _plain_dist()
+        before = half_orm_cli._code_fingerprint(dist, origin)
+
+        (origin.parent / 'speedups.so').write_bytes(b'\x7fELF')
+
+        assert half_orm_cli._code_fingerprint(dist, origin) != before
+
+    def test_editable_install_is_not_pinned(self, tmp_path):
+        """A working tree is meant to change between one command and the next."""
+        origin = _write_module(tmp_path / 'src')
+
+        assert half_orm_cli._code_fingerprint(
+            _editable_dist(tmp_path / 'src'), origin) is None
+
+
+class TestTrustOnFirstUse:
+    """An allowlisted name is not asked about, but it is still watched."""
+
+    def test_first_sight_is_recorded_without_asking(self):
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:aaa') is True
+        assert is_trusted_extension('half-orm-dev', '1.0.0', 'sha256:aaa') is True
+
+    def test_same_build_loads_again(self):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:aaa') is True
+
+    def test_changed_build_at_constant_version_is_refused(self, capsys):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:bbb') is False
+        err = capsys.readouterr().err
+        assert 'version number has not changed' in err
+        assert '--untrust half-orm-dev' in err
+
+    def test_version_change_is_an_upgrade_not_an_alarm(self, capsys):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+        capsys.readouterr()
+
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.1', 'sha256:bbb') is True
+        assert capsys.readouterr().err == ''
+
+    def test_untrust_accepts_the_new_build(self):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+
+        assert remove_trusted_extension('half-orm-dev') is True
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:bbb') is True
+
+    def test_global_trust_mode_skips_the_check(self):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+
+        with patch('half_orm.cli._trust_extensions', True):
+            assert half_orm_cli.check_official_extension(
+                'half-orm-dev', '1.0.0', 'sha256:bbb') is True
+
+    def test_unofficial_trust_does_not_survive_a_content_change(self):
+        add_trusted_extension('half-orm-x', '1.0.0', 'sha256:aaa')
+
+        assert is_trusted_extension('half-orm-x', '1.0.0', 'sha256:aaa') is True
+        assert is_trusted_extension('half-orm-x', '1.0.0', 'sha256:bbb') is False
+
+    def test_editable_trust_is_recorded_unpinned(self):
+        add_trusted_extension('half-orm-x', '1.0.0', None)
+
+        assert is_trusted_extension('half-orm-x', '1.0.0', None) is True
+        # ...and stops matching if the install stops being editable.
+        assert is_trusted_extension('half-orm-x', '1.0.0', 'sha256:aaa') is False
+
+    def test_tampering_is_caught_end_to_end(self, tmp_path):
+        """An official extension, recorded on sight, then altered in place."""
+        marker = _write_probe_extension(
+            tmp_path, name='half-orm-gen', module='half_orm_gen')
+        code = ("import sys\n"
+                "sys.argv = ['half_orm', '--list-extensions']\n"
+                "from half_orm.cli import main\n"
+                "main()\n")
+
+        first = _run_in_subprocess(code, tmp_path)
+        assert first.returncode == 0, first.stderr
+        assert marker.exists(), 'the untouched official extension did not load'
+        assert first.stderr == '', first.stderr
+
+        marker.unlink()
+        extension = tmp_path / 'half_orm_gen' / 'cli_extension.py'
+        extension.write_text(extension.read_text() + '\n# added afterwards\n')
+
+        second = _run_in_subprocess(code, tmp_path)
+
+        assert not marker.exists(), 'the altered extension was loaded anyway'
+        assert 'version number has not changed' in second.stderr
+        # The CLI itself stays usable: one extension is skipped, not the tool.
+        assert second.returncode == 0
+
+    def test_status_display_needs_no_fingerprint(self):
+        """--list-extensions renders a status; it is not a loading decision."""
+        add_trusted_extension('half-orm-x', '1.0.0', 'sha256:aaa')
+
+        assert is_trusted_extension('half-orm-x', '1.0.0') is True
 
 
 class TestProvenanceInPrompt:
