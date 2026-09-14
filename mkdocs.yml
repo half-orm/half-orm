@@ -95,6 +95,12 @@ markdown_extensions:
   - pymdownx.tilde
 
 extra:
+  # Set by the docs workflow, which already knows which version it is
+  # publishing. The outdated banner needs it: Material shows that banner
+  # whenever the page is not the one aliased `latest`, and `dev` is not, so
+  # without this the development documentation was announced as an old
+  # release no longer receiving fixes.
+  doc_version: !ENV [DOC_VERSION, '']
   version:
     provider: mike
     default: latest

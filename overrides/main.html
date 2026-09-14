@@ -5,14 +5,24 @@
   the `latest` alias, which it learns from versions.json at runtime. The block
   is empty by default, so without this file an outdated page says nothing.
 
-  Kept general on purpose: it has to stay true for whichever version is old
+  "Not latest" is not the same as "old": `dev` is ahead of the latest release,
+  not behind it, and the first version of this banner called it an old release
+  no longer receiving fixes. config.extra.doc_version comes from the workflow,
+  which knows which version it is publishing.
+
+  Kept general otherwise: it has to stay true for whichever version is old
   next. What is wrong with one particular release belongs in its CHANGELOG
   entry and in a security advisory, not in a banner that outlives it.
 #}
 {% block outdated %}
-  You are reading the documentation of an older halfORM release, which no
-  longer receives fixes.
+  {% if config.extra.doc_version == "dev" %}
+    You are reading the development documentation, which describes changes
+    that are not released yet.
+  {% else %}
+    You are reading the documentation of an older halfORM release, which no
+    longer receives fixes.
+  {% endif %}
   <a href="{{ '../' ~ base_url }}">
-    <strong>Go to the latest version</strong>
+    <strong>Go to the latest release</strong>
   </a>
 {% endblock %}
