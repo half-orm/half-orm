@@ -43,7 +43,7 @@ class Test(TestCase):
     def test_is_set(self):
         post = self.post()
         self.assertFalse(post.ho_is_set())
-        pers = self.pers(last_name=('a%', 'like'))
+        pers = self.pers(last_name=('like', 'a%'))
         post.author_fk.set(pers)
         self.assertTrue(post.ho_is_set())
 
