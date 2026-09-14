@@ -95,19 +95,6 @@
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
         
-          <aside class="md-banner md-banner--warning">
-            <div class="md-banner__inner md-grid md-typeset">
-              
-  You are reading the documentation of an older halfORM release, which no
-  longer receives fixes.
-  <a href="../../..">
-    <strong>Go to the latest version</strong>
-  </a>
-
-            </div>
-            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
-          </aside>
-        
       </div>
     
     
@@ -959,34 +946,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../testing/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Testing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1593,25 +1552,12 @@ database is enough — it is shared across all relation classes.</p>
 <code>HALFORM_CONF_DIR</code> (env var, defaults to <code>/etc/half_orm</code>).
 File format:
     [database]
-    name       = <db name>    # mandatory
-    user       = <user>
-    password   = <password>
-    host       = <host>
-    port       = <port>
-    production = <bool>       # default: false
-    crud_only  = <bool>       # default: false</p>
-<p><code>name</code> is the only mandatory key when using peer authentication.
-Booleans accept <code>true</code>/<code>false</code>, <code>yes</code>/<code>no</code>, <code>on</code>/<code>off</code>
-and <code>1</code>/<code>0</code>, in any case; anything else raises
-<code>MalformedConfigFile</code>.</p>
-<p><code>production</code> records the environment this connection belongs
-to. half_orm itself does not act on it — query parameters are
-never written to the logs, in any mode — but extensions do:
-half_orm_dev makes a server read-only when it is set.</p>
-<p><code>crud_only</code> refuses :meth:<code>execute_query</code> and
-:meth:<code>aexecute_query</code>, leaving only the Relation CRUD methods.
-It is a guard rail against accidents, not a privilege boundary:
-use <code>GRANT</code>/<code>REVOKE</code> to actually restrict what a role can do.</p>
+    name     = <db name>      # mandatory
+    user     = <user>
+    password = <password>
+    host     = <host>
+    port     = <port></p>
+<p><code>name</code> is the only mandatory key when using peer authentication.</p>
               </div>
             </td>
             <td>
@@ -1634,37 +1580,8 @@ use <code>GRANT</code>/<code>REVOKE</code> to actually restrict what a role can 
                   <code>None</code>
             </td>
           </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>with_half_orm_meta</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span> | <span title="str">str</span> | <span title="Iterable">Iterable</span>[<span title="str">str</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>controls whether
-"half_orm_meta.*" relations (half_orm_dev's own metadata schemas)
-are exposed through :meth:<code>classes</code>/:meth:<code>desc</code>. <code>False</code>
-(default): none are exposed. <code>True</code>: all of them are. A
-comma-separated string, or any other iterable of strings, of
-fully-qualified dotted relation names (e.g.
-<code>"half_orm_meta.identity.user"</code>): only those specific
-relations are exposed — an explicit opt-in allowlist. Exposed
-half_orm_meta relations are always returned as a generic
-:meth:<code>get_relation_class</code> instance, never imported from a
-generated package module.</p>
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
       </tbody>
     </table>
-        <p>If no file named <code>config_file</code> is found in <code>HALFORM_CONF_DIR</code>, it is
-used directly as the database name and a peer-authentication connection
-is attempted (no user/password/host/port) — development use only.</p>
 
 
 <p><span class="doc-section-title">Raises:</span></p>
@@ -1676,6 +1593,16 @@ is attempted (no user/password/host/port) — development use only.</p>
         </tr>
       </thead>
       <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="MissingConfigFile">MissingConfigFile</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if the configuration file is not found.</p>
+              </div>
+            </td>
+          </tr>
           <tr class="doc-section-item">
             <td>
                   <code><span title="MalformedConfigFile">MalformedConfigFile</span></code>
@@ -2078,29 +2005,6 @@ executing. Default: <code>False</code>.</p>
 directly into the query string.</p>
 </details>
 
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="PermissionError">PermissionError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if <code>crud_only</code> is set in the connection configuration.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
     </div>
 
 </div>
@@ -2406,30 +2310,7 @@ opened with <code>await model.aconnect()</code>.</p>
 
     <div class="doc doc-contents first">
 
-        <p>Execute a raw SQL query asynchronously. <em>Executes SQL.</em></p>
-
-
-<p><span class="doc-section-title">Raises:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="PermissionError">PermissionError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>if <code>crud_only</code> is set in the connection configuration.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+        <p>Executes a raw SQL query using the async connection.</p>
 
 
     </div>

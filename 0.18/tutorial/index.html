@@ -12,7 +12,7 @@
         <meta name="author" content="half-orm">
       
       
-        <link rel="canonical" href="https://half-orm.github.io/0.18/architecture/factory/">
+        <link rel="canonical" href="https://half-orm.github.io/0.18/tutorial/">
       
       
       
@@ -20,19 +20,19 @@
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Factory Pattern - halfORM Documentation</title>
+        <title>halfORM Tutorial - halfORM Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +51,11 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../assets/css/custom.css">
+      <link rel="stylesheet" href="../assets/css/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#factory-pattern" class="md-skip">
+        <a href="#halform-tutorial" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="halfORM Documentation" class="md-header__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+    <a href=".." title="halfORM Documentation" class="md-header__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Factory Pattern
+              halfORM Tutorial
             
           </span>
         </div>
@@ -232,7 +232,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -251,7 +251,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../half-an-hour/" class="md-tabs__link">
+      <a href="../half-an-hour/" class="md-tabs__link">
         
   
   
@@ -272,7 +272,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../api/model/" class="md-tabs__link">
+        <a href="../api/model/" class="md-tabs__link">
           
   
   
@@ -292,7 +292,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../extensions/" class="md-tabs__link">
+        <a href="../extensions/" class="md-tabs__link">
           
   
   
@@ -312,7 +312,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/development/extension-development/" class="md-tabs__link">
+        <a href="../guides/development/extension-development/" class="md-tabs__link">
           
   
   
@@ -352,7 +352,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="halfORM Documentation" class="md-nav__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+    <a href=".." title="halfORM Documentation" class="md-nav__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -382,7 +382,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -409,7 +409,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../half-an-hour/" class="md-nav__link">
+      <a href="../half-an-hour/" class="md-nav__link">
         
   
   
@@ -488,7 +488,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/model/" class="md-nav__link">
+      <a href="../api/model/" class="md-nav__link">
         
   
   
@@ -516,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/relation/" class="md-nav__link">
+      <a href="../api/relation/" class="md-nav__link">
         
   
   
@@ -544,7 +544,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/field/" class="md-nav__link">
+      <a href="../api/field/" class="md-nav__link">
         
   
   
@@ -572,7 +572,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/fkey/" class="md-nav__link">
+      <a href="../api/fkey/" class="md-nav__link">
         
   
   
@@ -600,7 +600,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/transaction/" class="md-nav__link">
+      <a href="../api/transaction/" class="md-nav__link">
         
   
   
@@ -687,7 +687,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../extensions/" class="md-nav__link">
+      <a href="../extensions/" class="md-nav__link">
         
   
   
@@ -774,7 +774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/development/extension-development/" class="md-nav__link">
+      <a href="../guides/development/extension-development/" class="md-nav__link">
         
   
   
@@ -802,7 +802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/development/development-workflow/" class="md-nav__link">
+      <a href="../guides/development/development-workflow/" class="md-nav__link">
         
   
   
@@ -830,7 +830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/development/documentation-workflow/" class="md-nav__link">
+      <a href="../guides/development/documentation-workflow/" class="md-nav__link">
         
   
   
@@ -885,10 +885,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#what-youll-learn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        What You'll Learn
       
     </span>
   </a>
@@ -896,10 +896,149 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#technical-details" class="md-nav__link">
+  <a href="#tutorial-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Technical Details
+        Tutorial Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tutorial Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-1-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 1: Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-2-core-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 2: Core Concepts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-3-advanced-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 3: Advanced Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorial Database
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tutorial Database">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tutorial-database-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorial Database Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-path-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Path Recommendations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Learning Path Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#im-new-to-orms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 I'm new to ORMs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-know-other-orms-django-sqlalchemy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔥 I know other ORMs (Django, SQLAlchemy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-just-need-specific-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ I just need specific topics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorial Philosophy
       
     </span>
   </a>
@@ -926,20 +1065,183 @@
   
 
 
-<h1 id="factory-pattern">Factory Pattern<a class="headerlink" href="#factory-pattern" title="Permanent link">&para;</a></h1>
-<!-- TODO: Component purpose -->
-<!-- TODO: Technical details -->
-<!-- TODO: Code examples -->
-<!-- TODO: Diagrams -->
-
-<div class="admonition note">
-<p class="admonition-title">Architecture Status</p>
-<p>This section needs detailed technical documentation for contributors.</p>
+<h1 id="halform-tutorial">halfORM Tutorial<a class="headerlink" href="#halform-tutorial" title="Permanent link">&para;</a></h1>
+<p>Welcome to the comprehensive halfORM tutorial! This step-by-step guide will take you from installation to advanced usage patterns.</p>
+<div class="admonition tip">
+<p class="admonition-title">Before You Start</p>
+<p>This tutorial assumes basic familiarity with:</p>
+<ul>
+<li><strong>Python</strong> (classes, decorators, basic OOP)</li>
+<li><strong>SQL</strong> (SELECT, INSERT, UPDATE, DELETE, basic joins)</li>
+<li><strong>PostgreSQL</strong> (connecting to a database, basic administration)</li>
+</ul>
+<p>If you're completely new to halfORM, start with the <a href="../quick-start/">Quick Start Guide</a> first!</p>
 </div>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><em>[Component overview and purpose]</em></p>
-<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
-<p><em>[Implementation details and patterns]</em></p>
+<h2 id="what-youll-learn">What You'll Learn<a class="headerlink" href="#what-youll-learn" title="Permanent link">&para;</a></h2>
+<p>By the end of this tutorial, you'll be able to:</p>
+<ul>
+<li>✅ <strong>Install and configure</strong> halfORM for your projects</li>
+<li>✅ <strong>Connect to databases</strong> and work with existing schemas</li>
+<li>✅ <strong>Perform CRUD operations</strong> with intuitive Python syntax</li>
+<li>✅ <strong>Navigate relationships</strong> between tables efficiently</li>
+<li>✅ <strong>Create custom relation classes</strong> with business logic</li>
+<li>✅ <strong>Write complex queries</strong> with halfORM's powerful syntax</li>
+<li>✅ <strong>Handle transactions</strong> safely for complex operations</li>
+<li>✅ <strong>Debug and optimize</strong> your database interactions</li>
+</ul>
+<h2 id="tutorial-structure">Tutorial Structure<a class="headerlink" href="#tutorial-structure" title="Permanent link">&para;</a></h2>
+<h3 id="part-1-getting-started">Part 1: Getting Started<a class="headerlink" href="#part-1-getting-started" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Chapter</th>
+<th>Topic</th>
+<th>Duration</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="installation/">1. Installation</a></strong></td>
+<td>Setup &amp; Config</td>
+<td>10 min</td>
+<td>Install halfORM and configure database connections</td>
+</tr>
+<tr>
+<td><strong><a href="first-steps/">2. First Steps</a></strong></td>
+<td>Basic Usage</td>
+<td>15 min</td>
+<td>Connect to databases, explore tables, basic CRUD</td>
+</tr>
+</tbody>
+</table>
+<h3 id="part-2-core-concepts">Part 2: Core Concepts<a class="headerlink" href="#part-2-core-concepts" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Chapter</th>
+<th>Topic</th>
+<th>Duration</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="models-relations/">3. Models &amp; Relations</a></strong></td>
+<td>Classes &amp; Schemas</td>
+<td>20 min</td>
+<td>Understanding relation classes, custom classes with <code>@register</code></td>
+</tr>
+<tr>
+<td><strong><a href="foreign-keys/">4. Foreign Keys</a></strong></td>
+<td>Relationships</td>
+<td>25 min</td>
+<td>Navigation, Fkeys configuration, relationship patterns</td>
+</tr>
+</tbody>
+</table>
+<h3 id="part-3-advanced-usage">Part 3: Advanced Usage<a class="headerlink" href="#part-3-advanced-usage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Chapter</th>
+<th>Topic</th>
+<th>Duration</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="queries/">5. Queries</a></strong></td>
+<td>Advanced Querying</td>
+<td>30 min</td>
+<td>Complex filters, joins, aggregations, performance</td>
+</tr>
+<tr>
+<td><strong><a href="transactions/">6. Transactions</a></strong></td>
+<td>Data Integrity</td>
+<td>20 min</td>
+<td>Transaction decorators, error handling, rollbacks</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total estimated time: ~2 hours</strong></p>
+<h2 id="tutorial-database">Tutorial Database<a class="headerlink" href="#tutorial-database" title="Permanent link">&para;</a></h2>
+<p>Throughout this tutorial, we'll use a <strong>blog application</strong> schema that includes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- Authors table</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">SERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">first_name</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">last_name</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="n">email</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">bio</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">);</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1">-- Posts table  </span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">SERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="n">title</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="n">content</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="n">author_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="n">published_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="n">is_published</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">FALSE</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="n">view_count</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">);</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1">-- Comments table</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="k">comment</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">SERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="n">content</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="n">author_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">author</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">    </span><span class="n">post_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="p">);</span>
+</code></pre></div>
+<h3 id="tutorial-database-setup">Tutorial Database Setup<a class="headerlink" href="#tutorial-database-setup" title="Permanent link">&para;</a></h3>
+<p>We provide a complete setup script in <a href="installation/#database-configuration-optional">Chapter 1: Installation</a> that creates:</p>
+<ul>
+<li><strong>Sample schema</strong> with the tables above</li>
+<li><strong>Test data</strong> for realistic examples</li>
+<li><strong>Indexes</strong> for performance</li>
+<li><strong>Views</strong> for advanced examples</li>
+</ul>
+<h2 id="learning-path-recommendations">Learning Path Recommendations<a class="headerlink" href="#learning-path-recommendations" title="Permanent link">&para;</a></h2>
+<h3 id="im-new-to-orms">🚀 <strong>I'm new to ORMs</strong><a class="headerlink" href="#im-new-to-orms" title="Permanent link">&para;</a></h3>
+<p>Start with <strong>Chapter 1</strong> and follow sequentially. Take time with each concept before moving on.</p>
+<h3 id="i-know-other-orms-django-sqlalchemy">🔥 <strong>I know other ORMs (Django, SQLAlchemy)</strong><a class="headerlink" href="#i-know-other-orms-django-sqlalchemy" title="Permanent link">&para;</a></h3>
+<p>You can skim <strong>Chapters 1-2</strong> and focus on <strong>Chapters 3-4</strong> to understand halfORM's unique approach.</p>
+<h3 id="i-just-need-specific-topics">⚡ <strong>I just need specific topics</strong><a class="headerlink" href="#i-just-need-specific-topics" title="Permanent link">&para;</a></h3>
+<p>Jump directly to the relevant chapter - each chapter includes necessary context.</p>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<p>Throughout the tutorial:</p>
+<ul>
+<li>💡 <strong>Tips</strong> highlight best practices</li>
+<li>⚠️ <strong>Warnings</strong> point out common pitfalls  </li>
+<li>🔍 <strong>Examples</strong> show real-world usage</li>
+<li>🏆 <strong>Challenges</strong> let you practice concepts</li>
+</ul>
+<p>If you get stuck:</p>
+<ul>
+<li>Check the <a href="../fundamentals/">Fundamentals</a> if you haven't already</li>
+<li>Browse <a href="../examples/">Examples</a> for patterns</li>
+<li>Ask in <a href="https://github.com/half-orm/half-orm/discussions">GitHub Discussions</a></li>
+</ul>
+<h2 id="tutorial-philosophy">Tutorial Philosophy<a class="headerlink" href="#tutorial-philosophy" title="Permanent link">&para;</a></h2>
+<p>This tutorial follows halfORM's core principles:</p>
+<ol>
+<li><strong>Database-First</strong>: We work with existing schemas, not code-generated ones</li>
+<li><strong>SQL Transparency</strong>: You'll see exactly what SQL is generated</li>
+<li><strong>PostgreSQL Native</strong>: We leverage PostgreSQL's unique features</li>
+<li><strong>Practical Focus</strong>: Every example is based on real-world scenarios</li>
+</ol>
+<hr />
+<p><strong>Ready to start?</strong> Let's begin with <a href="installation/">Chapter 1: Installation</a>!</p>
+<div class="admonition note">
+<p class="admonition-title">Tutorial Feedback</p>
+<p>This tutorial is actively maintained. If you find errors, have suggestions, or want to contribute examples, please <a href="https://github.com/half-orm/half-orm/issues">open an issue</a> or <a href="https://github.com/half-orm/half-orm/discussions">start a discussion</a>.</p>
+</div>
 
 
 
@@ -962,7 +1264,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 3, 2026 12:35:07 UTC">April 3, 2026</span>
   </span>
 
     
@@ -1058,10 +1360,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
