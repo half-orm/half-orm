@@ -12,7 +12,7 @@
         <meta name="author" content="half-orm">
       
       
-        <link rel="canonical" href="https://half-orm.github.io/0.18/tutorial/foreign-keys/">
+        <link rel="canonical" href="https://half-orm.github.io/0.18/extensions/breaking-changes-api/">
       
       
       
@@ -21,15 +21,15 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Foreign Keys - halfORM Documentation</title>
+        <title>Breaking Changes API - halfORM Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#foreign-keys" class="md-skip">
+        <a href="#breaking-changes-api" class="md-skip">
           Skip to content
         </a>
       
@@ -90,6 +90,19 @@
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  You are reading the documentation of an older halfORM release, which no
+  longer receives fixes.
+  <a href="../../..">
+    <strong>Go to the latest version</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
         
       </div>
     
@@ -120,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Foreign Keys
+              Breaking Changes API
             
           </span>
         </div>
@@ -292,7 +305,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../extensions/" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -621,6 +634,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -687,7 +728,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../extensions/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -885,10 +926,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#objectives" class="md-nav__link">
+  <a href="#half_ormmigrationsget_breaking_changes_dir" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Objectives
+        half_orm.migrations.get_breaking_changes_dir()
       
     </span>
   </a>
@@ -896,10 +937,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#content" class="md-nav__link">
+  <a href="#file-naming-convention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Content
+        File naming convention
       
     </span>
   </a>
@@ -907,10 +948,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#integration-pattern-for-extensions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Integration pattern for extensions
       
     </span>
   </a>
@@ -937,24 +978,75 @@
   
 
 
-<h1 id="foreign-keys">Foreign Keys<a class="headerlink" href="#foreign-keys" title="Permanent link">&para;</a></h1>
-<!-- TODO: Chapter objectives -->
-<!-- TODO: Prerequisites -->
-<!-- TODO: Step-by-step content -->
-<!-- TODO: Examples -->
-<!-- TODO: Exercises -->
-<!-- TODO: Next chapter link -->
-
-<div class="admonition note">
-<p class="admonition-title">Chapter Status</p>
-<p>This chapter needs to be written with practical examples and exercises.</p>
-</div>
-<h2 id="objectives">Objectives<a class="headerlink" href="#objectives" title="Permanent link">&para;</a></h2>
-<p><em>[Learning objectives for this chapter]</em></p>
-<h2 id="content">Content<a class="headerlink" href="#content" title="Permanent link">&para;</a></h2>
-<p><em>[Step-by-step tutorial content]</em></p>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<p><em>[Link to next chapter]</em></p>
+<h1 id="breaking-changes-api">Breaking Changes API<a class="headerlink" href="#breaking-changes-api" title="Permanent link">&para;</a></h1>
+<p>halfORM ships a set of <code>BREAKING_CHANGES-X.Y.Z.md</code> files inside the installed
+package. Extensions that manage upgrades (e.g.
+<a href="https://github.com/half-orm/half-orm-dev">half-orm-dev</a>) can read these files
+to display relevant migration notes before asking the user to confirm an
+upgrade.</p>
+<hr />
+<h2 id="half_ormmigrationsget_breaking_changes_dir"><code>half_orm.migrations.get_breaking_changes_dir()</code><a class="headerlink" href="#half_ormmigrationsget_breaking_changes_dir" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.migrations</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_breaking_changes_dir</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">directory</span> <span class="o">=</span> <span class="n">get_breaking_changes_dir</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># → Path('.../site-packages/half_orm/migrations')</span>
+</code></pre></div>
+<p>Returns a <code>pathlib.Path</code> pointing to the directory that contains the
+<code>BREAKING_CHANGES-X.Y.Z.md</code> files. The path is always valid after a standard
+<code>pip install</code> (regular, editable, or virtual-environment install).</p>
+<hr />
+<h2 id="file-naming-convention">File naming convention<a class="headerlink" href="#file-naming-convention" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Applies to migrations whose target is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BREAKING_CHANGES-1.0.0.md</code></td>
+<td><code>&gt;= 1.0.0</code> (includes <code>1.0.0rc1</code>, <code>1.0.0</code>, …)</td>
+</tr>
+<tr>
+<td><code>BREAKING_CHANGES-2.0.0.md</code></td>
+<td><code>&gt;= 2.0.0</code></td>
+</tr>
+</tbody>
+</table>
+<p>Files are named after the <strong>stable base version</strong> of the series, not after the
+first release candidate.  An extension must include a file for every version it
+reads, filtering by whether the user's current version is strictly below that
+base version.</p>
+<hr />
+<h2 id="integration-pattern-for-extensions">Integration pattern for extensions<a class="headerlink" href="#integration-pattern-for-extensions" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.migrations</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_breaking_changes_dir</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">_half_orm_migrations</span> <span class="o">=</span> <span class="n">get_breaking_changes_dir</span><span class="p">()</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">_half_orm_migrations</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># half-orm &lt; 1.0.0 — no breaking-changes API</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_half_orm_breaking_changes</span><span class="p">(</span><span class="n">current_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="sd">"""Return concatenated breaking-change notes for the given version range."""</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="k">if</span> <span class="n">_half_orm_migrations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="k">return</span> <span class="s2">""</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">current</span> <span class="o">=</span> <span class="n">Version</span><span class="p">(</span><span class="n">current_version</span><span class="p">)</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">target</span>  <span class="o">=</span> <span class="n">Version</span><span class="p">(</span><span class="n">target_version</span><span class="p">)</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">notes</span>   <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_half_orm_migrations</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"BREAKING_CHANGES-*.md"</span><span class="p">)):</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>        <span class="n">base</span> <span class="o">=</span> <span class="n">Version</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"BREAKING_CHANGES-"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>        <span class="k">if</span> <span class="n">current</span> <span class="o">&lt;</span> <span class="n">base</span> <span class="o">&lt;=</span> <span class="n">target</span><span class="p">:</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>            <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="k">return</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span>
+</code></pre></div>
+<p>The <code>try/except (ImportError, AttributeError)</code> guard ensures the extension
+works with older versions of halfORM that do not expose this API.</p>
 
 
 
@@ -977,7 +1069,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 18, 2026 06:47:12 UTC">April 18, 2026</span>
   </span>
 
     
@@ -987,7 +1079,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 18, 2026 06:47:12 UTC">April 18, 2026</span>
   </span>
 
     
@@ -1076,7 +1168,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
