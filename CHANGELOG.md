@@ -1,3 +1,70 @@
+# Unreleased
+
+Security fixes backported from 1.1.0. Each one is a fix, but four of them turn
+something that used to pass silently into an error, so they are listed with
+what to do about it.
+
+### A transaction now rolls back when a Python exception escapes it
+
+`Transaction.__exit__` only tested `exc_type` in the savepoint branch. At the
+outermost level it committed unconditionally, so an exception crossing the
+block committed the partial work instead of discarding it.
+
+It stayed hidden because the tests raised `UniqueViolation`: PostgreSQL has
+already aborted the transaction by then, so COMMIT behaves as ROLLBACK. It
+only bit on non-SQL exceptions -- a business rule, a validation error, a
+failed remote call.
+
+A failed COMMIT now propagates rather than being swallowed by a silent
+rollback, and autocommit is restored even when the commit itself failed.
+
+**What to do:** nothing, unless your code relied on partial work surviving an
+exception -- in which case it was relying on the bug.
+
+### Comparators are checked before reaching the WHERE clause
+
+The comparator of `Field.set` is interpolated, not bound, so
+`last_name=('or 1=1 --', 'x')` produced `(r1."last_name" or 1=1 -- %s)`.
+
+Word operators are enumerated; symbolic ones are accepted by pattern, so the
+operators PostgreSQL extensions define -- pgvector's `<->`, PostGIS's `&&&` --
+keep working. Anything else raises `ValueError`.
+
+**What to do:** check any call that builds a comparator dynamically. Passing
+the comparator and the value the wrong way round, `('a%', 'like')`, now raises
+where it used to be silently ignored.
+
+### Function and procedure names are checked before interpolation
+
+`execute_function`, `call_procedure` and their async counterparts bind their
+arguments but interpolate the callable's name. Names, and the keys of named
+parameters, must now be SQL identifiers.
+
+**What to do:** nothing, unless a name is built from user input -- which is
+what this prevents.
+
+### `Model(config_file)` takes a file name, not a path
+
+The argument went to `os.path.join(CONF_DIR, name)`, which confines nothing:
+`..` climbs out and an absolute path discards `CONF_DIR` entirely. That
+decides which database, and as which role, the process connects.
+
+The reconnect guard also lived inside the branch that found a config file, so
+reconnecting through a *missing* file skipped it: the `Model` silently
+retargeted itself at another database and fell back on peer authentication. A
+refused reconnect now leaves the `Model` exactly as it was, rather than
+disconnected and half-configured.
+
+**What to do:** pass a name, not a path. `Model('/etc/half_orm/mydb')` now
+raises `ValueError`; `Model('mydb')` is unchanged.
+
+### Test suite
+
+`PGPORT` now selects the cluster the suite runs against -- the `.config/*`
+files no longer hard-code 5432. The auto-reconnect test skips itself unless
+passwordless `sudo` and `service` are available, so `pytest test` runs to
+completion outside CI.
+
 # 0.18.13 (2026-04-14)
 
 * fix(relation): use UNION/EXCEPT SQL for | and - when FK joins are present (1e28437)
