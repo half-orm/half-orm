@@ -7,6 +7,7 @@ repo_name: half-orm/half-orm
 
 theme:
   name: material
+  custom_dir: overrides
   language: en
   palette:
     # Palette toggle for light mode

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{#
+  Material renders this block only when the reader is on a version that is not
+  the `latest` alias, which it learns from versions.json at runtime. The block
+  is empty by default, so without this file an outdated page says nothing.
+
+  Kept general on purpose: it has to stay true for whichever version is old
+  next. What is wrong with one particular release belongs in its CHANGELOG
+  entry and in a security advisory, not in a banner that outlives it.
+#}
+{% block outdated %}
+  You are reading the documentation of an older halfORM release, which no
+  longer receives fixes.
+  <a href="{{ '../' ~ base_url }}">
+    <strong>Go to the latest version</strong>
+  </a>
+{% endblock %}

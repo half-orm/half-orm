@@ -140,8 +140,21 @@ jobs:
             # command line further down.
             check_name version "$MINOR"
             emit version "$MINOR"
-            emit alias latest
-            emit title "${VERSION_NUMBER} (latest)"
+            # `latest` belongs to the highest released version, not to
+            # whichever tag was pushed last: a security release on a
+            # maintenance branch used to claim it and send every reader of the
+            # documentation back two major versions.
+            HIGHEST=$(git tag --list 'v[0-9]*' | sed 's/^v//' | sort -V | tail -1)
+            if [[ "$VERSION_NUMBER" == "$HIGHEST" ]]; then
+              emit alias latest
+            else
+              echo "::notice::$VERSION_NUMBER is not the highest release ($HIGHEST); not aliasing to latest"
+              emit alias ''
+            fi
+            # No '(latest)' here. The title is fixed at deploy time while the
+            # alias moves, so every line deployed this way kept claiming to be
+            # the latest one for ever.
+            emit title "${VERSION_NUMBER}"
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
             emit version dev
             emit alias ''
@@ -168,29 +181,6 @@ jobs:
             emit title ''
           fi
           
-      - name: Cleanup stale versions
-        if: >
-          (github.event_name == 'workflow_dispatch' && github.event.inputs.cleanup == 'true') ||
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
-        run: |
-          # Exhaustive list of minor versions to keep in the doc menu.
-          # Update this list when a new minor is released or a branch is EOL.
-          KEPT_VERSIONS="0.17 0.18 dev"
-
-          EXISTING=$(mike list --json | python3 -c "import sys,json; [print(e['version']) for e in json.load(sys.stdin)]" || true)
-          for v in $EXISTING; do
-            keep=false
-            for k in $KEPT_VERSIONS latest; do
-              [[ "$v" == "$k" ]] && keep=true && break
-            done
-            if [[ "$keep" == "false" ]]; then
-              echo "Deleting stale version: $v"
-              mike delete --push "$v"
-            fi
-          done
-          echo "=== Versions after cleanup ==="
-          mike list
-
       - name: Fetch latest gh-pages
         run: |
           git fetch origin gh-pages:gh-pages
@@ -243,6 +233,33 @@ jobs:
           echo "=== Deployed versions ==="
           mike list
           
+      - name: Cleanup stale versions
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.cleanup == 'true') ||
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          # Minor versions to keep in the doc menu. This list was stale --
+          # it still read "0.17 0.18 dev" after 1.0 and 1.1 were released, and
+          # since this step deletes anything absent from it, tagging v1.1.0
+          # removed the 1.0 documentation.
+          KEPT_VERSIONS="0.17 0.18 1.0 1.1 dev"
+
+          EXISTING=$(mike list --json | python3 -c "import sys,json; [print(e['version']) for e in json.load(sys.stdin)]" || true)
+          for v in $EXISTING; do
+            keep=false
+            # Never delete the version this run is about to publish, whatever
+            # the list says.
+            for k in $KEPT_VERSIONS latest "${{ steps.version.outputs.version }}"; do
+              [[ "$v" == "$k" ]] && keep=true && break
+            done
+            if [[ "$keep" == "false" ]]; then
+              echo "Deleting stale version: $v"
+              mike delete --push "$v"
+            fi
+          done
+          echo "=== Versions after cleanup ==="
+          mike list
+
       - name: Build for PR preview
         if: github.event_name == 'pull_request'
         run: |
