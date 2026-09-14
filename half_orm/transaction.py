@@ -92,10 +92,19 @@ class Transaction:
                 cur.execute(f'RELEASE SAVEPOINT {sp_name}')
         else:
             try:
-                conn.commit()
-                conn.autocommit = True
+                if exc_type is not None:
+                    conn.rollback()
+                else:
+                    conn.commit()
             except psycopg.Error:
-                conn.rollback()
+                # A failed COMMIT must reach the caller: silently rolling back
+                # would leave the application believing its work was persisted.
+                # A failed ROLLBACK, on the other hand, must not displace the
+                # exception the caller is already handling.
+                if exc_type is None:
+                    raise
+            finally:
+                _restore_autocommit(conn)
         return False
 
     @property
@@ -104,3 +113,16 @@ class Transaction:
 
     def is_set(self):
         return self.__transaction.get('level', 0) > 0
+
+
+def _restore_autocommit(conn):
+    """Put `conn` back in autocommit mode after the outermost block.
+
+    Best-effort: if the connection is broken, the failure is irrelevant here --
+    ``Model._connection`` reconnects on the next use -- and must not mask the
+    exception on its way out of ``__exit__``.
+    """
+    try:
+        conn.autocommit = True
+    except psycopg.Error:
+        pass

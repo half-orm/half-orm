@@ -86,6 +86,46 @@ class Test(TestCase):
         finally:
             halftest.person_cls(first_name='x', last_name='x').ho_delete()
 
+    def test_python_exception_rolls_back(self):
+        "A non-SQL exception must roll the outermost transaction back, not commit it"
+        initial_count = self.pers.ho_count()
+        try:
+            with self.assertRaises(ValueError):
+                with Transaction(halftest.model):
+                    self.pers(
+                        first_name='z', last_name='z', birth_date='2000-01-01'
+                    ).ho_insert()
+                    raise ValueError('business rule violated')
+            self.assertEqual(initial_count, self.pers.ho_count())
+        finally:
+            halftest.person_cls(first_name='z', last_name='z').ho_delete()
+
+    def test_autocommit_restored_after_exception(self):
+        "Autocommit must be back on once the outermost block is left in error"
+        with self.assertRaises(ValueError):
+            with Transaction(halftest.model):
+                raise ValueError('boom')
+        self.assertTrue(halftest.model._connection.autocommit)
+
+    def test_nested_python_exception_rolls_back_everything(self):
+        "An exception escaping a nested block must roll back the outer one too"
+        initial_count = self.pers.ho_count()
+        try:
+            with self.assertRaises(ValueError):
+                with Transaction(halftest.model):
+                    self.pers(
+                        first_name='z1', last_name='z1', birth_date='2000-01-01'
+                    ).ho_insert()
+                    with Transaction(halftest.model):   # savepoint
+                        self.pers(
+                            first_name='z2', last_name='z2', birth_date='2000-01-01'
+                        ).ho_insert()
+                        raise ValueError('boom')
+            self.assertEqual(initial_count, self.pers.ho_count())
+        finally:
+            halftest.person_cls(first_name='z1', last_name='z1').ho_delete()
+            halftest.person_cls(first_name='z2', last_name='z2').ho_delete()
+
     def test_nested_with_savepoint_isolation(self):
         "Nested 'with Transaction' failure must not abort the outer transaction"
         initial_count = self.pers.ho_count()
