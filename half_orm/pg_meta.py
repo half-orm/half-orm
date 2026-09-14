@@ -49,6 +49,15 @@ def __get_qrn(fqrn: tuple) -> tuple:
     "Returns the qualified relation name <schema>.<relation> from the fully qualified relation name"
     return fqrn[1:]
 
+def quote_ident(name) -> str:
+    """Quote one SQL identifier, escaping the quotes it contains.
+
+    PostgreSQL allows a quote in a relation name -- `create table "t""bl"` --
+    and these names end up interpolated into statements, where an unescaped
+    one closes the identifier early.
+    """
+    return '"' + str(name).replace('"', '""') + '"'
+
 def normalize_fqrn(t_fqrn: tuple) -> str:
     """
     Transform the tuple (<db name>, <schema name>, <table name>) in
@@ -56,16 +65,16 @@ def normalize_fqrn(t_fqrn: tuple) -> str:
     Dots are allowed only in the schema name.
     """
     dbname, schemaname, tablename = t_fqrn
-    return f'"{dbname}":"{schemaname}"."{tablename}"'
+    return f'{quote_ident(dbname)}:{quote_ident(schemaname)}.{quote_ident(tablename)}'
 
-def normalize_qrn(t_qrn):
+def normalize_qrn(t_fqrn):
+    """Return "<schema name>"."<relation name>" for a *fully* qualified name.
+
+    Takes the (<db name>, <schema name>, <relation name>) tuple and drops the
+    database part -- despite the name, which every caller reads past. A schema
+    name may hold any number of dots; a relation name may not.
     """
-    qrn is a tuple for the qualified relation name (<schema name>, <talbe name>)
-    A schema name can have any number of dots in it.
-    A table name can't have a dot in it.
-    returns "<schema name>"."<relation name>"
-    """
-    return '.'.join([f'"{elt}"' for elt in __get_qrn(t_qrn)])
+    return '.'.join([quote_ident(elt) for elt in __get_qrn(t_fqrn)])
 
 def camel_case(string):
     "Retruns the string transformed to camel case"

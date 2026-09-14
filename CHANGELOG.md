@@ -80,6 +80,24 @@ field produce an unusable file.
 column of the relation -- in which case PostgreSQL was rejecting it anyway,
 just later and less clearly.
 
+### Relation names are quoted properly, and no longer conflated
+
+`get_relation_class` deleted every quote from its argument before splitting
+it, so `"a""b"."t"` and `ab.t` were the same name: a relation whose name holds
+a quote -- legitimate in PostgreSQL, `create table "t""bl"` -- could not be
+reached, or reached a different one that happened to spell the same without
+it. Verified on two schemas, `zzq` and `zz"q`, that used to answer each
+other's queries.
+
+Names are now split on the quoted grammar, falling back to a plain split on
+the last dot for anything outside it, so loose names keep working.
+
+`normalize_qrn` and `normalize_fqrn` wrapped each part in quotes without
+escaping the quotes inside, producing invalid SQL for the same names.
+
+**What to do:** nothing. A name that used to resolve still resolves; one that
+used to resolve to the *wrong* relation now resolves to the right one.
+
 ### Test suite
 
 `PGPORT` now selects the cluster the suite runs against -- the `.config/*`
