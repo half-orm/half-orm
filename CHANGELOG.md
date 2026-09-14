@@ -58,6 +58,28 @@ disconnected and half-configured.
 **What to do:** pass a name, not a path. `Model('/etc/half_orm/mydb')` now
 raises `ValueError`; `Model('mydb')` is unchanged.
 
+### COPY column names are checked against the relation
+
+`ho_copy` and `ho_acopy` took their column names from a CSV header or from the
+keys of the caller's dicts and interpolated them into the statement unchecked,
+with no escaping either. A header line of
+
+    last_name") from stdin; create table public.pwned(x int); --
+
+closed the identifier and the statement and ran the rest. Both routes carry
+data from outside the program: an uploaded CSV, or a JSON body whose keys land
+in the dicts verbatim. Unknown names now raise `UnknownAttributeError`.
+
+The header is parsed with the `csv` module rather than split on `,`. The body
+is read as CSV by PostgreSQL, so the header has to be read the same way:
+`"last_name","first_name"` used to become `""last_name""`, rejected as a
+zero-length delimited identifier, which made any writer that quotes every
+field produce an unusable file.
+
+**What to do:** nothing, unless a column name reaching `ho_copy` was never a
+column of the relation -- in which case PostgreSQL was rejecting it anyway,
+just later and less clearly.
+
 ### Test suite
 
 `PGPORT` now selects the cluster the suite runs against -- the `.config/*`
