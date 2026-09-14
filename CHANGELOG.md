@@ -137,6 +137,14 @@ leftover `.half_orm_cli` is reported once, then ignored.
 **What to do:** approve unofficial extensions once more when asked. Nothing to
 migrate -- the old file only ever held those approvals.
 
+### `half-orm-test-extension` is no longer trusted automatically
+
+It is distributed through GitHub, so its PyPI name is unclaimed, and an
+allowlist entry pointing at a name anyone can register is a free pass to
+whoever registers it. It now prompts like any other community extension.
+
+**What to do:** approve it once if you use it.
+
 ### Test suite
 
 `PGPORT` now selects the cluster the suite runs against -- the `.config/*`

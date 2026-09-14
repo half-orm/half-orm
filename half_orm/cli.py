@@ -83,8 +83,10 @@ _cached_extensions = None
 _trust_extensions = False
 
 # Liste des extensions officielles
+# Extensions trusted without asking. Every name here must be a project the
+# halfORM maintainers actually own on PyPI: an unclaimed name on this list is
+# a free pass for whoever registers it first.
 OFFICIAL_EXTENSIONS = {
-    'half_orm_test_extension',
     'half_orm_inspect',
     'half_orm_dev',
 }

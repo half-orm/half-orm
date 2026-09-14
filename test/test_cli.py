@@ -25,7 +25,8 @@ sys.path.insert(0, '.')
 from half_orm import cli as half_orm_cli
 from half_orm.cli import (
     main, discover_extensions, check_version_compatibility,
-    is_trusted_extension, add_trusted_extension, remove_trusted_extension,
+    is_trusted_extension, is_official_extension, add_trusted_extension,
+    remove_trusted_extension,
     load_cli_config, save_cli_config, get_config_file, get_project_key,
     LEGACY_CONFIG_NAME, OFFICIAL_EXTENSIONS
 )
@@ -504,6 +505,19 @@ class TestTrustStoreLocation:
         get_config_file().write_text(content)
 
         assert is_trusted_extension('half-orm-ext', '1.0.0') is False
+
+
+class TestOfficialExtensionList:
+    """An unclaimed name on the allowlist is a free pass to whoever takes it."""
+
+    def test_test_extension_is_not_official(self):
+        """half-orm-test-extension is unregistered on PyPI, so squattable."""
+        assert is_official_extension('half-orm-test-extension') is False
+        assert is_official_extension('half_orm_test_extension') is False
+
+    def test_maintained_extensions_are_official(self):
+        for name in ('half-orm-inspect', 'half-orm-dev'):
+            assert is_official_extension(name) is True
 
 
 class TestIntegrationTests:
