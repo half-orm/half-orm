@@ -52,6 +52,28 @@ _NAME_SEGMENT = r'(?:"(?:[^"]|"")+"|[^\W\d][\w$]*)'
 _QUALIFIED_NAME_RE = re.compile(rf'^{_NAME_SEGMENT}(?:\.{_NAME_SEGMENT})*$')
 
 
+def _check_config_file_name(name):
+    """Check `name` designates a file *inside* ``CONF_DIR`` and return it.
+
+    ``Model``'s argument is a connection file *name*, not a path, but it went
+    to ``os.path.join(CONF_DIR, name)``, which confines nothing: ``..``
+    climbs out, and an absolute path discards ``CONF_DIR`` entirely. That
+    matters wherever the name is derived from a request -- a multi-tenant
+    application picking a connection per tenant -- since it decides which
+    database, and as which role, the process connects.
+
+    Raises:
+        ValueError: if `name` is empty or looks like a path.
+    """
+    if not isinstance(name, str) or not name:
+        raise ValueError(
+            f"config_file must be a non-empty string, got {name!r}")
+    if name in ('.', '..') or os.sep in name or (os.altsep and os.altsep in name):
+        raise ValueError(
+            f"config_file must be a file name inside {CONF_DIR}, not a path: {name!r}")
+    return name
+
+
 def _check_qualified_name(name, what):
     """Check `name` is a (possibly schema-qualified) SQL name and return it.
 
@@ -134,14 +156,14 @@ class Model:
         Raises:
             MissingConfigFile: If the **config_file** is not found in *HALFORM_CONF_DIR*.
             MalformedConfigFile: if the *name* is missing in the **config_file**.
+            ValueError: if **config_file** is not a plain file name.
             RuntimeError: If the reconnection is attempted on another database.
         """
-        self.__config_file = config_file
+        config_file = _check_config_file_name(config_file)
         config = ConfigParser()
-        self.__config_file_path = os.path.join(CONF_DIR, self.__config_file)
-        file_ = self.__config_file_path
-        self.__config_file_found = bool(config.read([file_]))
-        if self.__config_file_found:
+        file_ = os.path.join(CONF_DIR, config_file)
+        found = bool(config.read([file_]))
+        if found:
             try:
                 database = config['database']
             except KeyError as exc:
@@ -150,26 +172,38 @@ class Model:
                 dbname = database['name']
             except KeyError as exc:
                 raise model_errors.MalformedConfigFile(file_, 'Missing mandatory parameter', 'name') from exc
-
-            if self._dbinfo and dbname != self.__dbname:
-                raise RuntimeError(
-                    f"Can't reconnect to another database: {dbname} != {self.__dbname}")
-            self._dbinfo['dbname'] = dbname
-
         else:
             dbname = config_file
-            self._dbinfo['dbname'] = dbname
             # WARNING: use peer authentication only in development environment
             database = {'user': None, 'password': None, 'host': None, 'port': None, 'devel': True}
 
-        self._dbinfo['user'] = database.get('user')
-        self._dbinfo['password'] = database.get('password')
-        self._dbinfo['host'] = database.get('host')
-        self._dbinfo['port'] = database.get('port')
-        self._dbinfo['connect_timeout'] = database.get('timeout', 3)
-        self._production_mode = database.get('production', False)
-        if self._production_mode == 'False': # production = False
-            self._production_mode = False
+        # Checked for both branches. It used to guard only the one above, so
+        # reconnecting through a *missing* file skipped it entirely: the Model
+        # silently retargeted itself at another database and, with no file to
+        # read credentials from, dropped user/password/host to fall back on
+        # peer authentication.
+        if self._dbinfo and dbname != self.__dbname:
+            raise RuntimeError(
+                f"Can't reconnect to another database: {dbname} != {self.__dbname}")
+
+        # Nothing above this line touched self, so a rejected reconnect leaves
+        # the Model on its current configuration rather than half-way to one
+        # it refused.
+        production = database.get('production', False)
+        if production == 'False': # production = False
+            production = False
+        self._production_mode = production
+        self.__config_file = config_file
+        self.__config_file_path = file_
+        self.__config_file_found = found
+        self._dbinfo.update({
+            'dbname': dbname,
+            'user': database.get('user'),
+            'password': database.get('password'),
+            'host': database.get('host'),
+            'port': database.get('port'),
+            'connect_timeout': database.get('timeout', 3),
+        })
 
     def __connect(self, config_file: str=None, reload: bool=False):
         """Setup a new connection to the database.
@@ -182,10 +216,13 @@ class Model:
             reload (bool): If set to True, reloads the metadata from the database. Usefull if
                 the model has changed.
         """
-        self.disconnect()
-
+        # Read the new configuration before dropping the working connection:
+        # __load_config refuses a file naming another database, and the Model
+        # should come out of a refused reconnect exactly as it went in rather
+        # than disconnected and unusable.
         if config_file:
             self.__load_config(config_file)
+        self.disconnect()
         try:
             conn = psycopg.connect(**self._dbinfo, row_factory=dict_row, autocommit=True)
         except psycopg.OperationalError as exc:
