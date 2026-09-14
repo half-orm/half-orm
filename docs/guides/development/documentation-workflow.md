@@ -82,15 +82,39 @@ A branch declares itself end-of-life by carrying a `.deprecated` file at its
 root. Its documentation is then titled `0.17.11 (deprecated)` in the version
 menu, and it can no longer take the `latest` alias.
 
+Two things have to be on the branch, because GitHub runs the workflow file
+*from the ref you dispatch against*: the marker, and the workflow logic that
+reads it.
+
 ```bash
 git switch 0.17
+# if 0.17's docs.yml does not read .deprecated yet, bring it over first
 echo "End of life since 2026-09. Upgrade to 1.1." > .deprecated
-git commit -am "docs: mark 0.17 as deprecated" && git push
-gh workflow run docs.yml --ref 0.17 -f version=0.17     # redeploy to show it
+git commit -am "docs: mark 0.17 as deprecated"
+git push
 ```
 
-The file's contents are optional -- an empty file is enough to mark the line --
-and are echoed in the workflow log when present.
+Then redeploy that line. Pushing to a maintenance branch triggers nothing --
+only `main`, `release/*`, `dev/*`, `doc` and `v*` tags do -- so the rebuild is
+a manual run:
+
+- **GitHub UI**: Actions -> Documentation -> *Run workflow*, pick the branch
+  (`0.17`) in *Use workflow from*, set **version** to `0.17`, leave **alias**
+  empty, and run it.
+- **REST API**, with a token carrying the *Actions: write* permission:
+
+```bash
+curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://api.github.com/repos/half-orm/half-orm/actions/workflows/docs.yml/dispatches \
+  -d '{"ref":"0.17","inputs":{"version":"0.17"}}'
+```
+
+Do **not** dispatch from `main` with `version=0.17`: `mike` publishes whatever
+is in the checkout, so that would file `main`'s documentation under the 0.17
+label.
+
+The marker file's contents are optional -- an empty file is enough to mark the
+line -- and are echoed in the workflow log when present.
 
 The statement lives on the branch rather than in a list inside the workflow,
 because a list there goes stale: `KEPT_VERSIONS` still read `0.17 0.18 dev`
