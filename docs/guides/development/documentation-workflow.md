@@ -65,10 +65,41 @@ The workflow automatically determines the appropriate version and alias:
 ```bash
 # Examples of automatic version resolution
 dev/0.16.x     → 0.16.x-dev
-release/0.16.x → 0.16.x-rc  
-v0.16.0        → 0.16.0 (with latest alias)
+release/0.16.x → 0.16.x-rc
+v1.1.0         → 1.1, titled "1.1.0"
 main           → dev
 ```
+
+The `latest` alias goes to the highest released version, not to whichever tag
+was pushed last: tagging a fix on a maintenance branch does not move it. The
+title never says "(latest)" -- a title is fixed at deploy time while the alias
+moves, so a title that claimed it would go on claiming it after the alias had
+left.
+
+### Deprecating a version line
+
+A branch declares itself end-of-life by carrying a `.deprecated` file at its
+root. Its documentation is then titled `0.17.11 (deprecated)` in the version
+menu, and it can no longer take the `latest` alias.
+
+```bash
+git switch 0.17
+echo "End of life since 2026-09. Upgrade to 1.1." > .deprecated
+git commit -am "docs: mark 0.17 as deprecated" && git push
+gh workflow run docs.yml --ref 0.17 -f version=0.17     # redeploy to show it
+```
+
+The file's contents are optional -- an empty file is enough to mark the line --
+and are echoed in the workflow log when present.
+
+The statement lives on the branch rather than in a list inside the workflow,
+because a list there goes stale: `KEPT_VERSIONS` still read `0.17 0.18 dev`
+after 1.0 and 1.1 had been released, and the cleanup step deletes whatever is
+absent from it.
+
+Deprecation is recorded in the title, unlike `latest`, because it only ever
+moves one way. **Redeploy the line when you deprecate it** -- nothing rewrites
+the titles of versions already published.
 
 ## Local Development
 
