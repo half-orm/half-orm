@@ -122,6 +122,21 @@ lines to `$GITHUB_OUTPUT` and declare step outputs nobody wrote -- and
 `version` and `alias` are restricted to `[A-Za-z0-9._-]`, since they become
 arguments to `mike deploy` and would otherwise be read as options.
 
+### Extension trust moved out of the project directory
+
+`.half_orm_cli` is no longer read. It sat in the current directory and
+suppressed the security prompt for unofficial extensions, so a repository
+shipping one granted itself silent consent -- and `git clone` produces files
+owned by you, which is why no permission check could have helped.
+
+Trust now lives in `~/.config/half_orm/cli.json` (`%APPDATA%` on Windows,
+`$XDG_CONFIG_HOME` when set), written `0600`, with entries keyed by project
+path: approving an extension in one checkout does not approve it elsewhere. A
+leftover `.half_orm_cli` is reported once, then ignored.
+
+**What to do:** approve unofficial extensions once more when asked. Nothing to
+migrate -- the old file only ever held those approvals.
+
 ### Test suite
 
 `PGPORT` now selects the cluster the suite runs against -- the `.config/*`
