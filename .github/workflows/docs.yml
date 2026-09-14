@@ -38,6 +38,10 @@ on:
         description: 'Alias to set on the rebuilt version (e.g. "latest"). Leave empty for none.'
         required: false
         default: ''
+      title:
+        description: 'Display title for the version (e.g. "0.17.11"). Leave empty to auto-generate.'
+        required: false
+        default: ''
       cleanup:
         description: 'Delete versions not in the kept list (0.17, 0.18, dev)'
         type: boolean
@@ -79,51 +83,176 @@ jobs:
           
       - name: Get version info
         id: version
+        env:
+          # An expression is substituted into the script *text* before bash
+          # ever sees it, so a workflow_dispatch input written inside `run:`
+          # is code, not data: `0.18"; curl … | sh; #` runs as this job, which
+          # holds contents: write on the repository. Read from the
+          # environment, the same value stays a string.
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_ALIAS: ${{ github.event.inputs.alias }}
+          INPUT_TITLE: ${{ github.event.inputs.title }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            V="${{ github.event.inputs.version }}"
-            A="${{ github.event.inputs.alias }}"
-            echo "version=${V}" >> $GITHUB_OUTPUT
-            echo "alias=${A}" >> $GITHUB_OUTPUT
-            echo "title=${V} (rebuild)" >> $GITHUB_OUTPUT
+          set -eu
+
+          # A newline in a value would let it append lines of its own to
+          # $GITHUB_OUTPUT, and so declare step outputs nobody wrote here.
+          emit() {
+            case "$2" in
+              *$'\n'*|*$'\r'*)
+                echo "::error::$1 must be a single line"; exit 1 ;;
+            esac
+            printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"
+          }
+
+          # version and alias end up as arguments to `mike deploy`. Quoting
+          # stops them being read as commands; this stops them being read as
+          # options, and keeps them to what a version name can hold.
+          check_name() {
+            case "$2" in
+              '') return 0 ;;
+              -*) echo "::error::$1 must not start with '-'"; exit 1 ;;
+              *[!A-Za-z0-9._-]*)
+                echo "::error::$1 may only contain A-Z a-z 0-9 . _ -"; exit 1 ;;
+            esac
+          }
+
+          # Each branch computes DOC_VERSION / DOC_ALIAS / DOC_TITLE; the
+          # three are emitted once at the end, so the deprecation suffix is
+          # applied in one place rather than in seven.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            DOC_VERSION="$INPUT_VERSION"
+            DOC_ALIAS="$INPUT_ALIAS"
+            DOC_TITLE="${INPUT_TITLE:-${INPUT_VERSION} (rebuild)}"
           elif [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME}"
             VERSION_NUMBER="${VERSION#v}"
-            MINOR="${VERSION_NUMBER%.*}"
-            echo "version=${MINOR}" >> $GITHUB_OUTPUT
-            echo "alias=latest" >> $GITHUB_OUTPUT
-            echo "title=${VERSION_NUMBER} (latest)" >> $GITHUB_OUTPUT
-          elif [[ $GITHUB_REF == refs/heads/main ]]; then
-            echo "version=dev" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=Development" >> $GITHUB_OUTPUT
+            DOC_VERSION="${VERSION_NUMBER%.*}"
+            # No '(latest)' in the title. A title is fixed at deploy time while
+            # the alias moves, so every line deployed that way kept claiming to
+            # be the latest one for ever.
+            DOC_TITLE="${VERSION_NUMBER}"
+            # `latest` belongs to the highest released version, not to
+            # whichever tag was pushed last: a security release on a
+            # maintenance branch used to claim it and send every reader of the
+            # documentation back two major versions.
+            HIGHEST=$(git tag --list 'v[0-9]*' | sed 's/^v//' | sort -V | tail -1)
+            if [[ "$VERSION_NUMBER" == "$HIGHEST" ]]; then
+              DOC_ALIAS=latest
+            else
+              echo "::notice::$VERSION_NUMBER is not the highest release ($HIGHEST); not aliasing to latest"
+              DOC_ALIAS=''
+            fi
+          elif [[ $GITHUB_REF == refs/heads/main || $GITHUB_REF == refs/heads/doc ]]; then
+            DOC_VERSION=dev
+            DOC_ALIAS=''
+            DOC_TITLE=Development
           elif [[ $GITHUB_REF == refs/heads/release/* ]]; then
             VERSION="${GITHUB_REF_NAME#release/}"
-            echo "version=${VERSION}-rc" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=${VERSION} (release candidate)" >> $GITHUB_OUTPUT
+            DOC_VERSION="${VERSION}-rc"
+            DOC_ALIAS=''
+            DOC_TITLE="${VERSION} (release candidate)"
           elif [[ $GITHUB_REF == refs/heads/dev/* ]]; then
             VERSION="${GITHUB_REF_NAME#dev/}"
-            echo "version=${VERSION}-dev" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=${VERSION} (development)" >> $GITHUB_OUTPUT
+            DOC_VERSION="${VERSION}-dev"
+            DOC_ALIAS=''
+            DOC_TITLE="${VERSION} (development)"
           else
-            echo "version=" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-            echo "title=" >> $GITHUB_OUTPUT
+            DOC_VERSION=''
+            DOC_ALIAS=''
+            DOC_TITLE=''
           fi
+
+          # A branch marks itself end-of-life by carrying a `.deprecated` file,
+          # so the statement lives with the thing it describes rather than in a
+          # list here -- KEPT_VERSIONS shows what becomes of those. Unlike
+          # `latest`, deprecation only ever moves one way, so baking it into
+          # the title is safe: redeploy the line when you deprecate it.
+          if [[ -n "$DOC_VERSION" && -f .deprecated ]]; then
+            DOC_TITLE="${DOC_TITLE} (deprecated)"
+            # A deprecated line must not also be the one newcomers land on.
+            if [[ -n "$DOC_ALIAS" ]]; then
+              echo "::notice::$DOC_VERSION is deprecated; not aliasing to $DOC_ALIAS"
+              DOC_ALIAS=''
+            fi
+            REASON=$(head -c 200 .deprecated | tr '\n' ' ')
+            [[ -n "$REASON" ]] && echo "::notice::$DOC_VERSION deprecated: $REASON"
+          fi
+
+          check_name version "$DOC_VERSION"
+          check_name alias "$DOC_ALIAS"
+          emit version "$DOC_VERSION"
+          emit alias "$DOC_ALIAS"
+          emit title "$DOC_TITLE"
+          
+      - name: Fetch latest gh-pages
+        run: |
+          git fetch origin gh-pages:gh-pages
+
+      - name: Build and deploy documentation
+        if: steps.version.outputs.version != '' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          # Derived from the inputs above, so carried the same way. They were
+          # also unquoted here, which left them open to word splitting.
+          DOC_VERSION: ${{ steps.version.outputs.version }}
+          DOC_ALIAS: ${{ steps.version.outputs.alias }}
+          DOC_TITLE: ${{ steps.version.outputs.title }}
+        run: |
+          # Deploy the version
+          if [[ -n "$DOC_ALIAS" ]]; then
+            mike deploy \
+              --push \
+              --update-aliases \
+              "$DOC_VERSION" \
+              "$DOC_ALIAS" \
+              --title "$DOC_TITLE"
+          else
+            mike deploy \
+              --push \
+              "$DOC_VERSION" \
+              --title "$DOC_TITLE"
+          fi
+
+          # Set default version if this is latest
+          if [[ "$DOC_ALIAS" == "latest" ]]; then
+            mike set-default --push latest
+          fi
+
+          # For dev version, set as default if no other default exists
+          if [[ "$DOC_VERSION" == "dev" ]]; then
+            # Check if any default exists
+            if ! mike list | grep -q "\[default\]"; then
+              mike set-default --push dev
+            fi
+          fi
+
+          # List versions for debugging
+          echo "=== Deployed versions ==="
+          mike list
           
       - name: Cleanup stale versions
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.cleanup == 'true'
+        env:
+          # Derived from the inputs, so carried the same way as everything
+          # else: an expression written inside `run:` is substituted into the
+          # script text, and one exception is how the rule gets forgotten.
+          DOC_VERSION: ${{ steps.version.outputs.version }}
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.cleanup == 'true') ||
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
         run: |
-          # Exhaustive list of minor versions to keep in the doc menu.
-          # Update this list when a new minor is released or a branch is EOL.
-          KEPT_VERSIONS="0.17 0.18 dev"
+          # Minor versions to keep in the doc menu. This list was stale --
+          # it still read "0.17 0.18 dev" after 1.0 and 1.1 were released, and
+          # since this step deletes anything absent from it, tagging v1.1.0
+          # removed the 1.0 documentation.
+          KEPT_VERSIONS="0.17 0.18 1.0 1.1 dev"
 
           EXISTING=$(mike list --json | python3 -c "import sys,json; [print(e['version']) for e in json.load(sys.stdin)]" || true)
           for v in $EXISTING; do
             keep=false
-            for k in $KEPT_VERSIONS latest; do
+            # Never delete the version this run is about to publish, whatever
+            # the list says.
+            for k in $KEPT_VERSIONS latest "$DOC_VERSION"; do
               [[ "$v" == "$k" ]] && keep=true && break
             done
             if [[ "$keep" == "false" ]]; then
@@ -134,45 +263,6 @@ jobs:
           echo "=== Versions after cleanup ==="
           mike list
 
-      - name: Fetch latest gh-pages
-        run: |
-          git fetch origin gh-pages:gh-pages
-
-      - name: Build and deploy documentation
-        if: steps.version.outputs.version != '' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        run: |
-          # Deploy the version
-          if [[ -n "${{ steps.version.outputs.alias }}" ]]; then
-            mike deploy \
-              --push \
-              --update-aliases \
-              ${{ steps.version.outputs.version }} \
-              ${{ steps.version.outputs.alias }} \
-              --title "${{ steps.version.outputs.title }}"
-          else
-            mike deploy \
-              --push \
-              ${{ steps.version.outputs.version }} \
-              --title "${{ steps.version.outputs.title }}"
-          fi
-          
-          # Set default version if this is latest
-          if [[ "${{ steps.version.outputs.alias }}" == "latest" ]]; then
-            mike set-default --push latest
-          fi
-          
-          # For dev version, set as default if no other default exists
-          if [[ "${{ steps.version.outputs.version }}" == "dev" ]]; then
-            # Check if any default exists
-            if ! mike list | grep -q "\[default\]"; then
-              mike set-default --push dev
-            fi
-          fi
-          
-          # List versions for debugging
-          echo "=== Deployed versions ==="
-          mike list
-          
       - name: Build for PR preview
         if: github.event_name == 'pull_request'
         run: |
