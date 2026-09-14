@@ -98,6 +98,30 @@ escaping the quotes inside, producing invalid SQL for the same names.
 **What to do:** nothing. A name that used to resolve still resolves; one that
 used to resolve to the *wrong* relation now resolves to the right one.
 
+### `hotAssertAliasReferences` no longer evaluates its argument
+
+It built `eval(f"relation().{alias}")`, so the argument was a Python
+expression rather than a name. Every caller only ever passed an attribute
+name. `getattr` does the same work and cannot call anything; dotted paths
+still resolve. This was the last `eval` in the package.
+
+**What to do:** nothing, unless an alias was an expression rather than a name.
+
+### Continuous integration
+
+`docs.yml` interpolated `workflow_dispatch` inputs into `run:` scripts. An
+expression is substituted into the script's *text* before bash sees it, so a
+version input of `0.18"; curl … | sh; #` ran as that job, which holds
+`contents: write` and had `$GITHUB_TOKEN` in its environment. Triggering a
+workflow needs push access, so this was a collaborator escalating from "may
+run CI" to "may run anything as the repository".
+
+Every tainted expression now reaches the shell through `env:`, where it stays
+a string. Values carrying a newline are refused -- they could otherwise append
+lines to `$GITHUB_OUTPUT` and declare step outputs nobody wrote -- and
+`version` and `alias` are restricted to `[A-Za-z0-9._-]`, since they become
+arguments to `mike deploy` and would otherwise be read as options.
+
 ### Test suite
 
 `PGPORT` now selects the cluster the suite runs against -- the `.config/*`
