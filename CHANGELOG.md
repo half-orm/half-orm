@@ -1,4 +1,4 @@
-# Unreleased
+# 0.18.14 (2026-09-15)
 
 Security fixes backported from 1.1.0. Each one is a fix, but four of them turn
 something that used to pass silently into an error, so they are listed with
@@ -151,6 +151,26 @@ whoever registers it. It now prompts like any other community extension.
 files no longer hard-code 5432. The auto-reconnect test skips itself unless
 passwordless `sudo` and `service` are available, so `pytest test` runs to
 completion outside CI.
+
+* refactor(ci): call the shared documentation workflow (f24d77ce)
+* fix(docs): stop the banner calling the development docs an old release (2662d259)
+* fix(ci): carry the cleanup guard through env like every other value (c07f0e91)
+* feat(docs): let a branch declare itself deprecated (06ca7235)
+* fix(docs): stop the version menu from lying, and stop it deleting releases (a02d65f3)
+* fix(cli): drop half_orm_test_extension from the official allowlist (e85384fc)
+* fix(cli): move the extension trust store out of the project directory (559fe2d5)
+* docs: record the hotest and CI fixes in the changelog (9fe3a911)
+* fix(ci): stop interpolating dispatch inputs into docs.yml shell scripts (d532fb8d)
+* fix(hotest): follow the alias as an attribute path instead of eval-ing it (cb109c22)
+* fix(meta): quote relation names properly, and stop conflating them (20628d4f)
+* fix(copy): check COPY column names against the relation (0be5e9ef)
+* docs: record the backported fixes in the changelog (9c36e1c6)
+* test(model): skip auto-reconnect test when sudo restart isn't available (c851af7e)
+* fix(model): confine config_file to CONF_DIR, and guard reconnect in both branches (d27ba89b)
+* fix(model): check function and procedure names before interpolating them (6c3b9846)
+* fix(field): constrain the comparator passed to Field.set() (7d0e3754)
+* fix(transaction): roll back instead of committing when an exception escapes (78ccd27f)
+* test: let PGPORT select the cluster the test suite runs against (850e6280)
 
 # 0.18.13 (2026-04-14)
 
