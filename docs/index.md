@@ -15,6 +15,14 @@ logical condition that rows must satisfy to belong to the relation. Its
 *extension* — the set of rows that currently satisfy the predicate in the
 database — is what you read, update, or delete.
 
+<!--
+  Filled in by hooks/security_notice.py, from the advisory page for the line
+  being built, and removed when that line has no advisory. Nothing here needs
+  editing to raise or drop the notice -- writing or deleting
+  docs/security-<major>.<minor>.md is what does it.
+-->
+<!-- security-notice -->
+
 ## Install
 
 ```bash
@@ -61,6 +69,9 @@ Author(id=alice['id']).ho_assert_is_singleton().ho_delete()
 
 - [Learn halfORM in half an hour](half-an-hour.md) — everything you need, in order
 - [API Reference](api/relation.md) — every method in detail
+- [Breaking changes](breaking-changes.md) — what each release requires you to change, and what to do coming from 0.x
+- [Security](security.md) — advisories by release line, and how to report a vulnerability
+- [What halfORM defends](security-model.md) — what it checks for you, and what your application must handle
 
 ## Extensions
 

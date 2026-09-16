@@ -51,6 +51,17 @@ exclude_docs: |
   # searchable is worse than one that is absent.
   guides/development/development-workflow.md
 
+# Advisory pages are reached from the security index, not from the menu, which
+# would otherwise gain an entry per advisory for ever. They are listed here so
+# they stop being reported as pages missing from the nav: that report is worth
+# reading only while it holds pages nobody meant to leave out.
+not_in_nav: |
+  security-*.md
+
+hooks:
+  - hooks/security_notice.py
+  - hooks/breaking_changes.py
+
 plugins:
   - search
   - mkdocstrings:
@@ -141,6 +152,10 @@ nav:
     - Testing: api/testing.md
   - Extensions:
     - extensions/index.md
+  - Breaking changes: breaking-changes.md
+  - Security:
+    - Advisories: security.md
+    - What halfORM defends: security-model.md
   - Development Guides:
     - Extension Development: guides/development/extension-development.md
     - Documentation Workflow: guides/development/documentation-workflow.md

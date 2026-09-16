@@ -35,6 +35,10 @@ per minor version, so a fix can be backported to the latest `1.x` on request.
 
 ## What halfORM defends, and what it cannot
 
+The documentation carries this in detail, with examples:
+<https://half-orm.github.io/half-orm/latest/security-model/>. The advisories
+are at <https://half-orm.github.io/half-orm/latest/security/>.
+
 halfORM binds *values* as query parameters, always. SQL has no parameter for
 an *identifier*, so column, relation and function names are interpolated into
 the statement text, and halfORM checks them against the schema it introspected

@@ -18,6 +18,38 @@ The documentation supports multiple versions:
 - `https://half-orm.github.io/half-orm/dev/` - Development version
 - `https://half-orm.github.io/half-orm/0.15.0/` - Specific version
 
+## Security pages
+
+`security.md` is an index and nothing else: a table of the release lines and
+where to report. `security-model.md` holds what does not change between
+releases -- what halfORM checks, what the application must handle. The
+advisories live one file per line, `security-<major>.<minor>.md`, the same
+granularity the workflow already computes as `DOC_VERSION`.
+
+Keep detail out of the index. It is the page that has to stay readable at a
+glance when there are eight lines in the table.
+
+One advisory can appear in two of these files. That is deliberate: a fix
+backported in part is a different statement for each line, and each file speaks
+for its own.
+
+**To publish a new advisory:** add `security-<major>.<minor>.md` with a
+one-line `notice:` in its front matter, and add the line to the table in
+`security.md`. The home page needs no edit -- `hooks/security_notice.py` puts
+the notice there when a file exists for the line being built, and leaves the
+page alone when none does. Deleting the file retires the notice.
+
+Keep the table listing lines that have *no* advisory too, saying so. A line
+missing from it cannot be told apart from one nobody looked at.
+
+## Breaking changes page
+
+`breaking-changes.md` carries an introduction and a marker.
+`hooks/breaking_changes.py` fills the marker from
+`half_orm/migrations/BREAKING_CHANGES-X.Y.Z.md`, newest first -- the same files
+upgrade tooling reads. Add a release's notes by adding that file to the
+package; the page needs no edit, and cannot fall out of step with what ships.
+
 ## Local Development
 
 ### Prerequisites

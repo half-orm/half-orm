@@ -135,6 +135,11 @@ Author(id=alice['id']).ho_delete()
 
 - [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/dev/half-an-hour/)
 - [API Reference](https://half-orm.github.io/half-orm/dev/api/relation/)
+- [Breaking changes](https://half-orm.github.io/half-orm/latest/breaking-changes/) — and
+  what to do coming from a 0.x release, all of which were published as Beta
+- [Security](https://half-orm.github.io/half-orm/latest/security/) — advisories by
+  release line, and how to report a vulnerability
+- [What halfORM defends, and what it cannot](https://half-orm.github.io/half-orm/latest/security-model/)
 
 ## Extensions
 
