@@ -26,7 +26,7 @@ post.views.set(('>=', Expr('2 * "likes"')))             # WHERE views >= 2 * lik
 
 Setting any field to `None` removes that constraint.
 
-See [Learn halfORM in half an hour](../half-an-hour.md#3-filtering-select-2-min)
+See [Learn halfORM in half an hour](../half-an-hour.md#3-query-the-extension-5-min)
 for a full walkthrough of filtering and comparators.
 
 ---
