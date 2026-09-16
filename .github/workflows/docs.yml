@@ -11,10 +11,10 @@ on:
   # 1. GitHub UI: Actions → Documentation → Run workflow
   #
   # 2. GitHub CLI:
-  #      gh workflow run docs.yml                                                        # rebuild dev (main)
+  #      gh workflow run docs.yml -f version=dev                                         # rebuild dev (main)
   #      gh workflow run docs.yml -f version=0.18 -f alias=latest                       # rebuild 0.18 as latest
   #      gh workflow run docs.yml --ref 0.17 -f version=0.17                            # rebuild 0.17 (maintenance branch)
-  #      gh workflow run docs.yml -f cleanup=true -f version=''                         # cleanup only
+  #      gh workflow run docs.yml -f cleanup=true                                        # cleanup only
   #      gh workflow run docs.yml --ref 0.17 -f version=0.17 -f cleanup=true
   #
   # 3. REST API:
@@ -33,7 +33,11 @@ on:
       version:
         description: 'Version to rebuild (e.g. "0.18", "dev"). Leave empty to skip rebuild.'
         required: false
-        default: 'dev'
+        # Empty, so a half-filled form does nothing. It used to default to
+        # `dev`, which meant filling in only `alias: latest` -- meaning "point
+        # latest at the release" -- published `dev` and moved the alias onto
+        # it. Naming the version is now deliberate, in every invocation.
+        default: ''
       alias:
         description: 'Alias to set on the rebuilt version (e.g. "latest"). Leave empty for none.'
         required: false
