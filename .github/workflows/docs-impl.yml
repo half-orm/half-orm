@@ -55,13 +55,17 @@ jobs:
           python-version: 3.13
           
       - name: Install dependencies
+        # The branch being deployed declares what its own site needs, so the
+        # two lists cannot drift apart again -- this one had already lost
+        # `mike`, which meant `make docs-deps` could not deploy.
+        #
+        # Two are installed regardless of what that file says. `mike` belongs
+        # to the deployment rather than to the branch, and old branches
+        # predate it. `griffe-sphinx` is configured by 0.18's mkdocs.yml but
+        # missing from its requirements, so dropping it here would break that
+        # line's docs the next time they are rebuilt.
         run: |
-          pip install \
-            mkdocs-material \
-            mkdocstrings-python \
-            mkdocs-git-revision-date-localized-plugin \
-            mike \
-            griffe-sphinx
+          pip install -r docs/requirements.txt mike griffe-sphinx
             
       - name: Configure Git
         run: |
