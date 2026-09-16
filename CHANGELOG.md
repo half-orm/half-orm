@@ -148,6 +148,176 @@ Unknown names now raise `UnknownAttributeError`. The header is parsed as CSV
 rather than split on ',', so a file whose header quotes every field -- which
 used to be rejected as a zero-length identifier -- now loads.
 
+### `order_by` is parsed instead of interpolated
+
+`Select.to_sql()` appended `order_by` to the query as given. PostgreSQL runs
+one statement per `execute()`, so no semicolon was needed to abuse it: ORDER BY
+accepts a subquery, and
+`order_by="(select case when ... then 1 else 2 end)"` returns one bit of
+someone else's data per request. It is also the parameter an application is
+most likely to wire straight to a query string (`?sort=`).
+
+It is now parsed as a comma-separated list of
+`<column> [asc|desc] [nulls first|last]`, each column checked against the
+relation and quoted on the way out. Output-column ordinals still work.
+Expressions, function calls and qualified names are refused.
+
+**What to do:** nothing for the documented forms -- none of the 678 existing
+tests changed behaviour. If you ordered by an expression (`lower(name)`), use
+`Model.execute_query` for that query.
+
+### `json_agg` names are checked and quoted
+
+`ho_select(json_agg=...)` interpolated five caller-supplied slots unchecked:
+`fields` in list and scalar mode, the same inside `intermediate_nodes`,
+`alias`, and `ho_select`'s own `*args` -- that path reaches the query builder
+directly, so it never ran the column check a plain select does. A name holding
+a double quote closed the identifier and opened SQL of its own, and `json_agg`
+describes the *shape* of a response, which is exactly what an API layer derives
+from a query parameter.
+
+Field names are now checked against the columns of the relation they belong to
+-- the leaf for `fields`, each hop for `intermediate_nodes` -- raising
+`UnknownAttributeError`. Identifiers and JSON keys are quoted, which also fixes
+column names that legitimately contain a quote.
+
+`limit` and `offset` were unvalidated on the same path, and now reject `bool`:
+`isinstance(True, int)` is true in Python, and `limit True` is not SQL.
+
+### Comparators are constrained to operators
+
+`set((comp, value))` stored the comparator as given and interpolated it between
+the column and the placeholder, so it was a raw SQL slot: `"= 'x' or 1=1 --"`
+commented out the placeholder and made the condition tautological. On
+`ho_delete()` or `ho_update()` that turns a targeted statement into a global
+one -- and the `delete_all` safeguard does not fire, because the field *is*
+technically constrained.
+
+Comparators are now validated as soon as the pair is unpacked, ahead of every
+branch: the SQL word operators (`like`, `is not`, `in`, `similar to`, …), and
+any operator spelled with PostgreSQL's own operator characters, so extension
+operators such as `@@`, `@>`, pg_trgm's `%` and pgvector's `<->` keep working.
+Anything carrying a space, a quote, a letter outside the word list, or a
+comment opener raises `ValueError`.
+
+### Relations are aliased by a counter, not by their address
+
+`ho_id` returned `id(self)`, so every query carried the object's heap address
+-- `select r140227588384352."first_name" from ...` -- into logs, error
+messages, `ho_mogrify()` output and `pg_stat_statements`, where each execution
+also counted as a distinct query text. Addresses are reused once an object is
+freed, so two relations could in principle receive the same alias too.
+
+Queries now read `select r1."first_name" from "actor"."person" as r1`.
+
+**What to do:** nothing, unless you match on alias names in logs or tests.
+
+## Transactions
+
+### An exception now rolls back instead of committing
+
+`Transaction.__exit__` tested `exc_type` only in the savepoint branch. At the
+outermost level it called `conn.commit()` unconditionally, so a Python
+exception crossing the block **committed the partial work instead of
+discarding it**. `AsyncTransaction.__aexit__` had the same defect.
+
+It stayed hidden because the existing tests raise `UniqueViolation`:
+PostgreSQL has already aborted the transaction by then, so COMMIT behaves as
+ROLLBACK. It only bit on non-SQL exceptions -- a business rule, a validation
+error, a failed remote call -- which is what the new tests cover.
+
+Two related changes: a failed COMMIT now propagates rather than being swallowed
+by a silent rollback, since leaving the caller believing its work was persisted
+is the same defect in another guise; a failed ROLLBACK is still suppressed, so
+it cannot displace the exception the caller is handling. And `autocommit` is
+restored in a `finally` block -- it was previously reset only on the success
+path, leaving the connection outside autocommit for the rest of the program
+after any error.
+
+**What to do:** nothing, unless your code relied on partial work surviving an
+exception -- in which case it was relying on the bug.
+
+## Model and connections
+
+### Query parameters are no longer written to the log
+
+A failing query wrote its bound parameters to stderr:
+
+```
+half-orm ERROR: Query execution failed:
+query: select * from nope where x = %s
+values: ('SUPER_SECRET_TOKEN',)
+```
+
+It did so by default, since `production` is absent from a hand-written
+connection file. Passwords, session tokens and personal data reached
+application logs, container output and log aggregators on every constraint
+violation or missing table.
+
+Parameters are now described rather than disclosed -- `values: (str[18], int,
+NULL)` -- on the sync and async paths alike, in every mode. This is deliberately
+independent of `production`, whose default is left alone.
+
+**What to do:** to see an interpolated query while debugging, use
+`Model.sql_trace = True` or `ho_mogrify()`. Both are explicit, and both already
+existed.
+
+### Config booleans are parsed as booleans
+
+`production` and `crud_only` came back from `ConfigParser` as strings and were
+tested for truth, so only the exact string `False` was honoured: **`production
+= false` was true**, and so was `crud_only = 0`. They now accept ConfigParser's
+own spellings -- true/false, yes/no, on/off, 1/0, any case -- and raise
+`MalformedConfigFile` on anything else rather than silently reading as true.
+Both are documented in `Model`'s docstring, whose silence is part of how their
+meaning drifted.
+
+**What to do:** check your connection files. A `production = false` that was
+being read as *true* now means what it says, which changes behaviour for
+anything keyed on it -- `half_orm_dev` makes a production server read-only.
+
+### `config_file` must be a file name, and reconnect is guarded in both branches
+
+`os.path.join(CONF_DIR, config_file)` confines nothing: `..` climbs out and an
+absolute path discards `CONF_DIR` entirely, so `Model('/etc/shadow')` read
+`/etc/shadow`. The argument is documented as a file *name* and is now required
+to be one. It decides which database the process connects to, and as which
+role, which matters wherever it is derived from a request.
+
+The "can't reconnect to another database" guard sat inside the branch that
+found a config file, so reconnecting through a *missing* one skipped it
+entirely: the `Model` silently retargeted itself at a database named after the
+typo and, having no file to read credentials from, fell back on peer
+authentication -- dropping user, password and host on the way.
+
+A refused reconnect also used to leave a wreck behind. `__load_config` no
+longer touches `self` until every check has passed, and `__connect` reads the
+new configuration before disconnecting, so a refused reconnect leaves the
+`Model` on its current configuration and still connected.
+
+**What to do:** nothing, unless you passed a path rather than a name. Nothing
+in either repo ever did.
+
+### Function and procedure names are checked before interpolation
+
+`execute_function` and `call_procedure` bind their arguments but interpolate
+the callable's name, and the `kwargs` keys with it -- rendered as `key => %s`,
+and reaching them only takes `f(**{'a => 1) --': v})`, which is legal Python.
+
+A name must now be a SQL name, bare or double-quoted, optionally qualified;
+parameter names must be plain identifiers. That admits everything valid today
+-- `'add'`, `'public.add'`, `'MyFunc'`, `'"My Schema"."My Func"'`, and
+non-ASCII identifiers, which PostgreSQL accepts unquoted -- and refuses
+anything carrying a space, parenthesis, semicolon or stray quote. The name is
+returned unchanged rather than re-quoted, deliberately: quoting
+`'public.MyFunc'` would stop PostgreSQL folding it to `myfunc` and silently
+change which function runs.
+
+Validation alone closes the injection, since the grammar has no character that
+could end the call. It does not make the name *safe to choose*: halfORM checks
+that it is a name, not that it is one you meant. See
+[Security](https://half-orm.github.io/half-orm/latest/security/).
+
 * docs: add SECURITY.md (9900467)
 * fix(meta): quote relation names properly, and stop conflating them (041547c)
 * fix(hotest): follow the alias as an attribute path instead of eval-ing it (5956b4c)
