@@ -49,6 +49,17 @@ missing from it cannot be told apart from one nobody looked at.
 `half_orm/migrations/BREAKING_CHANGES-X.Y.Z.md`, newest first -- the same files
 upgrade tooling reads. Add a release's notes by adding that file to the
 package; the page needs no edit, and cannot fall out of step with what ships.
+Each version's heading gets an explicit id (`breaking-1-0-0`), and the summary
+line above them links to it.
+
+The same hook fills `<!-- breaking-changes-notice -->` on the home page when
+the line being built introduced breaking changes. Every published version of
+the site is a separate build -- mike deploys /1.1/, /0.18/ and the rest on
+their own -- so the notice speaks about the release the reader came for, and a
+release that broke nothing shows none. Unlike the security notice it does not
+fall back to the newest file on `dev`, because "this release requires changes
+to your code" names one release and dev is not it; a build with no version at
+all still shows the newest, so `make docs` shows the mechanism working.
 
 ## Local Development
 

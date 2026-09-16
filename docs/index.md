@@ -23,6 +23,14 @@ database — is what you read, update, or delete.
 -->
 <!-- security-notice -->
 
+<!--
+  Filled in by hooks/breaking_changes.py when the release line being built is
+  one that introduced breaking changes, and left empty when it is not. Each
+  published version of the site is its own build, so this speaks about the
+  release the reader came for.
+-->
+<!-- breaking-changes-notice -->
+
 ## Install
 
 ```bash
