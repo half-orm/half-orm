@@ -22,7 +22,17 @@
     You are reading the documentation of an older halfORM release, which no
     longer receives fixes.
   {% endif %}
-  <a href="{{ '../' ~ base_url }}">
+  {#
+    Straight to the `latest` alias, not to the site root. The root is a
+    redirect to whatever mike was last told to make the *default* version --
+    a separate setting from the alias, which the deploy step can put on `dev`
+    when no default exists. When it was on dev, this link sent a reader of the
+    development documentation back to the development documentation.
+
+    base_url reaches the root of this version's build, so `../latest/` is the
+    sibling directory, from any depth of page.
+  #}
+  <a href="{{ base_url }}/../latest/">
     <strong>Go to the latest release</strong>
   </a>
 {% endblock %}
