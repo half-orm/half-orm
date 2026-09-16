@@ -12,7 +12,7 @@
         <meta name="author" content="half-orm">
       
       
-        <link rel="canonical" href="https://half-orm.github.io/dev/architecture/factory/">
+        <link rel="canonical" href="https://half-orm.github.io/dev/security-0.18/">
       
       
       
@@ -20,19 +20,19 @@
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Factory Pattern - halfORM Documentation</title>
+        <title>Security advisory — 0.18 - halfORM Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +51,11 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../assets/css/custom.css">
+      <link rel="stylesheet" href="../assets/css/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#factory-pattern" class="md-skip">
+        <a href="#security-advisory-018" class="md-skip">
           Skip to content
         </a>
       
@@ -98,12 +98,12 @@
     You are reading the development documentation, which describes changes
     that are not released yet.
   
-  <a href="../../..">
+  <a href="../..">
     <strong>Go to the latest release</strong>
   </a>
 
             </div>
-            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL(".."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
           </aside>
         
       </div>
@@ -115,7 +115,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="halfORM Documentation" class="md-header__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+    <a href=".." title="halfORM Documentation" class="md-header__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -135,7 +135,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Factory Pattern
+              Security advisory — 0.18
             
           </span>
         </div>
@@ -247,7 +247,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -266,7 +266,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../half-an-hour/" class="md-tabs__link">
+      <a href="../half-an-hour/" class="md-tabs__link">
         
   
   
@@ -287,7 +287,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../api/model/" class="md-tabs__link">
+        <a href="../api/model/" class="md-tabs__link">
           
   
   
@@ -307,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../extensions/" class="md-tabs__link">
+        <a href="../extensions/" class="md-tabs__link">
           
   
   
@@ -325,7 +325,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../breaking-changes/" class="md-tabs__link">
+      <a href="../breaking-changes/" class="md-tabs__link">
         
   
   
@@ -346,7 +346,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../security/" class="md-tabs__link">
+        <a href="../security/" class="md-tabs__link">
           
   
   
@@ -366,7 +366,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/development/extension-development/" class="md-tabs__link">
+        <a href="../guides/development/extension-development/" class="md-tabs__link">
           
   
   
@@ -406,7 +406,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="halfORM Documentation" class="md-nav__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
+    <a href=".." title="halfORM Documentation" class="md-nav__button md-logo" aria-label="halfORM Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -436,7 +436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -463,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../half-an-hour/" class="md-nav__link">
+      <a href="../half-an-hour/" class="md-nav__link">
         
   
   
@@ -542,7 +542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/model/" class="md-nav__link">
+      <a href="../api/model/" class="md-nav__link">
         
   
   
@@ -570,7 +570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/relation/" class="md-nav__link">
+      <a href="../api/relation/" class="md-nav__link">
         
   
   
@@ -598,7 +598,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/field/" class="md-nav__link">
+      <a href="../api/field/" class="md-nav__link">
         
   
   
@@ -626,7 +626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/fkey/" class="md-nav__link">
+      <a href="../api/fkey/" class="md-nav__link">
         
   
   
@@ -654,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/transaction/" class="md-nav__link">
+      <a href="../api/transaction/" class="md-nav__link">
         
   
   
@@ -682,7 +682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/testing/" class="md-nav__link">
+      <a href="../api/testing/" class="md-nav__link">
         
   
   
@@ -769,7 +769,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../extensions/" class="md-nav__link">
+      <a href="../extensions/" class="md-nav__link">
         
   
   
@@ -804,7 +804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../breaking-changes/" class="md-nav__link">
+      <a href="../breaking-changes/" class="md-nav__link">
         
   
   
@@ -883,7 +883,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../security/" class="md-nav__link">
+      <a href="../security/" class="md-nav__link">
         
   
   
@@ -911,7 +911,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../security-model/" class="md-nav__link">
+      <a href="../security-model/" class="md-nav__link">
         
   
   
@@ -998,7 +998,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/development/extension-development/" class="md-nav__link">
+      <a href="../guides/development/extension-development/" class="md-nav__link">
         
   
   
@@ -1026,7 +1026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/development/documentation-workflow/" class="md-nav__link">
+      <a href="../guides/development/documentation-workflow/" class="md-nav__link">
         
   
   
@@ -1081,10 +1081,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#what-01814-fixes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        What 0.18.14 fixes
       
     </span>
   </a>
@@ -1092,10 +1092,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#technical-details" class="md-nav__link">
+  <a href="#what-it-does-not-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Technical Details
+        What it does not fix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-do-if-you-must-stay-on-018" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to do if you must stay on 0.18
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credit
       
     </span>
   </a>
@@ -1122,20 +1144,69 @@
   
 
 
-<h1 id="factory-pattern">Factory Pattern<a class="headerlink" href="#factory-pattern" title="Permanent link">&para;</a></h1>
-<!-- TODO: Component purpose -->
-<!-- TODO: Technical details -->
-<!-- TODO: Code examples -->
-<!-- TODO: Diagrams -->
-
-<div class="admonition note">
-<p class="admonition-title">Architecture Status</p>
-<p>This section needs detailed technical documentation for contributors.</p>
-</div>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><em>[Component overview and purpose]</em></p>
-<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">&para;</a></h2>
-<p><em>[Implementation details and patterns]</em></p>
+<h1 id="security-advisory-018">Security advisory — 0.18<a class="headerlink" href="#security-advisory-018" title="Permanent link">&para;</a></h1>
+<p><strong>Affected:</strong> 0.18.13 and every release before it.
+<strong>Partly fixed in:</strong> 0.18.14, released 2026-09-15.</p>
+<p>The 0.18 line is in maintenance. It received a subset of the work described in
+the <a href="../security-1.1/">1.1 advisory</a>, chosen for what could be backported
+without changing behaviour the line's users depend on.</p>
+<p><strong>1.x is where security work lands first, and in full.</strong> If the choice is open
+to you, upgrade rather than staying on 0.18.</p>
+<p>It is also worth being plain about what 0.18 is: every release before 1.0.0 was
+published as Beta (<code>Development Status :: 4 - Beta</code>), and this line still
+carries that classifier. 1.1.0 is the current stable release. The upgrade
+crosses 1.0.0, so read the <a href="../breaking-changes/">breaking changes</a> and the
+<a href="https://github.com/half-orm/half-orm/blob/main/CHANGELOG.md">CHANGELOG</a> before
+starting — that is the work this page is asking you to do, and it is smaller
+than the list below.</p>
+<h2 id="what-01814-fixes">What 0.18.14 fixes<a class="headerlink" href="#what-01814-fixes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The transaction that committed instead of rolling back when a Python
+  exception escaped the block.</li>
+<li><code>Field.set()</code> comparators, now validated before reaching the WHERE clause.</li>
+<li>Function and procedure names, and the keys of named parameters, checked
+  before interpolation.</li>
+<li><code>config_file</code> confined to its directory, and the reconnect guard extended to
+  the branch that skipped it.</li>
+<li><code>ho_copy()</code> and <code>ho_acopy()</code> column names checked against the relation.</li>
+<li>Relation names quoted properly, and no longer conflated with one another.</li>
+<li>The <code>eval()</code> in <code>hotest.py</code>, replaced by an attribute path walk.</li>
+<li>The CLI extension trust store moved out of the project directory, and
+  <code>half-orm-test-extension</code> removed from the allowlist of automatically
+  trusted names.</li>
+<li>Script injection through the documentation workflow's dispatch inputs.</li>
+</ul>
+<h2 id="what-it-does-not-fix">What it does not fix<a class="headerlink" href="#what-it-does-not-fix" title="Permanent link">&para;</a></h2>
+<p>These remain open on 0.18, and upgrading to 1.1 is the only remedy:</p>
+<ul>
+<li><strong><code>order_by</code> and the <code>json_agg</code> projection</strong> are still interpolated
+  unchecked. If your application derives either from a request — a <code>?sort=</code>
+  parameter, a field list from an API client — that path is exploitable, and it
+  is the most reachable defect in this list.</li>
+<li><strong><code>Model._import_class()</code></strong> still builds an import path from schema names
+  read out of the database.</li>
+<li><strong>Query parameters</strong> are still written to the log when a query fails.</li>
+<li><strong>Relation aliases</strong> still carry <code>id(self)</code>, a heap address.</li>
+<li><strong><code>ho_cast()</code></strong> still widens silently to an ancestor's whole extension.</li>
+<li><strong>The extension trust work beyond the store's location</strong> — loading on first
+  use rather than at import, checking that the module belongs to the
+  distribution vouching for it, pinning approval to a digest of the code, and
+  <code>HALF_ORM_TRUST_EXTENSIONS</code> for unattended runs — is 1.1 only. On 0.18,
+  <code>--trusted-extensions</code> and <code>--untrust</code> are still parsed after the extensions
+  have loaded.</li>
+</ul>
+<h2 id="what-to-do-if-you-must-stay-on-018">What to do if you must stay on 0.18<a class="headerlink" href="#what-to-do-if-you-must-stay-on-018" title="Permanent link">&para;</a></h2>
+<p>Upgrade to 0.18.14 first. Then, for what it does not cover:</p>
+<ul>
+<li>never build <code>order_by</code>, a <code>json_agg</code> projection or an alias from input you do
+  not control — map the user's choice onto a name your own code holds;</li>
+<li>treat the database you connect to as trusted, since its schema names still
+  select Python modules to import;</li>
+<li>do not rely on a failing query keeping its parameters out of your logs;</li>
+<li>approve CLI extensions deliberately, and re-check them after any reinstall.</li>
+</ul>
+<h2 id="credit">Credit<a class="headerlink" href="#credit" title="Permanent link">&para;</a></h2>
+<p>Found during an internal review of the 1.0.0 release, and backported from 1.1.0.</p>
 
 
 
@@ -1158,7 +1229,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 16, 2026 06:49:41 UTC">September 16, 2026</span>
   </span>
 
     
@@ -1168,7 +1239,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 16, 2026 06:49:41 UTC">September 16, 2026</span>
   </span>
 
     
@@ -1254,10 +1325,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
