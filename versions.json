@@ -2,14 +2,19 @@
   {
     "version": "dev",
     "title": "Development",
-    "aliases": [
-      "latest"
-    ]
+    "aliases": []
   },
   {
     "version": "1.1",
     "title": "1.1 (rebuild)",
     "aliases": []
+  },
+  {
+    "version": "1.1.0",
+    "title": "1.1.0",
+    "aliases": [
+      "latest"
+    ]
   },
   {
     "version": "1.0",
