@@ -43,7 +43,7 @@ on:
         required: false
         default: ''
       cleanup:
-        description: 'Delete versions not in the kept list (0.17, 0.18, dev)'
+        description: 'Delete published versions absent from KEPT_VERSIONS in docs-impl.yml'
         type: boolean
         required: false
         default: false
