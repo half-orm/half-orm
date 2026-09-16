@@ -180,7 +180,6 @@ For a complete working example, see [half-orm-test-extension](https://github.com
 ## Development Resources
 
 - **[Extension Development Guide](../guides/development/extension-development.md)** - Complete development tutorial
-- **[halfORM Development Workflow](../guides/development/development-workflow.md)** - Core development process
 - **[Documentation Workflow](../guides/development/documentation-workflow.md)** - Documentation standards
 
 ## Community and Support

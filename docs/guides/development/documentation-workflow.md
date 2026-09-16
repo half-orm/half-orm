@@ -1,14 +1,14 @@
 # Documentation Workflow Guide
 
-This guide explains how halfORM's documentation is managed with multi-version support, automated deployment, and coordinated with the [Development Workflow](development-workflow.md).
+This guide explains how halfORM's documentation is managed with multi-version support and automated deployment.
 
 ## Overview
 
 halfORM uses a multi-version documentation system with automated deployment that mirrors the development workflow. Documentation is automatically built and deployed for different development stages.
 
 !!! info "Development Coordination"
-    This documentation workflow is tightly coordinated with the [Development Workflow](development-workflow.md). 
-    The same branch structure and versioning strategy applies to both code and documentation.
+    The same branch structure and versioning strategy applies to both code and
+    documentation.
 
 ## Branch Structure & Documentation Deployment
 
@@ -348,14 +348,13 @@ mike delete --push 0.14.0
 
 ## Integration with Development Workflow
 
-This documentation workflow is designed to work seamlessly with the [Development Workflow](development-workflow.md):
+This documentation workflow follows the development process:
 
 - **Branch synchronization**: Same branch names, same purposes
 - **Version coordination**: Documentation versions match code versions  
 - **Release coordination**: Documentation and code released together
 - **Testing integration**: Documentation tested with each code change
 
-For complete information about the development process, branch management, and release procedures, see the [Development Workflow Guide](development-workflow.md).
 
 ## Scripts Reference
 

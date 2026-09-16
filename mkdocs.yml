@@ -46,6 +46,10 @@ theme:
 # and mkdocs would otherwise drop it with a warning for clashing with index.md.
 exclude_docs: |
   README.md
+  # Describes a development process that is not the one in use. Hidden rather
+  # than deleted: it is wrong, not worthless, and a wrong process left
+  # searchable is worse than one that is absent.
+  guides/development/development-workflow.md
 
 plugins:
   - search
@@ -139,7 +143,6 @@ nav:
     - extensions/index.md
   - Development Guides:
     - Extension Development: guides/development/extension-development.md
-    - halfORM Development Workflow: guides/development/development-workflow.md
     - Documentation Workflow: guides/development/documentation-workflow.md
 extra_css:
   - assets/css/custom.css
