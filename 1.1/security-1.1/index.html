@@ -12,7 +12,7 @@
         <meta name="author" content="half-orm">
       
       
-        <link rel="canonical" href="https://half-orm.github.io/1.1/api/">
+        <link rel="canonical" href="https://half-orm.github.io/1.1/security-1.1/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>API Reference - halfORM Documentation</title>
+        <title>Security advisory — 1.1 - halfORM Documentation</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-reference" class="md-skip">
+        <a href="#security-advisory-11" class="md-skip">
           Skip to content
         </a>
       
@@ -135,7 +135,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              API Reference
+              Security advisory — 1.1
             
           </span>
         </div>
@@ -287,7 +287,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="model/" class="md-tabs__link">
+        <a href="../api/model/" class="md-tabs__link">
           
   
   
@@ -542,7 +542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="model/" class="md-nav__link">
+      <a href="../api/model/" class="md-nav__link">
         
   
   
@@ -570,7 +570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="relation/" class="md-nav__link">
+      <a href="../api/relation/" class="md-nav__link">
         
   
   
@@ -598,7 +598,7 @@
   
   
     <li class="md-nav__item">
-      <a href="field/" class="md-nav__link">
+      <a href="../api/field/" class="md-nav__link">
         
   
   
@@ -626,7 +626,7 @@
   
   
     <li class="md-nav__item">
-      <a href="fkey/" class="md-nav__link">
+      <a href="../api/fkey/" class="md-nav__link">
         
   
   
@@ -654,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="transaction/" class="md-nav__link">
+      <a href="../api/transaction/" class="md-nav__link">
         
   
   
@@ -682,7 +682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="testing/" class="md-nav__link">
+      <a href="../api/testing/" class="md-nav__link">
         
   
   
@@ -1081,10 +1081,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#modules" class="md-nav__link">
+  <a href="#sql-injection-through-identifiers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Modules
+        SQL injection through identifiers
       
     </span>
   </a>
@@ -1092,10 +1092,87 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-reference" class="md-nav__link">
+  <a href="#arbitrary-code-execution-through-cli-extensions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Reference
+        Arbitrary code execution through CLI extensions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-loading-driven-by-database-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module loading driven by database content
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-traversal-in-the-connection-file-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path traversal in the connection file name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loss-of-committed-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss of committed work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#information-disclosure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information disclosure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-do-if-you-cannot-upgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to do if you cannot upgrade
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behaviour-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behaviour changes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credit
       
     </span>
   </a>
@@ -1122,19 +1199,96 @@
   
 
 
-<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
-<!-- TODO: API overview -->
-<!-- TODO: Module organization -->
-<!-- TODO: Quick reference -->
-
-<div class="admonition note">
-<p class="admonition-title">Section Status</p>
-<p>API reference structure is ready. Automated docstring extraction is configured.</p>
-</div>
-<h2 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
-<p><em>[Overview of all modules]</em></p>
-<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
-<p><em>[Common methods and patterns]</em></p>
+<h1 id="security-advisory-11">Security advisory — 1.1<a class="headerlink" href="#security-advisory-11" title="Permanent link">&para;</a></h1>
+<p><strong>Affected:</strong> 1.0.0 and every release before it.
+<strong>Fixed in:</strong> 1.1.0, released 2026-09-11.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>half_orm
+</code></pre></div>
+<p>Found during a review of the 1.0.0 release. The defects below all share one
+shape: data from outside the program reached a query, a file path or an import
+as <em>code</em> rather than as data. The most reachable of them need no unusual
+integration — a CSV header, the keys of a JSON body, or a checked-out
+repository are enough.</p>
+<h2 id="sql-injection-through-identifiers">SQL injection through identifiers<a class="headerlink" href="#sql-injection-through-identifiers" title="Permanent link">&para;</a></h2>
+<p>Several paths interpolated caller-supplied names into the statement without
+checking them against the schema, and without escaping. Why identifiers are
+interpolated at all, and which ones are checked today, is on
+<a href="../security-model/">the model page</a>.</p>
+<ul>
+<li><strong><code>ho_copy()</code> and <code>ho_acopy()</code></strong> took column names from a CSV header or from
+  the keys of the caller's dicts. A header of
+  <code>last_name") from stdin; create table public.pwned(x int); --</code> closed the
+  identifier and the statement and ran the rest. An uploaded CSV or a
+  deserialised request body reaches this directly.</li>
+<li><strong><code>Field.set()</code> comparators</strong> were interpolated, not bound:
+  <code>last_name=('or 1=1 --', 'x')</code> produced <code>(r1."last_name" or 1=1 -- %s)</code>. On
+  <code>ho_delete()</code> that turns a targeted statement into a global one, and the
+  <code>delete_all</code> safeguard does not fire, because the field <em>is</em> technically
+  constrained.</li>
+<li><strong><code>order_by</code></strong> went into the query as given. No semicolon is needed to abuse
+  it: <code>ORDER BY</code> accepts a subquery, so one bit of someone else's data comes
+  back per request. It is also the parameter most likely to be wired straight
+  to a query string (<code>?sort=</code>).</li>
+<li><strong>The <code>json_agg</code> projection</strong> interpolated five caller-supplied slots
+  unchecked, including <code>alias</code> and <code>ho_select</code>'s own <code>*args</code>.</li>
+<li><strong>Function and procedure names</strong>, and the keys of named parameters, were
+  interpolated by <code>execute_function()</code> and <code>call_procedure()</code>.</li>
+<li><strong>Relation names</strong> were quoted without escaping the quotes inside them, and
+  <code>get_relation_class</code> stripped every quote before splitting, so two distinct
+  schemas answered for one another.</li>
+</ul>
+<h2 id="arbitrary-code-execution-through-cli-extensions">Arbitrary code execution through CLI extensions<a class="headerlink" href="#arbitrary-code-execution-through-cli-extensions" title="Permanent link">&para;</a></h2>
+<p>The <code>half_orm</code> CLI imports installed <code>half-orm-*</code> packages, which runs them. Its
+consent prompt was suppressed by a <code>.half_orm_cli</code> file read from the <em>current
+directory</em>, so a repository shipping that file granted itself silent consent:
+clone, run <code>half_orm</code>, and the extension executed while the CLI reported
+<code>[TRUSTED]</code>. A <code>git clone</code> produces files owned by you, so no ownership or
+permission check could have closed this.</p>
+<p>Two related defects: <code>--trusted-extensions</code> and <code>--untrust</code> were parsed after
+the extensions had already loaded, so they could change nothing; and the
+allowlist named a PyPI project nobody had registered, granting automatic trust
+to whoever claimed it.</p>
+<h2 id="module-loading-driven-by-database-content">Module loading driven by database content<a class="headerlink" href="#module-loading-driven-by-database-content" title="Permanent link">&para;</a></h2>
+<p><code>Model._import_class()</code> built an import path from a relation's schema and name
+— values read from the database — and passed it to <code>__import__</code>. Importing a
+module runs it. A bare <code>except:</code> then hid any error the imported module raised,
+including errors in your own code.</p>
+<h2 id="path-traversal-in-the-connection-file-name">Path traversal in the connection file name<a class="headerlink" href="#path-traversal-in-the-connection-file-name" title="Permanent link">&para;</a></h2>
+<p><code>Model(config_file)</code> takes a file <em>name</em>, but joined it to <code>CONF_DIR</code> without
+confining it: <code>..</code> climbed out and an absolute path discarded <code>CONF_DIR</code>
+entirely. That decides which database, and as which role, the process connects.
+The guard refusing a reconnect to a different database also covered only one of
+two branches.</p>
+<h2 id="loss-of-committed-work">Loss of committed work<a class="headerlink" href="#loss-of-committed-work" title="Permanent link">&para;</a></h2>
+<p><code>Transaction.__exit__</code> committed unconditionally at the outermost level, so a
+Python exception crossing the block committed the partial work instead of
+discarding it. It went unnoticed because the tests raised <code>UniqueViolation</code>,
+where PostgreSQL has already aborted the transaction and COMMIT behaves as
+ROLLBACK; it only bit on non-SQL exceptions.</p>
+<h2 id="information-disclosure">Information disclosure<a class="headerlink" href="#information-disclosure" title="Permanent link">&para;</a></h2>
+<p>Failed queries logged their parameter values — passwords, session tokens and
+personal data reaching application logs on every constraint violation. Relation
+aliases embedded <code>id(self)</code>, a heap address, in every statement, and so in logs
+and <code>pg_stat_statements</code>.</p>
+<h2 id="what-to-do-if-you-cannot-upgrade">What to do if you cannot upgrade<a class="headerlink" href="#what-to-do-if-you-cannot-upgrade" title="Permanent link">&para;</a></h2>
+<p>None of these have a workaround that covers the set. Until you can upgrade:</p>
+<ul>
+<li>never pass externally-derived values as column names, comparators, <code>order_by</code>
+  clauses, function names or connection file names;</li>
+<li>do not run <code>half_orm</code> from a directory you did not author, and delete any
+  <code>.half_orm_cli</code> you did not write yourself;</li>
+<li>treat the database you connect to as trusted, since its schema names select
+  Python modules to import.</li>
+</ul>
+<h2 id="behaviour-changes">Behaviour changes<a class="headerlink" href="#behaviour-changes" title="Permanent link">&para;</a></h2>
+<p>Six of these fixes turn something that used to pass silently into an error, and
+one changes how a configuration file is read. The
+<a href="https://github.com/half-orm/half-orm/blob/main/CHANGELOG.md">CHANGELOG</a>
+describes each with what to do about it. The one most likely to affect a
+running system: <code>production = false</code> was being read as <strong>true</strong>, and now means
+what it says.</p>
+<h2 id="credit">Credit<a class="headerlink" href="#credit" title="Permanent link">&para;</a></h2>
+<p>Found during an internal review of the 1.0.0 release.</p>
 
 
 
@@ -1157,7 +1311,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 16, 2026 06:49:41 UTC">September 16, 2026</span>
   </span>
 
     
@@ -1167,7 +1321,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2025 08:59:47 UTC">June 26, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 16, 2026 06:49:41 UTC">September 16, 2026</span>
   </span>
 
     
