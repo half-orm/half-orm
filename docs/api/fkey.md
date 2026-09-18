@@ -18,6 +18,19 @@ Two usage patterns:
 Print any relation instance to discover FK names (internal names to copy
 into `Fkeys`).
 
+A direct FK carries the constraint name PostgreSQL gave it. A reverse FK has
+no constraint of its own, so halfORM builds one from the referencing side:
+
+```
+_reverse_fkey_<database>_<schema>_<table>_<field>
+```
+
+The database name is part of it. When a database and one of its schemas share
+a name, a common enough arrangement, the word appears twice, as in
+`_reverse_fkey_blog_blog_post_author_id`. It reads like a typo and is not one;
+a name missing that component matches no foreign key. Copy the names from the
+printed relation rather than assembling them by hand.
+
 ---
 
 ## Fkeys on views

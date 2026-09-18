@@ -42,9 +42,16 @@ class FKey:
     class Post(blog.get_relation_class('blog.post')):
         Fkeys = {
             'author_fk':   'post_author_id_fkey',
-            'comment_rfk': '_reverse_fkey_blog_comment_post_id',
+            'comment_rfk': '_reverse_fkey_blog_blog_comment_post_id',
         }
     ```
+
+    A direct FK carries the constraint name PostgreSQL gave it. A reverse FK
+    has no constraint of its own, so one is built from the referencing side:
+    ``_reverse_fkey_<database>_<schema>_<table>_<field>``. The database name
+    is part of it, which is why ``blog`` appears twice above -- the database
+    and the schema happen to share a name. It is not a typo, and dropping the
+    component yields a name no relation answers to.
 
     Use a FK attribute in two ways:
 

@@ -2403,7 +2403,7 @@ def singleton(fct):
             ```python
             @register
             class Author(blog.get_relation_class('blog.author')):
-                Fkeys = {'post_rfk': '_reverse_fkey_blog_post_author_id'}
+                Fkeys = {'post_rfk': '_reverse_fkey_blog_blog_post_author_id'}
 
                 @singleton
                 def publish(self, title: str, content: str):
