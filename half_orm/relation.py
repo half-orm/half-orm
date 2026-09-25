@@ -1466,15 +1466,33 @@ class Relation:
             ``(database, schema, relation)`` triple and the second member is
             ``None`` when the relation is unconstrained.
 
-        Example::
+        Example:
+            Memoise results in the application, since halfORM keeps no cache
+            of its own:
+                ```python
+                cache = {}
 
-            cache = {}
+                def rows(rel):
+                    key = rel.ho_structural_key()
+                    if key not in cache:
+                        cache[key] = list(rel.ho_select())
+                    return cache[key]
 
-            def rows(rel):
-                key = rel.ho_structural_key()
-                if key not in cache:
-                    cache[key] = list(rel.ho_select())
-                return cache[key]
+                rows(Post(published=True))               # one query
+                rows(Post(published=True))               # served from cache
+                rows(Author(name='Alice').rfk_posts())   # other key, one query
+                ```
+
+            Issue each query once when several code paths build predicates
+            independently:
+                ```python
+                wanted, seen = [], set()
+                for spec in report_specs:
+                    rel = build_predicate(spec)
+                    if (key := rel.ho_structural_key()) not in seen:
+                        seen.add(key)
+                        wanted.append(rel)
+                ```
 
         *New in version 1.2.0.*
         """
