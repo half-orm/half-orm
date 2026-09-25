@@ -298,6 +298,19 @@ These methods inspect or assert on the predicate **without executing SQL**.
       show_source: false
       heading_level: 3
 
+::: half_orm.relation.Relation.ho_structural_key
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+!!! note "Structural, not extensional"
+    The key answers *how was this asked*, never *what comes back*. Two
+    predicates matching the same rows today keep different keys if they are
+    written differently, so a cache keyed this way may miss but can never
+    return the wrong rows. Invalidation remains the application's business:
+    a `Relation` is a predicate, not a snapshot.
+
 ::: half_orm.relation.Relation.ho_mogrify
     options:
       show_root_heading: true

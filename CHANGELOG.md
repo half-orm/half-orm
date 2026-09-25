@@ -1,5 +1,46 @@
 # Unreleased
 
+## `Relation.ho_structural_key()`
+
+A `Relation` cannot be a dictionary key or a set member: defining `__eq__` as
+set equality makes instances unhashable, and no pure function of the object
+can track an equality that depends on the current state of the database.
+`ho_structural_key()` returns a hashable, canonical key for the relation and
+the shape of its predicate, so application-level caches and deduplication have
+something to key on. It issues no query.
+
+```python
+cache = {}
+
+def rows(rel):
+    key = rel.ho_structural_key()
+    if key not in cache:
+        cache[key] = list(rel.ho_select())
+    return cache[key]
+```
+
+Operand order is normalised for the commutative operators, so `a | b` and
+`b | a` share a key. Predicates that are logically equivalent but written
+differently do not: that is query equivalence, not a hash key.
+
+## `assertSamePredicate` no longer conflates distinct predicates
+
+Two bugs, both of which made the helper accept relations it should have
+rejected. It now compares `ho_structural_key()`, so the key and the assertion
+are the same notion by construction.
+
+**Unconstrained relations on different tables.** `assertSamePredicate(Person(),
+Post())` passed, because an unconstrained predicate yields nothing to compare.
+The relation is now part of the comparison.
+
+**A predicate and its complement.** `assertSamePredicate(r, -r)` passed. A
+negated *compound* was reported as a negation node, but a negated *leaf*
+carried the flag only in its SQL, which the comparison discarded.
+`ho_where_display()` leaf nodes now expose `'neg'`, and the canonical form
+takes it into account.
+
+A test suite that relied on either case will now fail — correctly.
+
 # 1.1.0 (2026-09-11)
 
 ## Extension loading: security fixes with behaviour changes

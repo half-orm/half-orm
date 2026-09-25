@@ -318,40 +318,21 @@ def assertConstraintsMatch(relation, *, table=None, field=None, comp='=', value=
         )
 
 
-def _canonical(node):
-    """Return a normalised, alias-free representation of a ho_where_display node.
-
-    Used by :func:`assertSamePredicate` to compare predicates structurally,
-    ignoring relation aliases (``r{ho_id}``) and the left/right ordering of
-    commutative operators (``or``, ``and``).
-    """
-    if node is None:
-        return None
-    op = node.get('operator')
-    if op == 'neg':
-        return ('neg', _canonical(node['operand']))
-    if op:
-        left  = _canonical(node['left'])
-        right = _canonical(node.get('right'))
-        if op in ('or', 'and'):
-            return (op, *sorted([left, right], key=repr))
-        return (op, left, right)   # 'and not' is not commutative
-    tables = frozenset(node.get('tables', set()))
-    constraints = tuple(sorted(
-        (c['relation'][0], c['field'], c['comp'], str(c['value']))
-        for c in node.get('constraints', [])
-    ))
-    return (tables, constraints)
-
-
 def assertSamePredicate(rel1, rel2, msg=None):
     """Assert that two relations produce the same logical predicate.
 
-    Compares predicates structurally, ignoring relation aliases (``r{ho_id}``)
-    which differ between object instances even for equivalent queries.
-    Commutative operators (``or``, ``and``) are normalised so that
-    ``A | B`` and ``B | A`` are considered equal; ``and not`` is not
-    commutative and is compared as-is.
+    Compares the relations' structural keys
+    (:meth:`~half_orm.relation.Relation.ho_structural_key`), ignoring relation
+    aliases (``r{ho_id}``) which differ between object instances even for
+    equivalent queries. Commutative operators (``or``, ``and``) are normalised
+    so that ``A | B`` and ``B | A`` are considered equal; ``and not`` is not
+    commutative and is compared as-is. Relations on different tables never
+    match, including when both are unconstrained.
+
+    .. versionchanged:: 1.2.0
+       Two unconstrained relations on different tables used to compare equal,
+       because both yielded an empty predicate. The relation is now part of
+       the comparison.
 
     Args:
         rel1: first halfORM relation object.
@@ -370,11 +351,11 @@ def assertSamePredicate(rel1, rel2, msg=None):
             post.rfk_comments().author_fk(),
         )
     """
-    c1 = _canonical(rel1.ho_where_display())
-    c2 = _canonical(rel2.ho_where_display())
-    if c1 != c2:
+    k1 = rel1.ho_structural_key()
+    k2 = rel2.ho_structural_key()
+    if k1 != k2:
         raise AssertionError(
-            msg or f"predicates differ:\n  left:  {c1}\n  right: {c2}"
+            msg or f"predicates differ:\n  left:  {k1}\n  right: {k2}"
         )
 
 

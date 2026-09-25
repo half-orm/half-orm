@@ -35,6 +35,7 @@ from psycopg.rows import dict_row
 from half_orm import relation_errors
 from half_orm.transaction import Transaction, AsyncTransaction
 from half_orm.field import Field
+from half_orm._predicate import canonical_predicate
 from half_orm import utils
 from half_orm.sql_ast import (
     Select as ASTSelect, Insert as ASTInsert, Update as ASTUpdate,
@@ -1338,7 +1339,12 @@ class Relation:
           keys ``relation``, ``field``, ``comp``, ``value``
           (leaf: own fields; compound/neg: concatenation of children).
 
-        A **leaf** node additionally has ``'joins'``, ``'where'``, ``'values'``.
+        A **leaf** node additionally has ``'joins'``, ``'where'``, ``'values'``,
+        ``'table_path'`` and ``'neg'``. The last is ``True`` when the relation
+        itself is negated (``~r`` on an operand carrying no set operator);
+        a negated *compound* is reported as a negation node instead, so
+        consumers that ignore ``'neg'`` would read a negated leaf as if it
+        were not negated.
 
         A **compound** node (``|``, ``&``, ``-``) additionally has
         ``'operator'`` (``'or'``, ``'and'``, ``'and not'``),
@@ -1425,7 +1431,54 @@ class Relation:
             'constraints': self._ho_collect_constraints(),
             'tables':      tables,
             'table_path':  table_path,
+            'neg':         self._ho_neg,
         }
+
+    def ho_structural_key(self):
+        """Returns a hashable, canonical key for this relation's structure.
+
+        The key identifies *how the question was asked*: the relation, and the
+        shape of the predicate built on it. It is a pure function of the
+        object, issues no query, and can be used as a dictionary key or a set
+        member, which a ``Relation`` itself cannot be: defining ``__eq__`` as
+        set equality makes instances unhashable, since no pure function of the
+        object can track an equality that depends on the current state of the
+        database.
+
+        Two relations with the same key always denote the same query. The
+        converse does not hold: ``Person(last_name='Martin')`` and
+        ``Person(first_name='Jo')`` may match the same rows today and still
+        have different keys. The error is therefore always on the safe side —
+        a cache keyed this way may miss, never return the wrong rows.
+
+        Operand order is normalised for the commutative operators, so ``a | b``
+        and ``b | a`` share a key. No attempt is made to reconcile predicates
+        that are logically equivalent but structurally different; that is query
+        equivalence, which is NP-complete for conjunctive queries under set
+        semantics, and not the business of a hash key.
+
+        The key is recomputed on each call, in time proportional to the size of
+        the predicate: a ``Relation`` is mutable, so caching it would be wrong
+        without invalidation.
+
+        Returns:
+            tuple: ``(fqrn, canonical_predicate)``, where *fqrn* is the
+            ``(database, schema, relation)`` triple and the second member is
+            ``None`` when the relation is unconstrained.
+
+        Example::
+
+            cache = {}
+
+            def rows(rel):
+                key = rel.ho_structural_key()
+                if key not in cache:
+                    cache[key] = list(rel.ho_select())
+                return cache[key]
+
+        *New in version 1.2.0.*
+        """
+        return (self._t_fqrn, canonical_predicate(self.ho_where_display()))
 
     def __repr__(self):
 
