@@ -98,6 +98,30 @@ class TestDiscrimination(TestCase):
         self.assertNotEqual(person.ho_structural_key(),
                             person.posts().ho_structural_key())
 
+    def test_only_changes_the_key(self):
+        # ONLY excludes the inheritance children, so it selects a different
+        # set: blog.event inherits blog.post.
+        plain = Post(title='x')
+        restricted = Post(title='x')
+        restricted.ho_only = True
+        self.assertNotEqual(plain.ho_structural_key(),
+                            restricted.ho_structural_key())
+
+    def test_only_changes_the_key_of_a_compound(self):
+        plain = Post(title='x') | Post(title='y')
+        restricted = Post(title='x') | Post(title='y')
+        restricted.ho_only = True
+        self.assertNotEqual(plain.ho_structural_key(),
+                            restricted.ho_structural_key())
+
+    def test_only_on_an_operand_is_ignored(self):
+        # ONLY applies to the relation being read. Set on an operand it never
+        # reaches the query, so it must not reach the key either.
+        operand = Post(title='x')
+        operand.ho_only = True
+        self.assertEqual((operand | Post(title='y')).ho_structural_key(),
+                         (Post(title='x') | Post(title='y')).ho_structural_key())
+
     def test_unconstrained_relations_on_different_tables_differ(self):
         # Both have an empty predicate; only the relation tells them apart.
         self.assertIsNone(Person().ho_where_display())
@@ -105,8 +129,9 @@ class TestDiscrimination(TestCase):
         self.assertNotEqual(Person().ho_structural_key(), Post().ho_structural_key())
 
     def test_unconstrained_key_names_the_relation(self):
-        fqrn, predicate = Person().ho_structural_key()
+        (fqrn, only), predicate = Person().ho_structural_key()
         self.assertEqual(fqrn[1:], ('actor', 'person'))
+        self.assertFalse(only)
         self.assertIsNone(predicate)
 
 

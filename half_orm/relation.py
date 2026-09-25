@@ -1346,6 +1346,7 @@ class Relation:
         consumers that ignore ``'neg'`` would read a negated leaf as if it
         were not negated.
 
+
         A **compound** node (``|``, ``&``, ``-``) additionally has
         ``'operator'`` (``'or'``, ``'and'``, ``'and not'``),
         ``'left'``, and ``'right'``.
@@ -1461,10 +1462,17 @@ class Relation:
         the predicate: a ``Relation`` is mutable, so caching it would be wrong
         without invalidation.
 
+        Arguments passed to the terminal method are **not** part of the key.
+        ``ho_select()`` and ``ho_select(limit=10)`` run on the same relation
+        and share a key, so a cache must be keyed on the call, not on the
+        relation alone, whenever those arguments vary.
+
         Returns:
-            tuple: ``(fqrn, canonical_predicate)``, where *fqrn* is the
-            ``(database, schema, relation)`` triple and the second member is
-            ``None`` when the relation is unconstrained.
+            tuple: ``((fqrn, only), canonical_predicate)``, where *fqrn* is the
+            ``(database, schema, relation)`` triple, *only* says whether the
+            query reads the relation with ``ONLY``, excluding the rows of its
+            inheritance children, and the last member is ``None`` when the
+            relation is unconstrained.
 
         Example:
             Memoise results in the application, since halfORM keeps no cache
@@ -1496,7 +1504,8 @@ class Relation:
 
         *New in version 1.2.0.*
         """
-        return (self._t_fqrn, canonical_predicate(self.ho_where_display()))
+        return ((self._t_fqrn, self._ho_only),
+                canonical_predicate(self.ho_where_display()))
 
     def __repr__(self):
 
