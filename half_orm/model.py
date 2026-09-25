@@ -298,6 +298,7 @@ class Model:
         self.__thread_local = threading.local()
         self.__with_half_orm_meta = _normalize_with_half_orm_meta(with_half_orm_meta)
         self.__schema_generation = 0
+        self.__read_sets = {}
         self.__aconn = None
         self.__connect()
 
@@ -423,6 +424,7 @@ class Model:
         self.__pg_meta = pg_meta.PgMeta(conn, self.__with_half_orm_meta, reload)
         if reload:
             self.__schema_generation += 1
+            self.__read_sets = {}
             self._classes_[self._dbname] = {}
             self.__deja_vu[self.__dbname] = self
         self.__thread_local.conn = conn
@@ -740,6 +742,68 @@ class Model:
             raise psycopg.InterfaceError(
                 "Connection closed. Call model.reconnect() to re-establish.")
         return conn
+
+    __READ_SET_QUERY = """
+        WITH RECURSIVE root AS (
+            SELECT (quote_ident(%s) || '.' || quote_ident(%s))::regclass AS oid
+        ), reads(oid) AS (
+                SELECT oid FROM root
+            UNION
+                SELECT x.oid
+                FROM reads r
+                CROSS JOIN LATERAL (
+                        SELECT d.refobjid AS oid
+                        FROM pg_rewrite rw
+                        JOIN pg_depend d ON d.objid = rw.oid
+                                       AND d.classid    = 'pg_rewrite'::regclass
+                                       AND d.refclassid = 'pg_class'::regclass
+                                       AND d.refobjid  <> r.oid
+                        WHERE rw.ev_class = r.oid
+                    UNION ALL
+                        SELECT i.inhrelid
+                        FROM pg_inherits i
+                        WHERE i.inhparent = r.oid
+                          AND NOT (%s AND r.oid = (SELECT oid FROM root))
+                ) x
+        )
+        SELECT n.nspname AS schema, c.relname AS name
+        FROM reads r
+        JOIN pg_class c     ON c.oid = r.oid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE c.relkind IN ('r', 'p', 'm', 'f')
+    """
+
+    def _read_set(self, schema, relname, only=False):
+        """Returns the physical relations a read of ``schema.relname`` touches.
+
+        A view contributes the relations it is defined over, recursively, and
+        a table contributes its inheritance children, also recursively, since
+        a query without ``ONLY`` returns their rows too. The two expansions
+        compose: a view over an inherited table reaches the children of that
+        table. Views themselves are left out of the result, having no rows of
+        their own.
+
+        The answer depends only on the schema, so it is computed once per
+        ``(schema, relname, only)`` and dropped by
+        ``reconnect(reload=True)``.
+
+        Args:
+            schema (str): schema name.
+            relname (str): relation name.
+            only (bool): ``True`` when the read uses ``ONLY``, which excludes
+                the inheritance children of this relation, though not those
+                reached through a view it is defined over.
+
+        Returns:
+            frozenset[str]: ``'schema.name'`` for each physical relation read.
+        """
+        key = (schema, relname, only)
+        if key not in self.__read_sets:
+            self.__read_sets[key] = frozenset(
+                f"{row['schema']}.{row['name']}"
+                for row in self.execute_query(
+                    self.__READ_SET_QUERY, (schema, relname, only)))
+        return self.__read_sets[key]
 
     def _fields_metadata(self, sfqrn):
         "Proxy to PgMeta.fields_meta"

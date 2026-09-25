@@ -311,6 +311,36 @@ These methods inspect or assert on the predicate **without executing SQL**.
     return the wrong rows. Invalidation remains the application's business:
     a `Relation` is a predicate, not a snapshot.
 
+::: half_orm.relation.Relation.ho_read_set
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 3
+
+!!! note "Invalidation across processes needs a trigger"
+    `ho_read_set()` tells an application which cache entries a write
+    touches, but only for writes it makes itself. To catch every client,
+    have the database say so — a statement-level trigger that calls
+    `pg_notify`, and a listener on `notifies()`:
+
+    ```sql
+    CREATE FUNCTION public.ho_notify_write() RETURNS trigger
+    LANGUAGE plpgsql AS $$
+    BEGIN
+        PERFORM pg_notify('ho_write', TG_TABLE_SCHEMA || '.' || TG_TABLE_NAME);
+        RETURN NULL;
+    END $$;
+
+    CREATE TRIGGER ho_notify_write
+        AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON blog.post
+        FOR EACH STATEMENT EXECUTE FUNCTION public.ho_notify_write();
+    ```
+
+    Statement-level, so one notification per statement rather than per row;
+    PostgreSQL delivers it at commit and collapses duplicates within a
+    transaction. This is DDL, so it belongs in a schema patch, not in
+    halfORM.
+
 ::: half_orm.relation.Relation.ho_mogrify
     options:
       show_root_heading: true

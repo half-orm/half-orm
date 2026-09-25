@@ -1,5 +1,23 @@
 # Unreleased
 
+## `Relation.ho_read_set()`
+
+Which physical relations can change a result. A view contributes what it is
+defined over, a table contributes its inheritance children, and the two
+compose: a view over an inherited table reaches that table's children, which
+neither expansion finds on its own. Views are absent from the result, having
+no rows of their own.
+
+```python
+Post().ho_read_set()              # {'blog.post', 'blog.event'}
+post_comment().ho_read_set()      # {'actor.person', 'blog.comment',
+                                  #  'blog.post', 'blog.event'}
+```
+
+An application cache can index entries by these names and drop the ones a
+write touches. Read from `pg_depend` and `pg_inherits`, computed once per
+relation and dropped by `reconnect(reload=True)`.
+
 ## `Relation.ho_structural_key()`
 
 A `Relation` cannot be a dictionary key or a set member: defining `__eq__` as

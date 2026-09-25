@@ -1435,6 +1435,63 @@ class Relation:
             'neg':         self._ho_neg,
         }
 
+    def ho_read_set(self):
+        """Returns the physical relations whose contents can change this result.
+
+        Reading a view reads the relations it is defined over, and reading a
+        table without ``ONLY`` reads its inheritance children as well. The two
+        compose, so a view over an inherited table reaches that table's
+        children. Foreign-key navigation adds the relations it joins. Views
+        are absent from the result, having no rows of their own.
+
+        An application cache can index its entries by these names and drop the
+        ones a write touches. Note the boundary: this catches writes issued by
+        this process. Another client writing to the database leaves the cache
+        stale, so the scheme suits data that changes rarely and through one
+        application. Cross-process invalidation needs ``LISTEN``/``NOTIFY``
+        and triggers, which is the application's business, not the library's.
+
+        The answer depends only on the schema. It is computed once per
+        relation and dropped by ``reconnect(reload=True)``.
+
+        Returns:
+            frozenset[str]: ``'schema.name'`` for each physical relation read.
+
+        Example:
+            Drop the cache entries a write invalidates:
+                ```python
+                class QueryCache:
+                    def __init__(self):
+                        self._rows, self._by_table = {}, {}
+
+                    def rows(self, rel):
+                        key = rel.ho_structural_key()
+                        if key not in self._rows:
+                            self._rows[key] = list(rel.ho_select())
+                            for table in rel.ho_read_set():
+                                self._by_table.setdefault(table, set()).add(key)
+                        return self._rows[key]
+
+                    def invalidate(self, table):
+                        for key in self._by_table.pop(table, ()):
+                            self._rows.pop(key, None)
+
+                cache.invalidate('blog.post')   # after a write on blog.post
+                ```
+
+        *New in version 1.2.0.*
+        """
+        _, schema, relname = self._t_fqrn
+        read = set(self._ho_model._read_set(schema, relname, self._ho_only))
+        node = self.ho_where_display()
+        if node:
+            for qualified in node.get('tables', ()):
+                # 'schema.name', and a schema may itself contain a dot.
+                other_schema, _, other_name = qualified.rpartition('.')
+                if (other_schema, other_name) != (schema, relname):
+                    read |= self._ho_model._read_set(other_schema, other_name)
+        return frozenset(read)
+
     def ho_structural_key(self):
         """Returns a hashable, canonical key for this relation's structure.
 
