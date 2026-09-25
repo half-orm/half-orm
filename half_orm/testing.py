@@ -329,10 +329,10 @@ def assertSamePredicate(rel1, rel2, msg=None):
     commutative and is compared as-is. Relations on different tables never
     match, including when both are unconstrained.
 
-    .. versionchanged:: 1.2.0
-       Two unconstrained relations on different tables used to compare equal,
-       because both yielded an empty predicate. The relation is now part of
-       the comparison.
+    *Changed in version 1.2.0: two unconstrained relations on different tables
+    used to compare equal, because both yielded an empty predicate, and a
+    predicate compared equal to its complement. The relation and the negation
+    are now part of the comparison.*
 
     Args:
         rel1: first halfORM relation object.
