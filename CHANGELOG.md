@@ -1,5 +1,47 @@
 # Unreleased
 
+## `Transaction.after_commit()` and `Transaction.after_rollback()`
+
+Work that must wait for the COMMIT. A mutation only becomes a fact when the
+transaction commits, so anything whose effect leaves the database — a
+notification, a cache eviction, a websocket event — has to be deferred until
+then, or it announces rows that a rollback has taken back. Until now the
+library offered no point to hang that on: the application had to wrap
+`Transaction.__enter__`/`__exit__` itself to find out when a transaction ended.
+
+```python
+with Transaction(blog):
+    post = Post(title='First post').ho_insert()
+    Transaction(blog).after_commit(lambda: broadcast('post', 'create', post['id']))
+    index(post)          # raises → nothing is broadcast
+# the COMMIT having succeeded, the callback runs here
+```
+
+Registration is bound to the model and the current thread, not to the
+instance: `Transaction(model).after_commit(...)` reaches the open transaction
+from anywhere in the call stack, which is what lets a model method register a
+callback without knowing who opened the transaction. Outside a transaction a
+mutation commits on its own, and the callback runs immediately — the caller
+needs no test for it.
+
+Savepoints behave as the rest of the class does: rolling one back drops the
+callbacks registered inside it, and releasing one hands them to the enclosing
+scope, whose own outcome then decides. `after_rollback()` is the mirror, and
+runs when the scope it was registered in is undone — including a COMMIT that
+fails.
+
+Callbacks run in registration order, with the connection back in autocommit
+mode. A callback failure is reported on stderr and the callbacks that follow
+still run; it is never raised to the caller, which would describe a committed
+transaction as having failed, or displace the exception a rollback is already
+carrying. A callback is responsible for its own errors.
+
+`AsyncTransaction` has both methods too, as coroutines — `await
+AsyncTransaction(model).after_commit(cb)` — accepting coroutine functions and
+plain ones alike. Awaiting registration is what lets a callback registered
+outside any transaction run on the spot rather than become a background task
+nobody holds a reference to.
+
 ## `Relation.ho_read_set()`
 
 Which physical relations can change a result. A view contributes what it is
