@@ -914,6 +914,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_structural_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_structural_key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_read_set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_read_set
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#half_orm.relation.Relation.ho_mogrify" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1782,6 +1804,28 @@
     <span class="md-ellipsis">
       
         ho_where_display
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_structural_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_structural_key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.relation.Relation.ho_read_set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ho_read_set
       
     </span>
   </a>
@@ -3540,7 +3584,12 @@ before destructive operations on set-operator predicates.</p>
   keys <code>relation</code>, <code>field</code>, <code>comp</code>, <code>value</code>
   (leaf: own fields; compound/neg: concatenation of children).</li>
 </ul>
-<p>A <strong>leaf</strong> node additionally has <code>'joins'</code>, <code>'where'</code>, <code>'values'</code>.</p>
+<p>A <strong>leaf</strong> node additionally has <code>'joins'</code>, <code>'where'</code>, <code>'values'</code>,
+<code>'table_path'</code> and <code>'neg'</code>. The last is <code>True</code> when the relation
+itself is negated (<code>~r</code> on an operand carrying no set operator);
+a negated <em>compound</em> is reported as a negation node instead, so
+consumers that ignore <code>'neg'</code> would read a negated leaf as if it
+were not negated.</p>
 <p>A <strong>compound</strong> node (<code>|</code>, <code>&amp;</code>, <code>-</code>) additionally has
 <code>'operator'</code> (<code>'or'</code>, <code>'and'</code>, <code>'and not'</code>),
 <code>'left'</code>, and <code>'right'</code>.</p>
@@ -3583,6 +3632,241 @@ and <code>'operand'</code>.</p>
     </div>
 
 </div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_structural_key" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_structural_key</span><span class="p">()</span></code>
+
+<a href="#half_orm.relation.Relation.ho_structural_key" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Returns a hashable, canonical key for this relation's structure.</p>
+<p>The key identifies <em>how the question was asked</em>: the relation, and the
+shape of the predicate built on it. It is a pure function of the
+object, issues no query, and can be used as a dictionary key or a set
+member, which a <code>Relation</code> itself cannot be: defining <code>__eq__</code> as
+set equality makes instances unhashable, since no pure function of the
+object can track an equality that depends on the current state of the
+database.</p>
+<p>Two relations with the same key always denote the same query. The
+converse does not hold: <code>Person(last_name='Martin')</code> and
+<code>Person(first_name='Jo')</code> may match the same rows today and still
+have different keys. The error is therefore always on the safe side —
+a cache keyed this way may miss, never return the wrong rows.</p>
+<p>Operand order is normalised for the commutative operators, so <code>a | b</code>
+and <code>b | a</code> share a key. No attempt is made to reconcile predicates
+that are logically equivalent but structurally different; that is query
+equivalence, which is NP-complete for conjunctive queries under set
+semantics, and not the business of a hash key.</p>
+<p>The key is recomputed on each call, in time proportional to the size of
+the predicate: a <code>Relation</code> is mutable, so caching it would be wrong
+without invalidation.</p>
+<p>Arguments passed to the terminal method are <strong>not</strong> part of the key.
+<code>ho_select()</code> and <code>ho_select(limit=10)</code> run on the same relation
+and share a key, so a cache must be keyed on the call, not on the
+relation alone, whenever those arguments vary.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>tuple</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>((fqrn, only), canonical_predicate)</code>, where <em>fqrn</em> is the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>(database, schema, relation)</code> triple, <em>only</em> says whether the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>query reads the relation with <code>ONLY</code>, excluding the rows of its</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>inheritance children, and the last member is <code>None</code> when the</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>relation is unconstrained.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>Memoise results in the application, since halfORM keeps no cache
+of its own:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">rows</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">key</span> <span class="o">=</span> <span class="n">rel</span><span class="o">.</span><span class="n">ho_structural_key</span><span class="p">()</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rel</span><span class="o">.</span><span class="n">ho_select</span><span class="p">())</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">rows</span><span class="p">(</span><span class="n">Post</span><span class="p">(</span><span class="n">published</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>               <span class="c1"># one query</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">rows</span><span class="p">(</span><span class="n">Post</span><span class="p">(</span><span class="n">published</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>               <span class="c1"># served from cache</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">rows</span><span class="p">(</span><span class="n">Author</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Alice'</span><span class="p">)</span><span class="o">.</span><span class="n">rfk_posts</span><span class="p">())</span>   <span class="c1"># other key, one query</span>
+</code></pre></div></p>
+<p>Issue each query once when several code paths build predicates
+independently:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">wanted</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">report_specs</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">rel</span> <span class="o">=</span> <span class="n">build_predicate</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="o">:=</span> <span class="n">rel</span><span class="o">.</span><span class="n">ho_structural_key</span><span class="p">())</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">wanted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span>
+</code></pre></div></p>
+</details>        <p><em>New in version 1.2.0.</em></p>
+
+
+    </div>
+
+</div><div class="admonition note">
+<p class="admonition-title">Structural, not extensional</p>
+<p>The key answers <em>how was this asked</em>, never <em>what comes back</em>. Two
+predicates matching the same rows today keep different keys if they are
+written differently, so a cache keyed this way may miss but can never
+return the wrong rows. Invalidation remains the application's business:
+a <code>Relation</code> is a predicate, not a snapshot.</p>
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="half_orm.relation.Relation.ho_read_set" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ho_read_set</span><span class="p">()</span></code>
+
+<a href="#half_orm.relation.Relation.ho_read_set" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Returns the physical relations whose contents can change this result.</p>
+<p>Reading a view reads the relations it is defined over, and reading a
+table without <code>ONLY</code> reads its inheritance children as well. The two
+compose, so a view over an inherited table reaches that table's
+children. Foreign-key navigation adds the relations it joins. Views
+are absent from the result, having no rows of their own.</p>
+<p>An application cache can index its entries by these names and drop the
+ones a write touches. Note the boundary: this catches writes issued by
+this process. Another client writing to the database leaves the cache
+stale, so the scheme suits data that changes rarely and through one
+application. Cross-process invalidation needs <code>LISTEN</code>/<code>NOTIFY</code>
+and triggers, which is the application's business, not the library's.</p>
+<p>The answer depends only on the schema. It is computed once per
+relation and dropped by <code>reconnect(reload=True)</code>.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>frozenset[str]: <code>'schema.name'</code> for each physical relation read.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>Drop the cache entries a write invalidates:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QueryCache</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_by_table</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rel</span><span class="p">):</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">key</span> <span class="o">=</span> <span class="n">rel</span><span class="o">.</span><span class="n">ho_structural_key</span><span class="p">()</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rel</span><span class="o">.</span><span class="n">ho_select</span><span class="p">())</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>            <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">rel</span><span class="o">.</span><span class="n">ho_read_set</span><span class="p">():</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_by_table</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_by_table</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="p">()):</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">cache</span><span class="o">.</span><span class="n">invalidate</span><span class="p">(</span><span class="s1">'blog.post'</span><span class="p">)</span>   <span class="c1"># after a write on blog.post</span>
+</code></pre></div></p>
+</details>        <p><em>New in version 1.2.0.</em></p>
+
+
+    </div>
+
+</div><div class="admonition note">
+<p class="admonition-title">Invalidation across processes needs a trigger</p>
+<p><code>ho_read_set()</code> tells an application which cache entries a write
+touches, but only for writes it makes itself. To catch every client,
+have the database say so — a statement-level trigger that calls
+<code>pg_notify</code>, and a listener on <code>notifies()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">FUNCTION</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">ho_notify_write</span><span class="p">()</span><span class="w"> </span><span class="k">RETURNS</span><span class="w"> </span><span class="k">trigger</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">LANGUAGE</span><span class="w"> </span><span class="n">plpgsql</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="err">$$</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">BEGIN</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">PERFORM</span><span class="w"> </span><span class="n">pg_notify</span><span class="p">(</span><span class="s1">'ho_write'</span><span class="p">,</span><span class="w"> </span><span class="n">TG_TABLE_SCHEMA</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">'.'</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">TG_TABLE_NAME</span><span class="p">);</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="k">RETURN</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">END</span><span class="w"> </span><span class="err">$$</span><span class="p">;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TRIGGER</span><span class="w"> </span><span class="n">ho_notify_write</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="k">AFTER</span><span class="w"> </span><span class="k">INSERT</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="k">UPDATE</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="k">TRUNCATE</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="k">FOR</span><span class="w"> </span><span class="k">EACH</span><span class="w"> </span><span class="k">STATEMENT</span><span class="w"> </span><span class="k">EXECUTE</span><span class="w"> </span><span class="k">FUNCTION</span><span class="w"> </span><span class="k">public</span><span class="p">.</span><span class="n">ho_notify_write</span><span class="p">();</span>
+</code></pre></div>
+<p>Statement-level, so one notification per statement rather than per row;
+PostgreSQL delivers it at commit and collapses duplicates within a
+transaction. This is DDL, so it belongs in a schema patch, not in
+halfORM.</p>
+</div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3914,7 +4198,7 @@ edge case entirely.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="July 24, 2026 09:24:46 UTC">July 24, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 25, 2026 14:36:14 UTC">September 25, 2026</span>
   </span>
 
     

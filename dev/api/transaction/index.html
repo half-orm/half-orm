@@ -726,6 +726,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#work-that-must-wait-for-the-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Work that must wait for the COMMIT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Work that must wait for the COMMIT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#half_orm.transaction.Transaction" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -733,6 +745,56 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Transaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction.after_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        after_commit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction.after_rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        after_rollback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1151,6 +1213,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#work-that-must-wait-for-the-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Work that must wait for the COMMIT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Work that must wait for the COMMIT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#half_orm.transaction.Transaction" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1158,6 +1232,56 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Transaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction.after_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        after_commit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.transaction.Transaction.after_rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        after_rollback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1189,6 +1313,25 @@ automatically — an exception in an inner block rolls back only that scope,
 leaving the outer transaction intact.</p>
 <p>See <a href="../../half-an-hour/#10-transactions-5-min">Learn halfORM in half an hour</a>
 for a full walkthrough.</p>
+<h2 id="work-that-must-wait-for-the-commit">Work that must wait for the COMMIT<a class="headerlink" href="#work-that-must-wait-for-the-commit" title="Permanent link">&para;</a></h2>
+<p>A mutation only becomes a fact when the transaction commits. Anything whose
+effect leaves the database — a notification, a cache eviction, a websocket
+event — must therefore be deferred until then, or it announces rows that a
+rollback has taken back.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">'First post'</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">)</span><span class="o">.</span><span class="n">after_commit</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">broadcast</span><span class="p">(</span><span class="s1">'post'</span><span class="p">,</span> <span class="s1">'create'</span><span class="p">,</span> <span class="n">post</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]))</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">index</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>          <span class="c1"># raises → nothing is broadcast</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># the COMMIT having succeeded, the callback runs here</span>
+</code></pre></div>
+<p><code>Transaction(model).after_commit(...)</code> reaches the open transaction of the
+current thread from anywhere in the call stack: a model method can register a
+callback without knowing who opened the transaction, and without a reference
+to the object that did. Outside a transaction the callback runs immediately,
+a mutation committing on its own.</p>
+<p><code>AsyncTransaction</code> carries the same two methods as coroutines — <code>await
+AsyncTransaction(model).after_commit(cb)</code> — accepting coroutine functions and
+plain ones alike.</p>
 <hr />
 
 
@@ -1271,7 +1414,14 @@ connection should be used.</p>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="n">Post</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="c1"># exception here rolls back only the post, not Alice</span>
 </code></pre></div></p>
+<p>Work that must wait for the COMMIT (see :meth:<code>after_commit</code>):
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">'First post'</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">)</span><span class="o">.</span><span class="n">after_commit</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">notify</span><span class="p">(</span><span class="n">post</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]))</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># notify() runs here, the COMMIT having succeeded</span>
+</code></pre></div></p>
 </details>        <p><em>New in version 0.18.0:</em> nested <code>Transaction</code> blocks use savepoints.</p>
+<p><em>New in version 1.2.0:</em> :meth:<code>after_commit</code> and :meth:<code>after_rollback</code>.</p>
 
 
 
@@ -1292,7 +1442,148 @@ connection should be used.</p>
 
 
 
+<h4 id="half_orm.transaction.Transaction-functions">Methods:<a href="#half_orm.transaction.Transaction-functions" class="headerlink" title="Permanent link">&para;</a></h4>
 
+<div class="doc doc-object doc-function">
+
+
+<h5 id="half_orm.transaction.Transaction.after_commit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">after_commit</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span></code>
+
+<a href="#half_orm.transaction.Transaction.after_commit" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register <code>callback</code> to run once the transaction has committed.</p>
+<p>A mutation only becomes a fact when the COMMIT succeeds: anything
+whose effect leaves the database — a notification, a cache eviction,
+a websocket event — has to wait for it, or it announces rows that a
+rollback has taken back.</p>
+<p>Outside a transaction, a mutation commits on its own and the callback
+runs immediately. Inside one, it is queued and runs after the COMMIT
+of the outermost block, in registration order, with the connection
+back in autocommit mode. Rolling back a savepoint drops the callbacks
+registered inside it; releasing one hands them to the enclosing scope,
+whose own outcome then decides.</p>
+<p>Registration is bound to the model and the current thread, not to this
+instance: <code>Transaction(model).after_commit(...)</code> reaches the open
+transaction from anywhere in the call stack, with no reference to the
+object that opened it.</p>
+<p>A callback failure is reported on stderr, and the callbacks that
+follow still run. It is never raised to the caller: the COMMIT has
+already succeeded, and an exception here would describe the
+transaction as having failed.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>callback</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>a callable taking no argument. Its return value is
+ignored.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>Publish an event only if the whole unit of work lands:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@transaction</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_rfk</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">Transaction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ho_model</span><span class="p">)</span><span class="o">.</span><span class="n">after_commit</span><span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="k">lambda</span><span class="p">:</span> <span class="n">broadcast</span><span class="p">(</span><span class="s1">'post'</span><span class="p">,</span> <span class="s1">'create'</span><span class="p">,</span> <span class="n">post</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]))</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>       <span class="c1"># may raise — nothing is broadcast</span>
+</code></pre></div></p>
+</details>        <p><em>New in version 1.2.0.</em></p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="half_orm.transaction.Transaction.after_rollback" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">after_rollback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span></code>
+
+<a href="#half_orm.transaction.Transaction.after_rollback" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register <code>callback</code> to run if the transaction is rolled back.</p>
+<p>The mirror of :meth:<code>after_commit</code>: the callback runs when the scope
+it was registered in is undone — the rollback of the outermost block,
+the rollback of the savepoint it belongs to, or a COMMIT that fails.
+Releasing a savepoint hands its callbacks to the enclosing scope,
+which may still roll back.</p>
+<p>Outside a transaction there is nothing to undo and the callback is
+dropped — the symmetric case of :meth:<code>after_commit</code> running it at
+once.</p>
+<p>As with :meth:<code>after_commit</code>, a callback failure is reported on stderr
+and never raised: here it would displace the exception the caller is
+already handling.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>callback</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>a callable taking no argument. Its return value is
+ignored.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p><em>New in version 1.2.0.</em></p>
+
+
+    </div>
+
+</div>
 
 
 
@@ -1323,7 +1614,7 @@ connection should be used.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 29, 2026 07:05:00 UTC">March 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 7, 2026 13:29:04 UTC">October 7, 2026</span>
   </span>
 
     

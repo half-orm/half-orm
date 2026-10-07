@@ -1884,11 +1884,17 @@ assertInvolvesTables(
     <div class="doc doc-contents first">
 
         <p>Assert that two relations produce the same logical predicate.</p>
-<p>Compares predicates structurally, ignoring relation aliases (<code>r{ho_id}</code>)
-which differ between object instances even for equivalent queries.
-Commutative operators (<code>or</code>, <code>and</code>) are normalised so that
-<code>A | B</code> and <code>B | A</code> are considered equal; <code>and not</code> is not
-commutative and is compared as-is.</p>
+<p>Compares the relations' structural keys
+(:meth:<code>~half_orm.relation.Relation.ho_structural_key</code>), ignoring relation
+aliases (<code>r{ho_id}</code>) which differ between object instances even for
+equivalent queries. Commutative operators (<code>or</code>, <code>and</code>) are normalised
+so that <code>A | B</code> and <code>B | A</code> are considered equal; <code>and not</code> is not
+commutative and is compared as-is. Relations on different tables never
+match, including when both are unconstrained.</p>
+<p><em>Changed in version 1.2.0: two unconstrained relations on different tables
+used to compare equal, because both yielded an empty predicate, and a
+predicate compared equal to its complement. The relation and the negation
+are now part of the comparison.</em></p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
