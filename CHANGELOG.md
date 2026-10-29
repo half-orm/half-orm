@@ -1,5 +1,7 @@
 # Unreleased
 
+# 1.2.0 (2026-10-29)
+
 ## `Transaction.after_commit()` and `Transaction.after_rollback()`
 
 Work that must wait for the COMMIT. A mutation only becomes a fact when the
@@ -14,6 +16,33 @@ with Transaction(blog):
     post = Post(title='First post').ho_insert()
     Transaction(blog).after_commit(lambda: broadcast('post', 'create', post['id']))
     index(post)          # raises → nothing is broadcast
+
+* Why database-first: a series of essays on why half-orm was built (essays) (f34fd3c2)
+* Add Transaction.after_commit(), work that must wait for the COMMIT (feature/ho-structural-key) (697f0bd5)
+* Add Relation.ho_read_set(), the relations a read actually touches (ee7e7333)
+* ONLY belongs to the relation read, not to the predicate (0a481e14)
+* Use the house version marker, the Sphinx directive does not render (399a1317)
+* Put the usage examples in the docstring, in the house format (e30cfc77)
+* Add Relation.ho_structural_key(), and fix two assertSamePredicate bugs (d76656c4)
+* docs: qualify reverse FK names with the database name (e83be77e)
+* fix(docs): send the outdated banner to latest, not to the site root (47d64629)
+* ci(docs): stop keeping the 1.0 documentation (a98fec7d)
+* ci(docs): make the dispatch require a version instead of assuming dev (33eb844d)
+* ci(docs): stop the cleanup input naming a list that went stale (036bb365)
+* ci: move the actions to their Node 24 releases (97fc48fb)
+* docs: announce breaking changes on the home page of the line that has them (e4f31d42)
+* docs: publish the security advisories and the breaking changes (e73b76cf)
+* docs: hide the development workflow guide (f798a36f)
+* docs(api): point the Field link at the section that still exists (7083da6f)
+* ci(docs): install what the branch declares, and put mike in it (e7948599)
+* docs: describe the 1.1.0 security fixes that shipped undescribed (666211de)
+* refactor(ci): make the docs workflow reusable across branches (303ddc9b)
+* fix(docs): stop the banner calling the development docs an old release (43809927)
+* fix(ci): carry the cleanup guard through env like every other value (adaeb27b)
+* docs: say how to redeploy a version line without the gh CLI (783af788)
+* feat(docs): let a branch declare itself deprecated (cfcd40a8)
+* fix(docs): stop the version menu from lying, and stop it deleting releases (4be5dda2)
+
 # the COMMIT having succeeded, the callback runs here
 ```
 
