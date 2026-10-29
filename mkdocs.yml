@@ -1,7 +1,11 @@
 site_name: halfORM Documentation
 site_description: A simple PostgreSQL to Python mapper
 site_author: half-orm
-site_url: https://half-orm.github.io/
+# The project site is served under /half-orm/; mike then deploys each release
+# line into a directory of its own beneath it. Without the repository segment
+# every page declared a canonical on the organisation root, which is a
+# different site and may not exist at all.
+site_url: https://half-orm.github.io/half-orm/
 repo_url: https://github.com/half-orm/half-orm
 repo_name: half-orm/half-orm
 
@@ -143,6 +147,21 @@ extra:
 nav:
   - Home: index.md
   - Learn in half an hour: half-an-hour.md
+  # An argument, not reference material: why the design refuses what it refuses.
+  # Listed after the tutorial because it answers "why is it like this?", which is
+  # a question the reader has only once they have seen it work. Named for the
+  # thesis rather than the genre: every other tab answers a question the reader
+  # arrives with, and "Essays" named only the shape of the prose. The home page
+  # opens on "a database-first ORM for PostgreSQL", so the tab picks up a term
+  # the reader has already met and promises its justification.
+  - Why database-first:
+    - essays/index.md
+    - The Vietnam of Computer Science, Twenty Years On: essays/vietnam-twenty-years-on.md
+    - A Relation Is a Predicate, Not an Object: essays/relation-as-predicate.md
+    - You Can't Have an N+1 Problem if Navigation Isn't a Query: essays/navigation-is-a-join.md
+    - Delete Your Repository Layer: essays/predicate-locality.md
+    - halfORM vs SQLAlchemy Core vs Django ORM: essays/comparison.md
+    - Git Is the Migration Tool: essays/git-is-the-migration-tool.md
   - API Reference:
     - Model: api/model.md
     - Relation: api/relation.md

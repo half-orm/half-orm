@@ -13,7 +13,9 @@ with your data. No migrations, no code generation.
 **The central idea:** a `Relation` object is a **predicate**. It describes the
 logical condition that rows must satisfy to belong to the relation. Its
 *extension* — the set of rows that currently satisfy the predicate in the
-database — is what you read, update, or delete.
+database — is what you read, update, or delete. Why a predicate rather than an
+object mapped to a row is argued in
+[A Relation Is a Predicate, Not an Object](essays/relation-as-predicate.md).
 
 <!--
   Filled in by hooks/security_notice.py, from the advisory page for the line
@@ -76,6 +78,7 @@ Author(id=alice['id']).ho_assert_is_singleton().ho_delete()
 ## Learn more
 
 - [Learn halfORM in half an hour](half-an-hour.md) — everything you need, in order
+- [Why database-first](essays/index.md) — the argument behind the design, in six essays
 - [API Reference](api/relation.md) — every method in detail
 - [Breaking changes](breaking-changes.md) — what each release requires you to change, and what to do coming from 0.x
 - [Security](security.md) — advisories by release line, and how to report a vulnerability
