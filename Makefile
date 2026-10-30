@@ -38,8 +38,12 @@ docs-serve: docs-deps
 check_publish_ready:
 	@git diff --quiet && git diff --cached --quiet || { echo "ERROR: repository is not clean."; exit 1; }
 	@git describe --tags --exact-match --match 'v[0-9]*.[0-9]*.[0-9]*' HEAD > /dev/null 2>&1 || { echo "ERROR: HEAD has no vX.Y.Z[-...] tag."; exit 1; }
-	@echo "OK: $(shell git describe --exact-match HEAD)"
+	@echo "OK: $(shell git describe --tags --exact-match HEAD)"
 
+# --tags: `make release` creates a lightweight tag, which `git describe` ignores
+# without it. The refspec then came out empty, so this pushed the current branch
+# and left the tag behind -- nothing on GitHub, so no docs deployed for 1.2.0.
+# The push must succeed: a release whose tag is not public is not uploaded.
 publish: check_publish_ready build
-	-git push origin $(shell git describe --exact-match HEAD)
+	git push origin $(shell git describe --tags --exact-match HEAD)
 	twine upload -r half-orm dist/*
