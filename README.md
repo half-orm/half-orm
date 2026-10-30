@@ -52,7 +52,9 @@ with your data. No migrations, no code generation.
 **The central idea:** a `Relation` object is a **predicate**. It describes the
 logical condition that rows must satisfy to belong to the relation. Its
 *extension* — the set of rows currently satisfying the predicate in the
-database — is what you read, update, or delete.
+database — is what you read, update, or delete. Why a predicate rather than an
+object mapped to a row is argued in
+[A Relation Is a Predicate, Not an Object](https://half-orm.github.io/half-orm/dev/essays/relation-as-predicate/).
 
 ## Key features
 
@@ -135,6 +137,8 @@ Author(id=alice['id']).ho_delete()
 
 - [Learn halfORM in half an hour](https://half-orm.github.io/half-orm/dev/half-an-hour/)
 - [API Reference](https://half-orm.github.io/half-orm/dev/api/relation/)
+- [Why database-first](https://half-orm.github.io/half-orm/dev/essays/) — the argument
+  behind the design, in six essays
 - [Breaking changes](https://half-orm.github.io/half-orm/latest/breaking-changes/) — and
   what to do coming from a 0.x release, all of which were published as Beta
 - [Security](https://half-orm.github.io/half-orm/latest/security/) — advisories by
