@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 172.64839 84.774445"
+   width="172.64839"
+   height="84.774445"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.1608567"
+     inkscape:cx="112.68679"
+     inkscape:cy="144.61857"
+     inkscape:window-width="1920"
+     inkscape:window-height="1131"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <!-- Boa constrictor ayant avalé un éléphant -->
+  <!-- Œil (tête à droite) -->
+  <!-- half-orm -->
+  <path
+     d="m 0.652331,38.723328 c 0.21122,-2.302914 23.36405,-0.105847 38.345695,-8.492899 9.10438,-5.096831 6.61134,-18.70709 13.79538,-26.849203 13.0284,-7.521151 20.32899,2.734123 23.58609,2.734123 3.2571,0 15.07965,-2.133795 28.108054,5.387357 8.52064,5.855794 5.92398,19.196528 15.00799,23.339027 15.2232,6.942092 52.34448,1.295026 52.50774,5.621912 -3.42259,6.311857 -32.26079,3.723675 -56.42057,2.206887 -16.285504,-1.253526 -26.056804,-1.880288 -32.571004,-1.880288 -6.5142,0 -16.28551,0.626762 -32.57101,1.880288 -15.063455,1.242281 -34.538255,1.815033 -44.270355,0.264547 -4.99818,-0.796293 -5.65102,-2.793257 -5.51801,-4.211751 z"
+     fill="#7a6035"
+     stroke="#4a3820"
+     stroke-width="1.27794"
+     id="path1"
+     sodipodi:nodetypes="cscscsccscsc"
+     style="fill:#b3b3b3" />
+  <text
+     x="113.93037"
+     y="60.194122"
+     text-anchor="middle"
+     font-family="'Courier New', Courier, monospace"
+     font-size="34.1593px"
+     fill="#336791"
+     id="text4"
+     transform="scale(0.71407981,1.4004037)"
+     style="stroke-width:1.5527"><tspan
+       font-weight="300"
+       opacity="0.55"
+       id="tspan3"
+       style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Cantarell;-inkscape-font-specification:'Cantarell Light';stroke-width:1.5527">half<tspan
+   style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-family:Cantarell;-inkscape-font-specification:'Cantarell Ultra-Bold'"
+   id="tspan4">ORM</tspan></tspan></text>
+</svg>
