@@ -43,8 +43,10 @@ def register_class(relation_class):
             return relation_class
         model = relation_class._ho_model
         dbname = model._dbname
-        schemaname, relationname = relation_class._qrn.replace('"', '').rsplit('.', 1)
-        key = (dbname, schemaname, relationname)
+        # The triple the class was generated for, not `_qrn` taken apart on
+        # its last dot: for a relation whose own name holds a dot that gave
+        # the key of another relation, and registered the class in its place.
+        key = tuple(relation_class._t_fqrn)
         model._classes_[dbname][key] = relation_class
         relation_class._rels_ids[rel_id] = key
         return relation_class
@@ -97,7 +99,8 @@ def factory(dct):
             metadata['inherits'].sort()
             bases = []
             for parent_fqrn in metadata['inherits']:
-                parent_qtn = f"{parent_fqrn[1]}.{parent_fqrn[2]}"
+                # Quoted, so that a dot in either part stays where it is.
+                parent_qtn = pg_meta.normalize_qrn(parent_fqrn)
                 parent_class = model._import_class(parent_qtn)
                 bases.append(parent_class)
         tbl_attr['_ho_metadata'] = metadata

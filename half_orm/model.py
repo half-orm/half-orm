@@ -604,6 +604,26 @@ class Model:
                 ```
 
         """
+        schema, table = self._split_qtn(relation_name)
+        return factory({'fqrn': (self.__dbname, schema, table), 'model': Model.__deja_vu[self.__identity], 'fields_aliases':fields_aliases})
+
+
+    def _split_qtn(self, relation_name):
+        """Split a qualified relation name into ``(schema, relation)``.
+
+        The one place where a `schema.relation` string is taken apart. A dot
+        may belong to the schema or to the relation, so the string is first
+        looked up as it stands among the relations of the database; only a
+        name the catalog does not know is parsed, quotes included, and then
+        split on its last dot -- which is right for every relation whose own
+        name holds none.
+
+        Raises:
+            MissingSchemaInName: if `relation_name` has no schema part.
+        """
+        resolved = self.__pg_meta.resolve(self.__dbname, relation_name)
+        if resolved is not None:
+            return resolved
         # Not `relation_name.replace('"', '')`: deleting the quotes made
         # `"a""b"."t"` and `ab.t` the same name, so a relation whose name
         # holds one could not be reached -- or reached a different relation
@@ -615,9 +635,7 @@ class Model:
             parts = relation_name.rsplit('.', 1)
         if len(parts) < 2:
             raise model_errors.MissingSchemaInName(relation_name)
-        schema, table = '.'.join(parts[:-1]), parts[-1]
-        return factory({'fqrn': (self.__dbname, schema, table), 'model': Model.__deja_vu[self.__identity], 'fields_aliases':fields_aliases})
-
+        return '.'.join(parts[:-1]), parts[-1]
 
     @staticmethod
     def _deja_vu(dbname):
@@ -1112,7 +1130,11 @@ class Model:
         Returns:
             bool
         """
-        return self.__pg_meta.has_relation(self.__dbname, *qtn.rsplit('.', 1))
+        try:
+            schema, relation = self._split_qtn(qtn)
+        except model_errors.MissingSchemaInName:
+            return False
+        return self.__pg_meta.has_relation(self.__dbname, schema, relation)
 
     def _import_class(self, qtn, scope=None):
         """Return the class for `qtn` from the scope package, if there is one.

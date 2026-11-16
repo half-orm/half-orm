@@ -1267,7 +1267,7 @@ class Relation:
 
         # Convert 'schema.table' → (dbname, schema, table)
         to_qrn = spec['to']
-        schema, table = to_qrn.rsplit('.', 1)
+        schema, table = self._ho_model._split_qtn(to_qrn)
         fk_sfqrn = (self._dbname, schema, table)
 
         return FKey(key, self, fk_sfqrn,
@@ -1477,8 +1477,8 @@ class Relation:
         node = self.ho_where_display()
         if node:
             for qualified in node.get('tables', ()):
-                # 'schema.name', and a schema may itself contain a dot.
-                other_schema, _, other_name = qualified.rpartition('.')
+                # 'schema.name', and either part may itself contain a dot.
+                other_schema, other_name = self._ho_model._split_qtn(qualified)
                 if (other_schema, other_name) != (schema, relname):
                     read |= self._ho_model._read_set(other_schema, other_name)
         return frozenset(read)

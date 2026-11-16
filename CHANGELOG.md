@@ -18,6 +18,25 @@ them frees both names.
 See `half_orm/migrations/BREAKING_CHANGES-1.3.0.md` for what to write
 instead.
 
+### A dot in a relation name no longer sends half_orm to another relation
+
+A schema name may hold dots, and so may a relation name, but several places
+took a `schema.relation` string apart on its last dot — which is only right
+when the relation's own name holds none:
+
+- `@register` on the class of `a."b.c"` filed it under the key of `"a.b".c`,
+  so asking for that other relation returned the subclass of the first;
+- a table inheriting from a parent with a dot in its name raised
+  `UnknownRelation`;
+- `has_relation()` did not find such a relation, and raised `TypeError` on a
+  name with no schema instead of answering `False`;
+- `ho_read_set()` and the foreign keys declared for a view (`Fkeys` with
+  `to`) resolved the wrong relation.
+
+A name is now looked up as it stands among the relations of the database
+before being parsed, so `get_relation_class('a.b.c')` reaches the relation
+spelled that way wherever its dot falls. The quoted forms work as before.
+
 # 1.2.1 (2026-11-16)
 
 ## Model and connections

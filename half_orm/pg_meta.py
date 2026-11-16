@@ -371,7 +371,26 @@ class PgMeta:
                         table_key, fields, ffields, confupdtype, confdeltype, True, is_singleton)
 
         metadata['relations_list'].sort()
+        # 'schema.relation' as it is written without quotes -> the relations
+        # spelled that way. A schema may hold dots and so may a relation, so
+        # the string alone does not say where one ends and the other starts;
+        # the catalog does.
+        bydotted = metadata['bydotted'] = {}
+        for table_key in byname:
+            bydotted.setdefault(f'{table_key[1]}.{table_key[2]}', []).append(table_key)
         PgMeta.meta.register(self.__key, metadata)
+
+    def resolve(self, dbname, name):
+        """Find the relation an unquoted `schema.relation` string designates.
+
+        Returns ``(schema, relation)`` when exactly one relation of the
+        database is spelled that way, None otherwise -- no such relation, or
+        a name that needs quotes to be told apart from another.
+        """
+        found = self.metadata(dbname)['bydotted'].get(name, ())
+        if len(found) == 1:
+            return found[0][1], found[0][2]
+        return None
 
     def has_relation(self, dbname, schema, relation):
         """Checks whether the specified relation exists in the specified database.

@@ -50,6 +50,9 @@ def names_model():
                 '[database]\nname = halftest\nuser = halftest\n'
                 'password = halftest\nhost = 127.0.0.1\n')
         a_model = Model(CONF)
+        # Another test module may already have read the catalog through this
+        # host name, before the schema existed.
+        a_model.reconnect(reload=True)
         # the type lives in a schema that is not on the default search_path
         a_model.execute_query(f'set search_path to public, {SCHEMA}')
         yield a_model
