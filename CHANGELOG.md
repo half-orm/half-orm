@@ -1,5 +1,7 @@
 # Unreleased
 
+# 1.2.1 (2026-11-16)
+
 ## Model and connections
 
 ### A relation class runs as the role of the Model it came from
@@ -129,6 +131,13 @@ with a value.
 Only the lone `%` operator was escaped for psycopg, so pg_trgm's `%>`, `<%`
 and their relatives failed with *only '%s', '%b', '%t' are allowed as
 placeholders*.
+
+* docs: publish the 1.2 security advisory (security-1.2.1) (fec1e259)
+* fix: keep a transaction whole, and close three gaps around Model (1c428514)
+* fix(security): quote catalog names wherever they are interpolated (6170a771)
+* fix(security): bind a relation class to the role of its own Model (8229e01c)
+* docs: point the README at the essays (741b337d)
+* build: make publish pushes the tag, not the branch (6dc1f73a)
 
 # 1.2.0 (2026-10-29)
 
