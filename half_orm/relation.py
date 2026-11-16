@@ -1286,16 +1286,6 @@ class Relation:
         that are set."""
         return {key:field.value for key, field in self._ho_fields.items() if field.is_set()}
 
-    def keys(self):
-        return self._ho_fields.keys()
-
-    def items(self):
-        for key, field in self._ho_fields.items():
-            yield key, field.value
-
-    def __getitem__(self, key):
-        return self._ho_fields[key].value
-
     def __to_dict_val_comp(self):
         """Returns a dictionary containing the values and comparators of the fields
         that are set."""

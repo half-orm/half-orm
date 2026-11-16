@@ -293,7 +293,7 @@ class Test(TestCase):
         self.comment(
             post_id=post_id,
             content=content,
-            author_id=aa['id'],
+            author_id=aa.id.value,
         ).ho_insert()
 
     def _insert_post_and_get_id(self, title, content=''):
@@ -301,9 +301,9 @@ class Test(TestCase):
         row = self.post(
             title=title,
             content=content,
-            author_first_name=str(aa['first_name']),
-            author_last_name=str(aa['last_name']),
-            author_birth_date=aa['birth_date'],
+            author_first_name=str(aa.first_name.value),
+            author_last_name=str(aa.last_name.value),
+            author_birth_date=aa.birth_date.value,
         ).ho_insert()
         return row['id']
 
@@ -383,7 +383,7 @@ class TestJsonAggDistinct(TestCase):
 
     def _insert_comment(self, post_id, content='comment', author_id=None):
         if author_id is None:
-            author_id = self.aa['id']
+            author_id = self.aa.id.value
         self.comment(
             post_id=post_id,
             content=content,
@@ -401,7 +401,7 @@ class TestJsonAggDistinct(TestCase):
             self._insert_post('d_scalar2', 'c')
             # Two comments with the same content — distinct must deduplicate
             self._insert_comment(row['id'], content='hello')
-            self._insert_comment(row['id'], content='hello', author_id=self.ab['id'])
+            self._insert_comment(row['id'], content='hello', author_id=self.ab.id.value)
 
             p = self.post(title='d_scalar1')
             p.comment_rfk.set(self.comment())
@@ -479,8 +479,8 @@ class TestJsonAggDistinct(TestCase):
         with Transaction(halftest.model):
             row = self._insert_post('d_dup', 'c')
             pid = row['id']
-            self._insert_comment(pid, content='same', author_id=self.aa['id'])
-            self._insert_comment(pid, content='same', author_id=self.ab['id'])
+            self._insert_comment(pid, content='same', author_id=self.aa.id.value)
+            self._insert_comment(pid, content='same', author_id=self.ab.id.value)
 
             # without distinct: both identical objects appear
             p = self.post(title='d_dup')
@@ -502,8 +502,8 @@ class TestJsonAggDistinct(TestCase):
         with Transaction(halftest.model):
             row = self._insert_post('d_uniq2', 'c')
             pid = row['id']
-            self._insert_comment(pid, content='first',  author_id=self.aa['id'])
-            self._insert_comment(pid, content='second', author_id=self.ab['id'])
+            self._insert_comment(pid, content='first',  author_id=self.aa.id.value)
+            self._insert_comment(pid, content='second', author_id=self.ab.id.value)
 
             p = self.post(title='d_uniq2')
             p.comment_rfk.set(self.comment())
@@ -521,7 +521,7 @@ class TestJsonAggDistinct(TestCase):
         "distinct=True on a chained FK (post ← comment → person) must work"
         with Transaction(halftest.model):
             row = self._insert_post('d_chained', 'c')
-            self._insert_comment(row['id'], 'hello', author_id=self.aa['id'])
+            self._insert_comment(row['id'], 'hello', author_id=self.aa.id.value)
 
             p = self.post(title='d_chained')
             c = self.comment()
@@ -694,14 +694,14 @@ class TestJsonAggIntermediateNodes(TestCase):
         row = self.post(
             title=title,
             content=content,
-            author_first_name=str(aa['first_name']),
-            author_last_name=str(aa['last_name']),
-            author_birth_date=aa['birth_date'],
+            author_first_name=str(aa.first_name.value),
+            author_last_name=str(aa.last_name.value),
+            author_birth_date=aa.birth_date.value,
         ).ho_insert()
         return row['id']
 
     def _insert_comment(self, post_id, content='comment'):
-        self.comment(post_id=post_id, content=content, author_id=self.aa['id']).ho_insert()
+        self.comment(post_id=post_id, content=content, author_id=self.aa.id.value).ho_insert()
 
     def test_intermediate_hop_fields_merged_with_leaf(self):
         "post's own 'title' (hop 1) and person's 'last_name' (leaf) both appear in one flat object"

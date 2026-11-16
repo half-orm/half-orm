@@ -1,5 +1,23 @@
 # Unreleased
 
+## Relations
+
+### A relation is no longer a mapping
+
+**Breaking change.** `Relation.keys()`, `Relation.items()` and `rel['col']`
+are removed. They were what was left of `Relation` inheriting from
+`OrderedDict`, dropped long ago, and had no caller in the library. What they
+returned was the predicate — the constraint set on each column, `None` for
+the others — which `ho_dict()` gives without the `None`s.
+
+They cost more than they gave: a method lives in the same namespace as the
+columns, so a column called `items` or `keys` replaced it on the instance,
+and `dict(rel)` then failed with *'Field' object is not callable*. Removing
+them frees both names.
+
+See `half_orm/migrations/BREAKING_CHANGES-1.3.0.md` for what to write
+instead.
+
 # 1.2.1 (2026-11-16)
 
 ## Model and connections

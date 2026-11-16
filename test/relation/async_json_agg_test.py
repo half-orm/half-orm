@@ -82,7 +82,7 @@ class Test(IsolatedAsyncioTestCase):
         "post <- comment -> person: must return list of person dicts per post"
         row = await self._insert_post('a_chained_post', 'c')
         await self.comment(
-            post_id=row['id'], content='hello', author_id=self.aa['id'],
+            post_id=row['id'], content='hello', author_id=self.aa.id.value,
         ).ho_ainsert()
 
         p = self.post(title='a_chained_post')
@@ -107,8 +107,8 @@ class Test(IsolatedAsyncioTestCase):
     async def test_distinct_string_field_returns_scalar_list(self):
         "distinct=True with a string field returns a flat deduplicated list, async parity"
         row = await self._insert_post('a_d_scalar1', 'c')
-        await self.comment(post_id=row['id'], content='hello', author_id=self.aa['id']).ho_ainsert()
-        await self.comment(post_id=row['id'], content='hello', author_id=self.aa['id']).ho_ainsert()
+        await self.comment(post_id=row['id'], content='hello', author_id=self.aa.id.value).ho_ainsert()
+        await self.comment(post_id=row['id'], content='hello', author_id=self.aa.id.value).ho_ainsert()
 
         p = self.post(title='a_d_scalar1')
         p.comment_rfk.set(self.comment())
@@ -122,7 +122,7 @@ class Test(IsolatedAsyncioTestCase):
     async def test_intermediate_hop_fields_merged_with_leaf(self):
         "'intermediate_nodes' merges post's own 'title' (hop 1) with person's 'last_name' (leaf), async parity"
         row = await self._insert_post('a_inter_post', 'c')
-        await self.comment(post_id=row['id'], content='hello', author_id=self.aa['id']).ho_ainsert()
+        await self.comment(post_id=row['id'], content='hello', author_id=self.aa.id.value).ho_ainsert()
 
         c = self.comment(content='hello')
         p = self.post()

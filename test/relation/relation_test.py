@@ -117,13 +117,12 @@ class Test(TestCase):
         self.assertEqual(pers.ho_count('birth_date', distinct=True), 1)
         self.assertEqual(pers.ho_count('birth_date'), 60)
 
-    def test_keys(self):
-        self.assertEqual(list(self.pers.keys()), ['id', 'first_name', 'last_name', 'birth_date', 'motto'])
-
-    def test_items(self):
+    def test_relation_is_not_a_mapping(self):
+        """keys(), items() and rel['col'] are gone: they made `keys` and
+        `items` unusable as column names, for a view of the predicate that
+        ho_dict() gives better."""
         pers = self.pers(first_name='Gaston', last_name='Lagaffe')
-        self.assertEqual(list(pers.items()), [('id', None), ('first_name', 'Gaston'), ('last_name', 'Lagaffe'), ('birth_date', None), ('motto', None)])
-
-    def test_getitem(self):
-        pers = self.pers(first_name='Gaston', last_name='Lagaffe')
-        self.assertEqual(pers['last_name'], 'Lagaffe')
+        for name in ('keys', 'items', '__getitem__'):
+            self.assertFalse(hasattr(pers, name), name)
+        self.assertEqual(
+            pers.ho_dict(), {'first_name': 'Gaston', 'last_name': 'Lagaffe'})
