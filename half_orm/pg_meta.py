@@ -58,6 +58,17 @@ def quote_ident(name) -> str:
     """
     return '"' + str(name).replace('"', '""') + '"'
 
+def unquote_ident(name) -> str:
+    """Undo quote_ident; a bare name is returned unchanged.
+
+    Only a fully quoted name is unwrapped: `first_name"` is not one, and
+    comes back as it went in.
+    """
+    name = str(name)
+    if len(name) >= 2 and name.startswith('"') and name.endswith('"'):
+        return name[1:-1].replace('""', '"')
+    return name
+
 def normalize_fqrn(t_fqrn: tuple) -> str:
     """
     Transform the tuple (<db name>, <schema name>, <table name>) in

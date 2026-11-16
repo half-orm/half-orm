@@ -10,6 +10,7 @@ import warnings
 import yaml
 from collections.abc import Iterable
 from half_orm.null import NULL
+from half_orm.pg_meta import quote_ident
 from half_orm.sql_adapter import SQL_ADAPTER
 from half_orm.sql_ast import FieldExpr
 
@@ -91,6 +92,32 @@ def check_comparator(comp: str) -> str:
         f"Invalid comparator: {comp!r}. Use one of "
         f"{', '.join(sorted(_WORD_COMPS))}, or a PostgreSQL operator such as "
         f"'=', '!=', '<', '>=', '@>', '@@'.")
+
+
+# A type name PostgreSQL reads the same bare or quoted. Anything else -- an
+# upper-case letter, a space, a quote, a semicolon -- is quoted before it is
+# written into a cast.
+_BARE_TYPE_NAME_RE = re.compile(r'^[a-z_][a-z0-9_]*$')
+
+
+def _cast_to(sql_type: str) -> str:
+    """Render the ``::type`` cast applied to a bound value.
+
+    The type name is read from the catalog and interpolated, no parameter
+    being able to stand for it. PostgreSQL lets a user-defined type be called
+    anything -- ``create type "int4); drop table t; --"`` is legal -- so a
+    name that is not a plain lower-case identifier is quoted, and can then
+    only ever be read as a name. Plain ones are left bare, which keeps the
+    statements for every built-in type exactly as they were.
+    """
+    if _BARE_TYPE_NAME_RE.match(sql_type):
+        return f'::{sql_type}'
+    return f'::{quote_ident(sql_type)}'
+
+
+# What IS / IS NOT may be followed by. They take a keyword, not a value, so
+# none of this can be bound as a parameter.
+_IS_OPERANDS = {True: 'TRUE', False: 'FALSE'}
 
 
 class Expr:
@@ -313,9 +340,17 @@ class Field():
         select. Otherwise, returns the field name quoted with ".
         """
         ho_id = f'r{ho_id}'
+        # quote_ident, not a bare pair of quotes: a column may be called
+        # `a"b`, and the quote inside it would otherwise close the identifier.
         if query == 'select':
-            return f'{ho_id}."{self.__name}"'
-        return f'"{self.__name}"'
+            return f'{ho_id}.{quote_ident(self.__name)}'
+        return quote_ident(self.__name)
+
+    def __is_operand(self):
+        """The keyword following IS / IS NOT for the current value."""
+        if self.__value is NULL:
+            return 'NULL'
+        return _IS_OPERANDS[self.__value]
 
     def _where_repr(self, query, ho_id):
         """Returns the SQL representation of the field for the where clause
@@ -329,9 +364,11 @@ class Field():
             comp = 'in'
         cast = ''
         if self.__value != NULL and not isiterable:
-            cast = f'::{self.__sql_type}'
+            cast = _cast_to(self.__sql_type)
         rhs = _OPERATOR_RHS_TEMPLATES.get((comp, self.__sql_type), f'{comp_str}{cast}')
-        if col_is_array and comp == '=':
+        if comp in ('is', 'is not'):
+            where_repr = f"{self.__praf(query, ho_id)} {comp} {self.__is_operand()}"
+        elif col_is_array and comp == '=':
             where_repr = f'{comp_str} = ANY({self.__praf(query, ho_id)})'
         elif not self.unaccent or not self._is_text_like:
             where_repr = f"{self.__praf(query, ho_id)} {comp} {rhs}"
@@ -366,12 +403,21 @@ class Field():
         isiterable = type(self.__value) in {tuple, list, set}
         col_is_array = self.__sql_type[0] == '_'
         comp = self._comp()
+        if comp in ('is', 'is not'):
+            # A keyword, written into the statement: `IS %s` is not SQL.
+            return FieldExpr(
+                column=self.__praf(query, ho_id),
+                comp=comp,
+                placeholder='',
+                value=None,
+                col_ref=self.__is_operand(),
+            )
         if comp == '=' and isiterable:
             comp = 'in'
         is_array_any = col_is_array and comp == '='
         cast = ''
         if not is_array_any and self.__value != NULL and not isiterable:
-            cast = f'::{self.__sql_type}'
+            cast = _cast_to(self.__sql_type)
         placeholder = _OPERATOR_RHS_TEMPLATES.get((comp, self.__sql_type), f'{comp_str}{cast}')
         return FieldExpr(
             column=self.__praf(query, ho_id),
@@ -407,7 +453,8 @@ class Field():
             ``=``.  Supported comparators: ``=``, ``!=``, ``<``, ``<=``,
             ``>``, ``>=``, ``like``, ``not like``, ``ilike``, ``not ilike``,
             ``similar to``, ``not similar to``, ``in``, ``not in``, ``is``,
-            ``is not``, ``is distinct from``, ``is not distinct from``, and
+            ``is not`` (with ``NULL``, ``True`` or ``False`` only),
+            ``is distinct from``, ``is not distinct from``, and
             any operator spelled with PostgreSQL's operator characters —
             including those added by extensions, such as ``@@``, ``@>``,
             ``&&`` or pgvector's ``<->``.
@@ -496,6 +543,15 @@ class Field():
             value = tuple(value)
         if value is NULL and comp not in {'is', 'is not'}:
             raise ValueError("comp should be 'is' or 'is not' with NULL value!")
+        if comp in {'is', 'is not'} and value is not NULL \
+                and not isinstance(value, bool):
+            # Whatever the value, the condition used to be rendered as
+            # `IS NULL`: ('is', True) silently selected the rows where the
+            # column was NULL instead of those where it was true.
+            raise ValueError(
+                f"'{comp}' takes NULL, True or False, got {value!r}. Use "
+                "'is distinct from' / 'is not distinct from' to compare "
+                "with a value.")
         self.__is_set = True
         self.__value = value
         self.__comp = comp
@@ -552,9 +608,10 @@ class Field():
 
     def _comp(self):
         "Returns the comparator associated to the value."
-        if self.__comp == '%':
-            return '%%'
-        return self.__comp
+        # Doubled wherever it appears, not only when it is the whole
+        # operator: pg_trgm's `%>` and `<%` reached psycopg as a malformed
+        # placeholder.
+        return self.__comp.replace('%', '%%')
 
     @property
     def _relation(self):

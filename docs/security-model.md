@@ -31,6 +31,7 @@ statement:
 | What | How it is checked |
 | --- | --- |
 | Column names (`ho_select`, `ho_update`, `ho_insert`, `ho_copy`) | Must exist on the relation; quoted on the way out |
+| Type names (the `::type` cast applied to a bound value) | Read from the catalog; quoted unless a plain lower-case identifier |
 | `order_by` | Parsed as a list of columns with an optional direction and `NULLS` placement; each column checked against the relation. An expression, a qualified name or a second statement is refused |
 | `Field.set()` comparators | A listed word operator (`like`, `is not`, `in`, …) or an operator spelled only with PostgreSQL's operator characters — never a space, a quote or a comment opener |
 | `json_agg` projections | Same checks as the plain `ho_select` path |

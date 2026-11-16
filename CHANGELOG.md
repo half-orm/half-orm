@@ -51,6 +51,49 @@ and a production `blog`, reached from one process — shared one description:
 the second Model saw the relations, columns and foreign keys of the first.
 The cache is now keyed by host, port and database name.
 
+## Relations
+
+### Catalog names are quoted wherever they are interpolated
+
+**Security fix.** Column and type names are read from the catalog and written
+into the statement, no parameter being able to stand for an identifier. Three
+places wrote them without the care the rest of the library takes:
+
+- **The cast applied to a bound value** used the type name bare:
+  `%s::<typname>`. PostgreSQL lets a type be called anything, and a column
+  whose type was named `int4); select pg_sleep(0); --` produced exactly that
+  SQL in every query constraining it.
+- **Column names** in `WHERE`, `SET`, `INSERT` and `ON CONFLICT` were wrapped
+  in quotes without doubling the quotes they contain, so a column called
+  `a"b` closed its own identifier.
+- **The referenced side of a join** was not quoted at all, so navigating a
+  foreign key to a column such as `"PId"` asked PostgreSQL for `pid`.
+
+Exploiting the first two takes the right to create a type or a table in the
+database — which halfORM treats as trusted — but that is a lesser privilege
+than the one the injected SQL then ran with: the role of whichever
+application constrained the column.
+
+Type names that are plain lower-case identifiers — every built-in type — are
+still written bare, so the statements halfORM generates for them are
+unchanged. The one visible difference is in join conditions, where the
+referenced column is now quoted: `r2."id" = r1."author_id"` rather than
+`r2.id = r1."author_id"`.
+
+### `IS` and `IS NOT` take `NULL`, `True` or `False`, and mean it
+
+`Field.set(('is', value))` rendered `IS NULL` whatever the value:
+`Post(published=('is', True))` returned the posts whose `published` was
+NULL. It now renders `IS TRUE` / `IS FALSE`, and any other value raises
+`ValueError` — use `is distinct from` / `is not distinct from` to compare
+with a value.
+
+### Operators containing `%` work
+
+Only the lone `%` operator was escaped for psycopg, so pg_trgm's `%>`, `<%`
+and their relatives failed with *only '%s', '%b', '%t' are allowed as
+placeholders*.
+
 # 1.2.0 (2026-10-29)
 
 ## `Transaction.after_commit()` and `Transaction.after_rollback()`

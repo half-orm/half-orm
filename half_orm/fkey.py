@@ -11,7 +11,7 @@ FKs. They are exposed as attributes on relation instances and used in two ways:
 * **``.set(rel)``** to add a JOIN condition on the owning relation.
 """
 
-from half_orm.pg_meta import normalize_fqrn, normalize_qrn
+from half_orm.pg_meta import normalize_fqrn, normalize_qrn, quote_ident, unquote_ident
 from half_orm import utils
 
 def _would_create_cycle(from_rel, to_rel):
@@ -79,7 +79,10 @@ class FKey:
         self.__confdeltype = confdeltype
         self.__fk_fqrn = fk_sfqrn
         self.__fields_names = fields
-        self.__fields = [f'"{name}"' for name in fields]
+        # Unquoted first: navigating a key hands the reverse one names that
+        # are already quoted. Then quoted properly, a bare pair of quotes
+        # leaving a quote inside the name free to close the identifier.
+        self.__fields = [quote_ident(unquote_ident(name)) for name in fields]
 
     def __get_rel(self, fqtn):
         """Returns the relation class referenced by fqtn.
@@ -223,7 +226,10 @@ class FKey:
         if from_._qrn == orig_rel._qrn:
             from_id = orig_rel_id
         from_fields = (f'{from_id}.{name}' for name in self.__fields)
-        to_fields = (f'{to_id}.{name}' for name in self.__fk_names)
+        # Quoted here: the names read from the catalog arrive bare, and
+        # went into the join condition as they were.
+        to_fields = (f'{to_id}.{quote_ident(unquote_ident(name))}'
+                     for name in self.__fk_names)
         bounds = " and ".join(
             [f'{a} = {b}' for a, b in zip(to_fields, from_fields)])
         return f"({bounds})"

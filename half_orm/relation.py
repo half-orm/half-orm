@@ -472,7 +472,8 @@ class Relation:
             placeholders += fk_query
             values += fk_values
         returning = args or ['*']
-        pk_cols = [f'"{n}"' for n in self._ho_pkey] if upsert else None
+        pk_cols = ([_ho_quote_ident(field.name) for field in self._ho_pkey.values()]
+                   if upsert else None)
         stmt = ASTInsert(
             table=self._qrn,
             columns=fields_names,
@@ -923,7 +924,7 @@ class Relation:
         set_clause = []
         for field_name, new_value in update_args.items():
             col_name = self._ho_fields[field_name].name
-            set_clause.append((f'"{col_name}" = %s', new_value))
+            set_clause.append((f'{_ho_quote_ident(col_name)} = %s', new_value))
         if self._ho_join_to:
             # Build a subquery to avoid any DB round-trip and to correctly
             # propagate JOIN constraints into the UPDATE predicate.
@@ -2344,7 +2345,8 @@ Fkeys = {"""
         """
         set_fields = self.__get_set_fields()
         fields_names = [
-            f'"{field.name}"' for field in self._ho_fields.values() if field.is_set()]
+            _ho_quote_ident(field.name)
+            for field in self._ho_fields.values() if field.is_set()]
         fk_fields = []
         fk_queries = ''
         fk_values = []
