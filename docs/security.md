@@ -21,9 +21,10 @@ Please do not open a public issue.
 
 | Line | Status | Advisory |
 | --- | --- | --- |
-| **1.1** | Current | [1.1 advisory](security-1.1.md) — fixed in 1.1.0 |
-| **1.0** | Superseded | Affected by everything in the 1.1 advisory, and receives no fixes. [Upgrade to 1.1](security-1.1.md) |
-| **0.18** | Maintenance, published as Beta | [0.18 advisory](security-0.18.md) — partly fixed in 0.18.14 |
+| **1.2** | Current | [1.2 advisory](security-1.2.md) — fixed in 1.2.1 |
+| **1.1** | Superseded | Affected by everything in the 1.2 advisory. [Upgrade to 1.2](security-1.2.md). Its own [1.1 advisory](security-1.1.md) was fixed in 1.1.0 |
+| **1.0** | Superseded | Affected by everything in the 1.1 and 1.2 advisories, and receives no fixes. [Upgrade to 1.2](security-1.2.md) |
+| **0.18** | Maintenance, published as Beta | [0.18 advisory](security-0.18.md) — partly fixed in 0.18.14. Also affected by everything in the [1.2 advisory](security-1.2.md), none of which is fixed on this line |
 | Earlier | End of life, published as Beta | No advisory published, and none will be. Assume affected |
 
 A line with no advisory listed has had none published — not that none applies.
