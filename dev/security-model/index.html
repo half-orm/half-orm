@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1280,10 +1280,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#a-relation-runs-as-the-role-of-its-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A relation runs as the role of its Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-halform-cannot-check-for-you" class="md-nav__link">
     <span class="md-ellipsis">
       
         What halfORM cannot check for you
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-value-can-still-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a value can still do
       
     </span>
   </a>
@@ -1481,10 +1503,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#a-relation-runs-as-the-role-of-its-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A relation runs as the role of its Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-halform-cannot-check-for-you" class="md-nav__link">
     <span class="md-ellipsis">
       
         What halfORM cannot check for you
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-value-can-still-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a value can still do
       
     </span>
   </a>
@@ -1556,6 +1600,10 @@ statement:</p>
 <td>Must exist on the relation; quoted on the way out</td>
 </tr>
 <tr>
+<td>Type names (the <code>::type</code> cast applied to a bound value)</td>
+<td>Read from the catalog; quoted unless a plain lower-case identifier</td>
+</tr>
+<tr>
 <td><code>order_by</code></td>
 <td>Parsed as a list of columns with an optional direction and <code>NULLS</code> placement; each column checked against the relation. An expression, a qualified name or a second statement is refused</td>
 </tr>
@@ -1579,17 +1627,53 @@ statement:</p>
 </table>
 <p>A name that fails one of these raises <code>ValueError</code> or <code>UnknownAttributeError</code>
 rather than reaching the database.</p>
+<h2 id="a-relation-runs-as-the-role-of-its-model">A relation runs as the role of its Model<a class="headerlink" href="#a-relation-runs-as-the-role-of-its-model" title="Permanent link">&para;</a></h2>
+<p>A <code>Model</code> is a connection: a server, a database and a role. A relation class
+obtained from it — through <code>get_relation_class</code>, foreign-key navigation or a
+generated package — sends its queries through that Model, and so with that
+role's privileges and no one else's.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">admin</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">'blog_admin'</span><span class="p">)</span>        <span class="c1"># name = blog, user = admin</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">ro</span>    <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">'blog_readonly'</span><span class="p">)</span>     <span class="c1"># name = blog, user = reader</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">Post</span> <span class="o">=</span> <span class="n">ro</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">'blog.post'</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">Post</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ho_update</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">'...'</span><span class="p">)</span>  <span class="c1"># refused by PostgreSQL: reader cannot write</span>
+</code></pre></div>
+<p>Models are told apart by host, port, database and role, as the connection
+reports them. Two Models that agree on all four share their relation classes,
+<code>@register</code>-ed ones included; two that differ on any share nothing, the
+catalog description aside when only the role differs. So a restricted Model
+kept next to a privileged one stays restricted, in whatever order they were
+created.</p>
+<p>Two limits follow from a Model <em>being</em> a connection rather than holding one
+per caller:</p>
+<ul>
+<li><code>Model.reconnect(config_file)</code> changes the role of that Model, and with it
+  the role of every class already bound to it. The calling thread switches at
+  once; the other threads keep the connection they hold and pick up the new
+  role whenever they next open one. It is therefore not a way to run one
+  request as another role while other threads carry on: use one Model per
+  role instead.</li>
+<li>The role is the one the connection was opened as. A <code>SET ROLE</code> issued
+  through <code>execute_query</code> is invisible to halfORM, and applies only to the
+  connection of the thread that issued it.</li>
+</ul>
+<p>The privileges themselves are PostgreSQL's. halfORM routes a query to the
+right role; what that role may do is decided by <code>GRANT</code> and <code>REVOKE</code>.</p>
 <h2 id="what-halform-cannot-check-for-you">What halfORM cannot check for you<a class="headerlink" href="#what-halform-cannot-check-for-you" title="Permanent link">&para;</a></h2>
 <p>Two things are constrained but not resolved, and the difference matters if you
 build them from input you do not control.</p>
+<p>(<code>crud_only = true</code> in a connection file closes the first of them outright,
+along with <code>execute_query</code>: it refuses every method that takes SQL or a
+callable's name, leaving the Relation API. It is a guard rail against
+accidents, not a privilege boundary — <code>GRANT</code> and <code>REVOKE</code> are.)</p>
 <p><strong>Function and procedure names.</strong> <code>Model.execute_function()</code> and
 <code>call_procedure()</code> bind their arguments, and check the callable's name to <em>be</em> a
 name — it cannot carry a space, a parenthesis or a quote, so it cannot end the
 call and start something else. But the name is not looked up against the
 catalog. An attacker who chooses it cannot inject SQL; they can still choose
 <strong>which function runs</strong>, among those your role may call.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># No injection is possible -- and the caller still picks the function.</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">model</span><span class="o">.</span><span class="n">execute_function</span><span class="p">(</span><span class="sa">f</span><span class="s1">'admin.</span><span class="si">{</span><span class="n">request</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>   <span class="c1"># don't</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># No injection is possible -- and the caller still picks the function.</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">model</span><span class="o">.</span><span class="n">execute_function</span><span class="p">(</span><span class="sa">f</span><span class="s1">'admin.</span><span class="si">{</span><span class="n">request</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>   <span class="c1"># don't</span>
 </code></pre></div>
 <p><strong>Connection file names.</strong> <code>Model(config_file)</code> takes a file <em>name</em>, and since
 1.1.0 refuses anything that looks like a path, so it cannot climb out of
@@ -1597,6 +1681,36 @@ catalog. An attacker who chooses it cannot inject SQL; they can still choose
 file decides which database the process connects to, and as which role. In a
 multi-tenant application picking a connection per tenant, map the tenant to a
 name you control rather than passing the request's value through.</p>
+<p>A name that matches <em>no</em> file is not refused either: it is taken as a database
+name, and the connection is attempted with peer authentication, as the
+operating-system user running the process. That is a convenience for
+development, and it applies everywhere — so a mistyped or attacker-chosen name
+reaches whatever database that user may open without a password.</p>
+<h2 id="what-a-value-can-still-do">What a value can still do<a class="headerlink" href="#what-a-value-can-still-do" title="Permanent link">&para;</a></h2>
+<p>A value is never parsed as SQL. It can still change <em>which rows</em> a predicate
+selects, in two ways that are halfORM's own conventions rather than
+PostgreSQL's. Both matter the moment a value arrives from a request without
+its type having been checked.</p>
+<p><strong><code>None</code> means "no constraint".</strong> Setting a field to <code>None</code> removes the
+condition instead of comparing with NULL — that is what lets
+<code>Author(**filters)</code> ignore the filters that were not supplied.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># The token is missing from the request: the condition disappears, and the</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># predicate is "the session of this user", whatever its token.</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">Session</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'token'</span><span class="p">))</span><span class="o">.</span><span class="n">ho_get</span><span class="p">()</span>      <span class="c1"># don't</span>
+</code></pre></div>
+<p>Check that a value you rely on is present before building the predicate, and
+use <code>NULL</code> (<code>half_orm.null</code>) when NULL is what you mean. <code>ho_update</code> and
+<code>ho_delete</code> refuse a predicate with no constraint at all unless told
+otherwise, which covers the case where <em>every</em> value is missing, not the one
+above.</p>
+<p><strong>A tuple is a comparator and a value.</strong> <code>Author(last_name=('like', '%'))</code> is
+the documented way to use another operator than <code>=</code>. A list is a set of
+values, and JSON has no tuples, so a decoded JSON body cannot produce one. A
+deserialiser that does build tuples — msgpack with <code>use_list=False</code>, pickle,
+YAML read with an unsafe loader — hands the sender the choice of the operator: still no injection, the
+comparator being checked, but <code>('like', '%')</code> where a single value was
+expected matches every row. Pass such input through <code>str()</code>, or validate its
+type, before it becomes a constraint.</p>
 <h2 id="trusted-by-design">Trusted by design<a class="headerlink" href="#trusted-by-design" title="Permanent link">&para;</a></h2>
 <p>Two things are part of halfORM's trusted computing base. Neither is a defect;
 both are worth knowing.</p>
@@ -1633,7 +1747,7 @@ the line is, not a list of things we refuse to look at.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 16, 2026 06:49:41 UTC">September 16, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 16, 2026 09:33:29 UTC">November 16, 2026</span>
   </span>
 
     
@@ -1770,7 +1884,7 @@ the line is, not a list of things we refuse to look at.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
