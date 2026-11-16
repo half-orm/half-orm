@@ -84,6 +84,11 @@ right role; what that role may do is decided by `GRANT` and `REVOKE`.
 Two things are constrained but not resolved, and the difference matters if you
 build them from input you do not control.
 
+(`crud_only = true` in a connection file closes the first of them outright,
+along with `execute_query`: it refuses every method that takes SQL or a
+callable's name, leaving the Relation API. It is a guard rail against
+accidents, not a privilege boundary — `GRANT` and `REVOKE` are.)
+
 **Function and procedure names.** `Model.execute_function()` and
 `call_procedure()` bind their arguments, and check the callable's name to *be* a
 name — it cannot carry a space, a parenthesis or a quote, so it cannot end the
@@ -102,6 +107,44 @@ model.execute_function(f'admin.{request["action"]}', user_id)   # don't
 file decides which database the process connects to, and as which role. In a
 multi-tenant application picking a connection per tenant, map the tenant to a
 name you control rather than passing the request's value through.
+
+A name that matches *no* file is not refused either: it is taken as a database
+name, and the connection is attempted with peer authentication, as the
+operating-system user running the process. That is a convenience for
+development, and it applies everywhere — so a mistyped or attacker-chosen name
+reaches whatever database that user may open without a password.
+
+## What a value can still do
+
+A value is never parsed as SQL. It can still change *which rows* a predicate
+selects, in two ways that are halfORM's own conventions rather than
+PostgreSQL's. Both matter the moment a value arrives from a request without
+its type having been checked.
+
+**`None` means "no constraint".** Setting a field to `None` removes the
+condition instead of comparing with NULL — that is what lets
+`Author(**filters)` ignore the filters that were not supplied.
+
+```python
+# The token is missing from the request: the condition disappears, and the
+# predicate is "the session of this user", whatever its token.
+Session(user_id=uid, token=request.get('token')).ho_get()      # don't
+```
+
+Check that a value you rely on is present before building the predicate, and
+use `NULL` (`half_orm.null`) when NULL is what you mean. `ho_update` and
+`ho_delete` refuse a predicate with no constraint at all unless told
+otherwise, which covers the case where *every* value is missing, not the one
+above.
+
+**A tuple is a comparator and a value.** `Author(last_name=('like', '%'))` is
+the documented way to use another operator than `=`. A list is a set of
+values, and JSON has no tuples, so a decoded JSON body cannot produce one. A
+deserialiser that does build tuples — msgpack with `use_list=False`, pickle,
+YAML read with an unsafe loader — hands the sender the choice of the operator: still no injection, the
+comparator being checked, but `('like', '%')` where a single value was
+expected matches every row. Pass such input through `str()`, or validate its
+type, before it becomes a constraint.
 
 ## Trusted by design
 

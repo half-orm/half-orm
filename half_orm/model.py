@@ -262,8 +262,9 @@ class Model:
             never written to the logs, in any mode — but extensions do:
             half_orm_dev makes a server read-only when it is set.
 
-            ``crud_only`` refuses :meth:`execute_query` and
-            :meth:`aexecute_query`, leaving only the Relation CRUD methods.
+            ``crud_only`` refuses :meth:`execute_query`,
+            :meth:`execute_function`, :meth:`call_procedure` and their async
+            variants, leaving only the Relation CRUD methods.
             It is a guard rail against accidents, not a privilege boundary:
             use ``GRANT``/``REVOKE`` to actually restrict what a role can do.
         scope (str | None): package name used to resolve registered subclasses.
@@ -717,12 +718,20 @@ class Model:
                 f"Query execution failed:\nquery: {query}\n"
                 f"values: {_describe_values(values)}\n")
 
+        # See _execute_query: a connection lost inside a transaction is not
+        # replaced behind the caller's back, the retry would commit on its own.
+        in_transaction = self.__aconn is not None and not self.__aconn.autocommit
         if self.__aconn is not None and self.__aconn.closed:
+            if in_transaction:
+                raise psycopg.OperationalError(
+                    "the connection was lost inside a transaction")
             await self.aconnect()
         try:
             cursor = self._aconnection.cursor(row_factory=dict_row)
             await cursor.execute(query, values)
         except (psycopg.OperationalError, psycopg.InterfaceError):
+            if in_transaction:
+                raise
             await self.aconnect()
             try:
                 cursor = self._aconnection.cursor(row_factory=dict_row)
@@ -898,13 +907,23 @@ class Model:
     def _execute_query(self, query, values=None, mogrify=False):
         """Internal query executor — no crud_only check. Called by Relation.__execute."""
         values = self._unwrap_values(values)
-        cursor = self._connection.cursor(row_factory=dict_row)
+        conn = self._connection
+        # Read before the query runs: once the connection is lost there is
+        # no asking it whether a transaction was open.
+        in_transaction = not conn.autocommit
+        cursor = conn.cursor(row_factory=dict_row)
         try:
             if mogrify or self.sql_trace:
                 client_cur = ClientCursor(self._connection)
                 print(client_cur.mogrify(query, values))
             cursor.execute(query, values)
         except (psycopg.OperationalError, psycopg.InterfaceError):
+            if in_transaction:
+                # The statements already sent went with the connection.
+                # Replaying this one on a fresh connection would run it in
+                # autocommit mode -- committed on its own, outside the
+                # transaction the caller believes it is part of.
+                raise
             self.ping()
             cursor = self._connection.cursor(row_factory=dict_row)
             cursor.execute(query, values)
@@ -916,6 +935,12 @@ class Model:
                 f"values: {_describe_values(values)}\n")
             raise exc
         return cursor
+
+    def __check_not_crud_only(self):
+        """Refuse direct SQL when the connection is declared `crud_only`."""
+        if self._crud_only:
+            raise PermissionError(
+                "Direct SQL execution is disabled (crud_only = true in connection config).")
 
     def execute_query(self, query, values=None, mogrify=False):
         """Execute a raw SQL query. *Executes SQL.*
@@ -954,12 +979,16 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            PermissionError: if ``crud_only`` is set in the connection configuration.
             ValueError: if the name or a named parameter is not a SQL
                 identifier. The name is interpolated into the statement,
                 unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the execute_function method!")
+        # As the async variant always did, going through aexecute_query: a
+        # function is arbitrary SQL, not one of the Relation CRUD methods.
+        self.__check_not_crud_only()
         fct_name = _check_qualified_name(fct_name, 'function name')
         _check_named_params(kwargs, 'execute_function')
         cursor = self._connection.cursor(row_factory=dict_row)
@@ -986,12 +1015,14 @@ class Model:
 
         Raises:
             RuntimeError: if both ``*args`` and ``**kwargs`` are provided.
+            PermissionError: if ``crud_only`` is set in the connection configuration.
             ValueError: if the name or a named parameter is not a SQL
                 identifier. The name is interpolated into the statement,
                 unlike the arguments, which are bound.
         """
         if bool(args) and bool(kwargs):
             raise RuntimeError("You can't mix args and kwargs with the call_procedure method!")
+        self.__check_not_crud_only()
         proc_name = _check_qualified_name(proc_name, 'procedure name')
         _check_named_params(kwargs, 'call_procedure')
         if kwargs:
@@ -1171,11 +1202,26 @@ class Model:
                 # imported modules, so get_relation_class() alone could go
                 # stale. Fall back to it only when there's no generated
                 # package to import from, or its conventional class is missing.
+                module_path = f'{package_name}.{module_name}'
+                if not all(part.isidentifier() for part in module_path.split('.')):
+                    # As in _import_class: nothing importable can be named
+                    # this, and these names come out of the database. A
+                    # schema called `..x` would otherwise turn the import
+                    # below into a relative one climbing out of the package.
+                    yield self.get_relation_class(module_name), relation[0]
+                    continue
                 try:
                     class_name = pg_meta.camel_case(relation[1][-1])
-                    module = importlib.import_module(f".{module_name}", package_name)
+                    module = importlib.import_module(module_path)
                     yield getattr(module, class_name), relation[0]
-                except (ModuleNotFoundError, AttributeError):
+                except ModuleNotFoundError as exc:
+                    if not _module_is_absent(exc, module_path):
+                        # The module is there; something it imports is not.
+                        # That is a defect in the caller's own code, which
+                        # falling back to the generated class would hide.
+                        raise
+                    yield self.get_relation_class(module_name), relation[0]
+                except AttributeError:
                     yield self.get_relation_class(module_name), relation[0]
 
     @property

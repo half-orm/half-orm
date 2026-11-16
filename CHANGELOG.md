@@ -51,6 +51,42 @@ and a production `blog`, reached from one process — shared one description:
 the second Model saw the relations, columns and foreign keys of the first.
 The cache is now keyed by host, port and database name.
 
+### A connection lost inside a transaction is no longer replaced silently
+
+When a query failed because the connection had dropped, halfORM reconnected
+and ran it again. Inside a `Transaction` that was wrong twice over: the
+statements already sent had gone with the connection, and the new one is in
+autocommit mode, so the replayed statement was committed on its own — half
+of a unit of work, persisted, with no error raised.
+
+```python
+with Transaction(blog):
+    debit(account_a)       # lost with the connection
+    credit(account_b)      # replayed alone, and committed
+```
+
+The error now reaches the caller, the block rolls back like any other that
+raised, and the Model reconnects on its next use. Outside a transaction a
+dropped connection is still retried once, as before. `AsyncTransaction`
+behaves the same way.
+
+### `crud_only` refuses functions and procedures too
+
+**Behaviour change.** `execute_function()` and `call_procedure()` ran under
+`crud_only = true`, while their async counterparts raised `PermissionError`
+— they go through `aexecute_query`, which checks the flag. A function is
+arbitrary SQL, which is what the flag exists to keep out; the sync methods
+now refuse as well.
+
+### `Model.classes()` checks a name before importing it
+
+`classes()` builds a module path from schema and relation names and imports
+it, as `_import_class` does, but had not received the checks that one got in
+1.1.0. A name that cannot be a Python module path is no longer handed to the
+import system — a schema called `..x` turned the import into a relative one
+climbing out of the package — and a module whose *own* imports fail is now
+reported instead of being quietly replaced by the generated class.
+
 ## Relations
 
 ### Catalog names are quoted wherever they are interpolated

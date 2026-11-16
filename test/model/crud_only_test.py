@@ -21,3 +21,13 @@ class TestCrudOnly(TestCase):
         "CRUD operations via Relation methods must still work."
         count = self.person_cls().ho_count()
         self.assertGreater(count, 0)
+
+    def test_execute_function_raises(self):
+        "a function is arbitrary SQL: refused like execute_query"
+        with self.assertRaises(PermissionError):
+            self.model.execute_function('public.add', 3, 4)
+
+    def test_call_procedure_raises(self):
+        "a procedure is arbitrary SQL: refused like execute_query"
+        with self.assertRaises(PermissionError):
+            self.model.call_procedure('public.insert_data', 1, 2)
