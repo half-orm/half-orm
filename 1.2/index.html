@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1558,7 +1558,11 @@ object mapped to a row is argued in
   editing to raise or drop the notice -- writing or deleting
   docs/security-<major>.<minor>.md is what does it.
 -->
-
+<div class="admonition warning">
+<p class="admonition-title">Security advisory</p>
+<p><strong>1.2.1</strong> fixes a Model that ran its relations under another Model's role, catalog names that reached a statement unquoted, and a transaction that could commit one of its statements alone. See <a href="security-1.2/">Security</a> for what is
+fixed, in which release, and what to do about it.</p>
+</div>
 <!--
   Filled in by hooks/breaking_changes.py when the release line being built is
   one that introduced breaking changes, and left empty when it is not. Each
@@ -1766,7 +1770,7 @@ object mapped to a row is argued in
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
