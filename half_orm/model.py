@@ -33,6 +33,7 @@ from psycopg import ClientCursor, AsyncConnection
 from psycopg.rows import dict_row
 
 from half_orm import model_errors
+from half_orm import naming
 from half_orm import pg_meta
 from half_orm import utils
 from half_orm.relation_factory import factory, register_class
@@ -280,6 +281,23 @@ class Model:
             :meth:`get_relation_class` instance, never imported from a
             generated package module.
 
+        field_names (dict | None): Python names for columns,
+            ``{'schema.relation': {'column': 'python_name'}}``.
+        reverse_names (dict | None): names for reverse foreign keys,
+            ``{('schema.relation', 'constraint'): 'name'}`` — the relation
+            and constraint are those of the *referencing* side; the key is
+            then exposed as ``rfk_<name>`` on the referenced relation.
+        ignore (Iterable[str] | str | None): relations to leave out of the
+            model, as ``schema.relation`` patterns (``'old.*'``); a
+            comma-separated string is accepted too. An ignored relation is
+            not loaded, and no foreign key leads to it.
+
+    The last three settle the naming problems reported by
+    :class:`~half_orm.model_errors.NamingError`, for a database in which the
+    names cannot be declared with a comment — see :mod:`half_orm.naming`.
+    They are part of what identifies a Model: two Models that do not declare
+    the same names share nothing.
+
     If no file named ``config_file`` is found in ``HALFORM_CONF_DIR``, it is
     used directly as the database name and a peer-authentication connection
     is attempted (no user/password/host/port) — development use only.
@@ -287,6 +305,11 @@ class Model:
     Raises:
         MalformedConfigFile: if ``name`` is missing from the file.
         psycopg.OperationalError: if the database connection fails.
+        NamingError: if two names derived from the catalog collide — two
+            reverse foreign keys spelled alike, a column named like a foreign
+            key attribute or like something Relation uses. Raised here and
+            by ``reconnect(reload=True)``, listing every problem.
+        ValueError: if a naming argument does not have the documented shape.
     """
     # Models and relation classes are shared between the Model objects that
     # reach the same database *as the same role*: (host, port, dbname, user),
@@ -298,8 +321,10 @@ class Model:
     __registries = {}   # identity -> {dbname: {fqrn: relation class}}
     __first_seen = {}   # dbname -> Model, for the _deja_vu() lookup by name
     __sql_trace = False
-    def __init__(self, config_file: None, scope: str=None, with_half_orm_meta=False):
+    def __init__(self, config_file: None, scope: str=None, with_half_orm_meta=False,
+                 field_names=None, reverse_names=None, ignore=None):
         self.__connection_params = {}
+        self.__naming = naming.normalize(field_names, reverse_names, ignore)
         self._production_mode = True
         self.__load_config(config_file)
         self._scope = scope and scope.split('.')[0]
@@ -334,7 +359,10 @@ class Model:
         leaves stops designating it.
         """
         info = conn.info
-        identity = (info.host, info.port, info.dbname, info.user)
+        # The naming declarations too: they decide what a relation's
+        # attributes are called, so classes built under different ones are
+        # not the same classes.
+        identity = (info.host, info.port, info.dbname, info.user, self.__naming)
         previous = self.__identity
         if previous is not None and previous != identity \
                 and Model.__deja_vu.get(previous) is self:
@@ -463,7 +491,14 @@ class Model:
         conn.adapters.register_dumper(Null, NullDumper)
         conn.adapters.register_dumper(Field, FieldDumper)
         conn.adapters.register_dumper(dict, JsonbDumper)
-        self.__pg_meta = pg_meta.PgMeta(conn, self.__with_half_orm_meta, reload)
+        try:
+            self.__pg_meta = pg_meta.PgMeta(
+                conn, self.__with_half_orm_meta, reload, self.__naming)
+        except model_errors.NamingError:
+            # Refused before anything was recorded on the Model: the
+            # connection it was about to adopt must not be left open.
+            conn.close()
+            raise
         self.__set_identity(conn)
         if reload:
             self.__schema_generation += 1

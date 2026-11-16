@@ -34,6 +34,9 @@ Note that this module requires the psycopg library to be installed.
 from collections import OrderedDict
 from psycopg.rows import dict_row
 
+from half_orm import naming as _naming
+from half_orm.model_errors import NamingError, NamingProblem
+
 REL_CLASS_NAMES = {
     'r': 'Table',
     'p': 'Partioned table',
@@ -68,6 +71,10 @@ def unquote_ident(name) -> str:
     if len(name) >= 2 and name.startswith('"') and name.endswith('"'):
         return name[1:-1].replace('""', '"')
     return name
+
+def _dotted(table_key) -> str:
+    "`schema.relation`, as it is written without quotes."
+    return f'{table_key[1]}.{table_key[2]}'
 
 def normalize_fqrn(t_fqrn: tuple) -> str:
     """
@@ -132,11 +139,15 @@ SELECT
     cn_fk.confkey AS fkeynum,
     cn_fk.confupdtype as fkey_confupdtype,
     cn_fk.confdeltype as fkey_confdeltype,
+    cdesc.description AS fkeydescription,
     pg_get_expr(d.adbin, d.adrelid) AS default_expr
 FROM
     pg_class c -- table
+    -- classoid: an oid is unique within its catalog only, so without it the
+    -- comment of some other kind of object could be read as this one's.
     LEFT JOIN pg_description tdesc ON
     tdesc.objoid = c.oid AND
+    tdesc.classoid = 'pg_class'::regclass AND
     tdesc.objsubid = 0
     LEFT JOIN pg_namespace n ON
     n.oid = c.relnamespace
@@ -146,6 +157,7 @@ FROM
     a.attrelid = c.oid
     LEFT JOIN pg_description adesc ON
     adesc.objoid = c.oid AND
+    adesc.classoid = 'pg_class'::regclass AND
     adesc.objsubid = a.attnum
     JOIN pg_type pt ON
     a.atttypid = pt.oid
@@ -164,6 +176,10 @@ FROM
     cn_fk.contype = 'f' AND
     cn_fk.conrelid = a.attrelid AND
     a.attnum = ANY( cn_fk.conkey )
+    LEFT JOIN pg_description cdesc ON
+    cdesc.objoid = cn_fk.oid AND
+    cdesc.classoid = 'pg_constraint'::regclass AND
+    cdesc.objsubid = 0
 WHERE
     n.nspname <> 'pg_catalog'::name AND
     n.nspname <> 'information_schema'::name AND
@@ -200,6 +216,7 @@ GROUP BY
     cn_fk.confkey,
     cn_fk.confupdtype,
     cn_fk.confdeltype,
+    cdesc.description,
     d.adbin,
     d.adrelid
 ORDER BY
@@ -220,6 +237,10 @@ class _Meta(dict):
     def register(cls, key, meta):
         cls.__d_meta[key] = meta
 
+    @classmethod
+    def forget(cls, key):
+        cls.__d_meta.pop(key, None)
+
     def __getitem__(self, key):
         return _Meta.__d_meta.__getitem__(key)
 
@@ -230,7 +251,8 @@ class PgMeta:
         meta (_Meta): A singleton instance of the `_Meta` class.
     """
     meta = _Meta()
-    def __init__(self, connection, with_half_orm_meta, reload=False):
+    def __init__(self, connection, with_half_orm_meta, reload=False,
+                 naming=_naming.NO_NAMING):
         """Initializes a new instance of the `PgMeta` class.
 
         Args:
@@ -241,6 +263,11 @@ class PgMeta:
                 "schema.relname" dotted names (opt-in allowlist).
             reload (bool, optional): A flag indicating whether to reload the metadata from the database. \
             Defaults to False.
+            naming (half_orm.naming.Naming): the names declared on the Model,
+                and the relations it ignores.
+
+        Raises:
+            NamingError: if names derived from the catalog collide.
         """
         info = connection.info
         self.__dbname = info.get_parameters()['dbname']
@@ -248,7 +275,11 @@ class PgMeta:
         # configuration asked for: an omitted host or port is resolved by
         # libpq from the environment, and only the result tells two servers
         # apart.
-        self.__key = (info.host, info.port, self.__dbname)
+        # The declarations are part of the key: they decide which relations
+        # exist and what their attributes are called, so two Models that do
+        # not declare the same thing do not share a description.
+        self.__naming = naming
+        self.__key = (info.host, info.port, self.__dbname, naming)
         self.__with_half_orm_meta = with_half_orm_meta
         if not PgMeta.meta.deja_vu(self.__key) or reload:
             self.__load_metadata(connection)
@@ -292,7 +323,18 @@ class PgMeta:
 
         Args:
             connection (psycopg.extensions.connection): A connection object to a PostgreSQL database.
+
+        Raises:
+            NamingError: if two things end up under one name. Nothing is
+                registered then: a description that has silently dropped a
+                foreign key or a column is not one to work from.
         """
+        naming = self.__naming
+        problems = []
+        declared_fields = dict(naming.fields)
+        declared_reverse = dict(naming.reverse)
+        used_declarations = set()
+
         metadata = {'relations_list': []}
         byname = metadata['byname'] = OrderedDict()
         byid = metadata['byid'] = {}
@@ -301,7 +343,9 @@ class PgMeta:
             metadata['extensions'] = frozenset(row['extname'] for row in cur.fetchall())
         with connection.cursor(row_factory=dict_row) as cur:
             cur.execute(_REQUEST)
-            all_ = [elt for elt in cur.fetchall()]
+            all_ = [elt for elt in cur.fetchall()
+                    if not _naming.is_ignored(
+                        naming, elt['schemaname'], elt['relationname'])]
             for dct in all_:
                 table_key = (self.__dbname, dct['schemaname'], dct['relationname'])
                 tableid = dct['tableid']
@@ -319,11 +363,23 @@ class PgMeta:
             for dct in all_:
                 tableid = dct['tableid']
                 table_key = byid[tableid]['sfqrn']
+                dotted = _dotted(table_key)
                 fieldname = dct.pop('fieldname')
                 fieldnum = dct['fieldnum']
                 tablekind = dct.pop('tablekind')
+                # An ignored parent is not in `byid`.
                 inherits = [byid[int(elt.split(':')[1])]['sfqrn']
-                            for elt in dct.pop('inherits') if elt is not None]
+                            for elt in dct.pop('inherits')
+                            if elt is not None and int(elt.split(':')[1]) in byid]
+                # The name the column is reached through, when one was
+                # declared: on the Model first, in its comment otherwise.
+                declaration = (dotted, fieldname)
+                if declaration in declared_fields:
+                    used_declarations.add(('field', declaration))
+                    dct['ho_name'] = declared_fields[declaration]
+                else:
+                    dct['ho_name'] = _naming.annotation(
+                        dct['fielddescription'], _naming.FIELD_ANNOTATION)
                 byname[table_key]['tableid'] = tableid
                 byname[table_key]['tablekind'] = tablekind
                 byname[table_key]['inherits'] = inherits
@@ -332,43 +388,72 @@ class PgMeta:
                 byid[tableid]['fields'][fieldnum] = fieldname
                 if (tablekind, table_key) not in metadata['relations_list']:
                     metadata['relations_list'].append((tablekind, table_key))
+            # (relation, foreign key name) -> what is filed under it. A name
+            # with more than one entry is a foreign key that would have
+            # replaced another.
+            fkey_owners = {}
+            seen_constraints = set()
             for dct in all_:
                 tableid = dct['tableid']
                 table_key = byid[tableid]['sfqrn']
+                dotted = _dotted(table_key)
                 fkeyname = dct['fkeyname']
-                if fkeyname and fkeyname not in byname[table_key]['fkeys']:
-                    fkeytableid = dct['fkeytableid']
-                    ftable_key = byid[fkeytableid]['sfqrn']
-                    fields = [byid[tableid]['fields'][num] for num in dct['lfkeynum']]
-                    confupdtype = dct['fkey_confupdtype']
-                    confdeltype = dct['fkey_confdeltype']
-                    ffields = [byid[fkeytableid]['fields'][num] for num in dct['fkeynum']]
-                    rev_fkey_name = f'_reverse_fkey_{"_".join(table_key)}.{".".join(fields)}'
-                    rev_fkey_name = strip_quotes(rev_fkey_name.replace(".", "_").replace(":", "_"))
-                    byname[table_key]['fkeys'][fkeyname] = (
-                        ftable_key, ffields, fields, confupdtype, confdeltype, False, False)
-                    # Detect one-to-one: FK fields form a UNIQUE or PK on table_key
-                    target = frozenset(fields)
-                    pk_fields = frozenset(
-                        fname for fname, fd in byname[table_key]['fields'].items()
-                        if fd.get('pkey')
-                    )
-                    is_singleton = (target == pk_fields)
-                    if not is_singleton:
-                        seen_ugroups = set()
-                        for fd in byname[table_key]['fields'].values():
-                            if fd.get('uniq'):
-                                group = frozenset(
-                                    byid[tableid]['fields'][num]
-                                    for num in fd['pkeynum']
-                                )
-                                if group not in seen_ugroups:
-                                    seen_ugroups.add(group)
-                                    if target == group:
-                                        is_singleton = True
-                                        break
-                    byname[ftable_key]['fkeys'][rev_fkey_name] = (
-                        table_key, fields, ffields, confupdtype, confdeltype, True, is_singleton)
+                if not fkeyname or (table_key, fkeyname) in seen_constraints:
+                    continue
+                seen_constraints.add((table_key, fkeyname))
+                fkeytableid = dct['fkeytableid']
+                if fkeytableid not in byid:
+                    # It references an ignored relation: nowhere to go.
+                    continue
+                ftable_key = byid[fkeytableid]['sfqrn']
+                fields = [byid[tableid]['fields'][num] for num in dct['lfkeynum']]
+                confupdtype = dct['fkey_confupdtype']
+                confdeltype = dct['fkey_confdeltype']
+                ffields = [byid[fkeytableid]['fields'][num] for num in dct['fkeynum']]
+                declaration = (dotted, fkeyname)
+                if declaration in declared_reverse:
+                    used_declarations.add(('reverse', declaration))
+                    declared = declared_reverse[declaration]
+                else:
+                    declared = _naming.annotation(
+                        dct['fkeydescription'], _naming.REVERSE_ANNOTATION)
+                if declared is not None and not _naming.is_python_name(declared):
+                    problems.append(NamingProblem(
+                        'declaration', declared, dotted,
+                        [f"reverse name declared for the constraint '{fkeyname}'"],
+                        'a reverse name must be a Python identifier'))
+                    declared = None
+                rev_fkey_name = _naming.reverse_fkey_name(table_key, fields, declared)
+                fkey_owners.setdefault((table_key, fkeyname), []).append(
+                    f"the constraint '{fkeyname}' of {dotted}")
+                byname[table_key]['fkeys'].setdefault(fkeyname, (
+                    ftable_key, ffields, fields, confupdtype, confdeltype, False, False))
+                # Detect one-to-one: FK fields form a UNIQUE or PK on table_key
+                target = frozenset(fields)
+                pk_fields = frozenset(
+                    fname for fname, fd in byname[table_key]['fields'].items()
+                    if fd.get('pkey')
+                )
+                is_singleton = (target == pk_fields)
+                if not is_singleton:
+                    seen_ugroups = set()
+                    for fd in byname[table_key]['fields'].values():
+                        if fd.get('uniq'):
+                            group = frozenset(
+                                byid[tableid]['fields'][num]
+                                for num in fd['pkeynum']
+                            )
+                            if group not in seen_ugroups:
+                                seen_ugroups.add(group)
+                                if target == group:
+                                    is_singleton = True
+                                    break
+                fkey_owners.setdefault((ftable_key, rev_fkey_name), []).append(
+                    f"{dotted}({', '.join(fields)}), constraint '{fkeyname}'")
+                # setdefault, not assignment: the second foreign key to spell
+                # this name used to take the place of the first.
+                byname[ftable_key]['fkeys'].setdefault(rev_fkey_name, (
+                    table_key, fields, ffields, confupdtype, confdeltype, True, is_singleton))
 
         metadata['relations_list'].sort()
         # 'schema.relation' as it is written without quotes -> the relations
@@ -377,8 +462,96 @@ class PgMeta:
         # the catalog does.
         bydotted = metadata['bydotted'] = {}
         for table_key in byname:
-            bydotted.setdefault(f'{table_key[1]}.{table_key[2]}', []).append(table_key)
+            bydotted.setdefault(_dotted(table_key), []).append(table_key)
+
+        problems += self.__naming_problems(
+            byname, bydotted, fkey_owners,
+            declared_fields, declared_reverse, used_declarations)
+        if problems:
+            # Including on a reload: the description read before the schema
+            # changed is not one to go on working from, for this Model or
+            # for the next one opened on the same database.
+            PgMeta.meta.forget(self.__key)
+            raise NamingError(self.__dbname, problems)
         PgMeta.meta.register(self.__key, metadata)
+
+    @staticmethod
+    def __naming_problems(byname, bydotted, fkey_owners,
+                          declared_fields, declared_reverse, used_declarations):
+        """Everything that keeps the names of this catalog from being used.
+
+        All of it, not the first: the list is what the user works from, and
+        one problem per run is one run per problem.
+        """
+        problems = []
+
+        # Two relations that read the same once the quotes are gone.
+        for dotted, table_keys in bydotted.items():
+            if len(table_keys) > 1:
+                problems.append(NamingProblem(
+                    'qualified_name', dotted, None,
+                    [normalize_qrn(table_key) for table_key in table_keys],
+                    'rename one of them, or leave one out with `ignore`'))
+
+        # Two foreign keys filed under one name on the same relation.
+        for (table_key, name), owners in fkey_owners.items():
+            if len(owners) > 1:
+                problems.append(NamingProblem(
+                    'reverse_fkey', name, _dotted(table_key), owners,
+                    "name one of them: COMMENT ON CONSTRAINT <constraint> ON "
+                    "<relation> IS '@ho_reverse_name <name>', or "
+                    "Model(reverse_names={('<relation>', '<constraint>'): '<name>'})"))
+
+        for table_key, relation in byname.items():
+            dotted = _dotted(table_key)
+            attributes = {}
+            for column, field in relation['fields'].items():
+                declared = field.get('ho_name')
+                if declared is not None and not _naming.is_python_name(declared):
+                    problems.append(NamingProblem(
+                        'declaration', declared, dotted,
+                        [f"name declared for the column '{column}'"],
+                        'a column name must be a Python identifier'))
+                    declared = field['ho_name'] = None
+                py_name = _naming.python_field_name(
+                    column, field['fieldnum'], declared)
+                if _naming.is_reserved(py_name):
+                    problems.append(NamingProblem(
+                        'reserved', py_name, dotted, [f"column '{column}'"],
+                        "half_orm uses this name itself. Give the column "
+                        f"another one: COMMENT ON COLUMN {normalize_qrn(table_key)}"
+                        f".{quote_ident(column)} IS '@ho_name <name>', or "
+                        f"Model(field_names={{{dotted!r}: {{{column!r}: '<name>'}}}})"))
+                    continue
+                attributes.setdefault(py_name, []).append(f"column '{column}'")
+            for fkey_name, fkey in relation['fkeys'].items():
+                what = 'reverse foreign key' if fkey[5] else 'foreign key'
+                attributes.setdefault(
+                    _naming.fkey_attribute(fkey_name), []).append(
+                        f"{what} '{fkey_name}'")
+            for attribute, members in attributes.items():
+                if len(members) > 1:
+                    problems.append(NamingProblem(
+                        'attribute', attribute, dotted, members,
+                        "give the column another name ('@ho_name' in its "
+                        "comment, or Model(field_names=...)), or rename the "
+                        "constraint"))
+
+        # A declaration that names nothing is a typo, and a typo here leaves
+        # in place the very clash it was written to settle.
+        for (relation, column) in declared_fields:
+            if ('field', (relation, column)) not in used_declarations:
+                problems.append(NamingProblem(
+                    'declaration', declared_fields[(relation, column)], relation,
+                    [f"field_names names the column '{column}'"],
+                    'no such column on a relation of this model'))
+        for (relation, constraint) in declared_reverse:
+            if ('reverse', (relation, constraint)) not in used_declarations:
+                problems.append(NamingProblem(
+                    'declaration', declared_reverse[(relation, constraint)], relation,
+                    [f"reverse_names names the constraint '{constraint}'"],
+                    'no such foreign key on a relation of this model'))
+        return problems
 
     def resolve(self, dbname, name):
         """Find the relation an unquoted `schema.relation` string designates.

@@ -35,6 +35,8 @@ from psycopg.rows import dict_row
 from half_orm import relation_errors
 from half_orm.transaction import Transaction, AsyncTransaction
 from half_orm.field import Field
+from half_orm import model_errors
+from half_orm import naming
 from half_orm._predicate import canonical_predicate
 from half_orm import utils
 from half_orm.sql_ast import (
@@ -1143,8 +1145,10 @@ class Relation:
             raise ValueError(f'{value} is not a bool!')
         self._ho_only = value
 
-    def __py_field_name(self, name, field_num):
-        py_name = self._ho_fields_aliases.get(name, name)
+    def __py_field_name(self, name, field_num, declared=None):
+        # An alias given to get_relation_class, then the name declared for
+        # the column -- on the Model or in its comment -- then its own.
+        py_name = self._ho_fields_aliases.get(name) or declared or name
         error = utils.check_attribute_name(py_name)
         if error is not None:
             utils.warning(f"{error}\n", 'HALFORM')
@@ -1158,7 +1162,8 @@ class Relation:
         ukeys = set()
         for field_name, f_metadata in _fields_metadata.items():
             field = Field(field_name, self, f_metadata)
-            field_name = self.__py_field_name(field_name, f_metadata['fieldnum'])
+            field_name = self.__py_field_name(
+                field_name, f_metadata['fieldnum'], f_metadata.get('ho_name'))
             self._ho_fields[field_name] = field
             setattr(self, field_name, field)
             fieldnum = field._fieldnum()
@@ -1200,27 +1205,46 @@ class Relation:
                     if isinstance(value, dict):
                         fkey = self._ho_build_view_fkey(key, value)
                         self._ho_fkeys[key] = fkey
-                        setattr(self, key, fkey)
-                        self._ho_fkeys_attr.add(key)
+                        self.__expose_fkey(key, fkey)
                         aliased_fkeys.add(key)
                     else:
                         try:
-                            setattr(self, key, self._ho_fkeys[value])
-                            self._ho_fkeys_attr.add(key)
-                            aliased_fkeys.add(value)
+                            fkey = self._ho_fkeys[value]
                         except KeyError as exp:
                             raise relation_errors.WrongFkeyError(self, value) from exp
+                        self.__expose_fkey(key, fkey)
+                        aliased_fkeys.add(value)
             # Auto-expose non-aliased FK with fk_/rfk_ prefix
             for fkeyname, fkey in self._ho_fkeys.items():
                 if fkeyname in aliased_fkeys:
                     continue
-                if fkeyname.startswith('_reverse_fkey_'):
-                    attr_name = 'rfk_' + fkeyname[len('_reverse_fkey_'):]
-                else:
-                    attr_name = 'fk_' + fkeyname
-                setattr(self, attr_name, fkey)
-                self._ho_fkeys_attr.add(attr_name)
+                self.__expose_fkey(naming.fkey_attribute(fkeyname), fkey)
         self._ho_fkeys_properties = True
+
+    def __expose_fkey(self, attr_name, fkey):
+        """Make `fkey` an attribute of this relation.
+
+        The names half_orm derives are checked when the catalog is read; an
+        alias from ``Fkeys``, or a column renamed through ``fields_aliases``,
+        arrives after that. Assigning over a column did not replace it: the
+        assignment was taken as a constraint, and the foreign key object
+        became the value the column was compared with.
+        """
+        taken = self.__dict__.get(attr_name)
+        if isinstance(taken, Field) or naming.is_reserved(attr_name):
+            _, schema, relation = self._t_fqrn
+            if isinstance(taken, Field):
+                members = [f"column '{taken.name}'", f"foreign key '{fkey.name}'"]
+                hint = 'choose another alias in Fkeys, or another name for the column'
+                kind = 'attribute'
+            else:
+                members = [f"foreign key '{fkey.name}'"]
+                hint = 'half_orm uses this name itself: choose another alias in Fkeys'
+                kind = 'reserved'
+            raise model_errors.NamingError(self._dbname, [model_errors.NamingProblem(
+                kind, attr_name, f'{schema}.{relation}', members, hint)])
+        setattr(self, attr_name, fkey)
+        self._ho_fkeys_attr.add(attr_name)
 
     def _ho_build_view_fkey(self, key, spec):
         """Build a FKey from an explicit dict spec (for views and materialised views).

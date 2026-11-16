@@ -1,5 +1,77 @@
 # Unreleased
 
+## Names derived from the catalog must be unambiguous
+
+**Breaking change.** A relation is reached through Python names — its
+columns are attributes, and so are its foreign keys — and PostgreSQL accepts
+more than Python can tell apart. Where two things ended up under one name,
+half_orm kept one and dropped the other without a word. None of this takes
+an unusual schema:
+
+```sql
+create table author (id int primary key);
+create table post (id int primary key, author_id int references author);
+create table post_author (pk int primary key, id int references author);
+```
+
+Both foreign keys are filed on `author` as
+`_reverse_fkey_<db>_public_post_author_id` — the names are joined with
+underscores — so `author` exposed one reverse key, and navigating to `post`
+was no longer possible.
+
+Every derived name is now checked when a Model is created, and
+`reconnect(reload=True)` checks again. A clash raises `NamingError`, which
+lists all of them, in its message and in `.problems`:
+
+| Kind | What collides |
+| --- | --- |
+| `reverse_fkey` | two foreign keys filed under one name on the relation they reference |
+| `attribute` | two attributes of a relation: a column and `fk_<constraint>`, a column that cannot be an attribute (`column<N>`) and a real `column<N>` |
+| `reserved` | a column named like something `Relation` uses: `ho_*`, `_ho_*`, `Fkeys`, … |
+| `qualified_name` | two relations that read the same without quotes: `"a.b".c` and `a."b.c"` |
+| `declaration` | a declared name that cannot be used, or that names nothing |
+
+Until they are settled no Model opens on that database. A clash is settled
+by giving one side a name of its own, in the database:
+
+```sql
+COMMENT ON CONSTRAINT post_author_id_fkey ON post IS '@ho_reverse_name posts';
+COMMENT ON COLUMN orders.fk_owner IS 'The owner.
+@ho_name owner_ref';
+```
+
+or, for a database that cannot be written to, on the Model:
+
+```python
+Model('legacy',
+      reverse_names={('public.post', 'post_author_id_fkey'): 'posts'},
+      field_names={'public.orders': {'fk_owner': 'owner_ref'}},
+      ignore=['old.*'])
+```
+
+- `@ho_reverse_name posts` makes the key `_reverse_fkey_posts`, exposed as
+  `rfk_posts`. The annotation goes on the constraint, which is the thing
+  being named: a foreign key may span several columns, and a column may
+  belong to several foreign keys.
+- `@ho_name` gives a column its Python name, as `fields_aliases` does — but
+  for every class of the Model, foreign-key navigation included.
+- `ignore` leaves relations out of the model entirely; no foreign key leads
+  to an ignored relation.
+- A declaration on the Model wins over one in a comment. Models that do not
+  declare the same names share neither their classes nor their catalog
+  description.
+- The rest of an annotated comment is free; only the `@ho_…` line is read.
+
+An alias in `Fkeys` that names a column, or a name `Relation` uses, raises
+the same error when the class is instantiated. It used to be taken as a
+constraint on the column, the foreign key object becoming the value it was
+compared with.
+
+Constraint comments were not read before, and the comments of tables and
+columns were looked up without their catalog, so that the comment of another
+kind of object sharing the same oid could be read in their place. Both
+lookups are now qualified.
+
 ## Relations
 
 ### A relation is no longer a mapping
