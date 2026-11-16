@@ -287,8 +287,15 @@ class Model:
         MalformedConfigFile: if ``name`` is missing from the file.
         psycopg.OperationalError: if the database connection fails.
     """
-    __deja_vu = {}
-    _classes_ = {}
+    # Models and relation classes are shared between the Model objects that
+    # reach the same database *as the same role*: (host, port, dbname, user),
+    # read off the connection. They used to be shared by database name alone,
+    # so a second Model opened on the same database under another role -- a
+    # read-only one next to an administrative one -- was handed the classes of
+    # the first, and ran its queries through the first one's connection.
+    __deja_vu = {}      # identity -> Model
+    __registries = {}   # identity -> {dbname: {fqrn: relation class}}
+    __first_seen = {}   # dbname -> Model, for the _deja_vu() lookup by name
     __sql_trace = False
     def __init__(self, config_file: None, scope: str=None, with_half_orm_meta=False):
         self.__connection_params = {}
@@ -300,7 +307,41 @@ class Model:
         self.__schema_generation = 0
         self.__read_sets = {}
         self.__aconn = None
+        self.__identity = None
         self.__connect()
+
+    @property
+    def _classes_(self):
+        """The relation classes registered for this Model's connection identity.
+
+        ``{dbname: {(dbname, schema, relation): class}}``, shared by every
+        Model connected to the same database as the same role, and by no
+        other.
+        """
+        return Model.__registries.setdefault(self.__identity, {})
+
+    def __set_identity(self, conn):
+        """Record who this Model is connected as, and where.
+
+        Taken from the connection rather than from the configuration: an
+        omitted host, port or user is resolved by libpq, and only the result
+        says whether two Models may answer for one another.
+
+        ``reconnect(config_file)`` may change the role. The classes already
+        generated stay bound to this Model -- that is what reconnecting a
+        Model means -- so their registry follows it, and the identity it
+        leaves stops designating it.
+        """
+        info = conn.info
+        identity = (info.host, info.port, info.dbname, info.user)
+        previous = self.__identity
+        if previous is not None and previous != identity \
+                and Model.__deja_vu.get(previous) is self:
+            del Model.__deja_vu[previous]
+            registry = Model.__registries.pop(previous, None)
+            if registry is not None and identity not in Model.__deja_vu:
+                Model.__registries[identity] = registry
+        self.__identity = identity
 
     def has_extension(self, name: str) -> bool:
         """True if the PostgreSQL extension `name` is installed on this database.
@@ -422,15 +463,17 @@ class Model:
         conn.adapters.register_dumper(Field, FieldDumper)
         conn.adapters.register_dumper(dict, JsonbDumper)
         self.__pg_meta = pg_meta.PgMeta(conn, self.__with_half_orm_meta, reload)
+        self.__set_identity(conn)
         if reload:
             self.__schema_generation += 1
             self.__read_sets = {}
             self._classes_[self._dbname] = {}
-            self.__deja_vu[self.__dbname] = self
+            Model.__deja_vu[self.__identity] = self
+            Model.__first_seen[self.__dbname] = self
         self.__thread_local.conn = conn
         self.__thread_local.schema_generation = self.__schema_generation
-        if self.__dbname not in self.__class__.__deja_vu:
-            self.__deja_vu[self.__dbname] = self
+        Model.__deja_vu.setdefault(self.__identity, self)
+        Model.__first_seen.setdefault(self.__dbname, self)
 
     reconnect = __connect
 
@@ -572,17 +615,19 @@ class Model:
         if len(parts) < 2:
             raise model_errors.MissingSchemaInName(relation_name)
         schema, table = '.'.join(parts[:-1]), parts[-1]
-        return factory({'fqrn': (self.__dbname, schema, table), 'model': self.__deja_vu[self.__dbname], 'fields_aliases':fields_aliases})
+        return factory({'fqrn': (self.__dbname, schema, table), 'model': Model.__deja_vu[self.__identity], 'fields_aliases':fields_aliases})
 
 
     @staticmethod
     def _deja_vu(dbname):
         """Returns None if the database hasn't been loaded yet.
-        Otherwise, it returns the Model object already loaded.
-        The Model object is shared between all_ the relations in the
-        database. The Model object is loaded only once for a given database.
+        Otherwise, it returns the first Model object loaded for that name.
+
+        A name does not say which server or which role: relation classes are
+        shared per connection identity (see ``_classes_``), and this lookup
+        is not what binds them to a Model.
         """
-        return Model.__deja_vu.get(dbname)
+        return Model.__first_seen.get(dbname)
 
     @property
     def __dbname(self):

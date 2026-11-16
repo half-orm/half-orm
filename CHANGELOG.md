@@ -1,5 +1,56 @@
 # Unreleased
 
+## Model and connections
+
+### A relation class runs as the role of the Model it came from
+
+**Security fix, with a behaviour change.** Relation classes and the Model
+they are bound to were shared by database *name*. A second `Model` opened on
+the same database under another role was therefore handed the classes of the
+first, and every query built from them went through the first one's
+connection:
+
+```python
+admin = Model('blog_admin')        # name = blog, user = admin
+ro    = Model('blog_readonly')     # name = blog, user = reader
+
+Post = ro.get_relation_class('blog.post')
+Post(id=1).ho_update(title='...')  # ran as admin, and succeeded
+```
+
+`ro.execute_query()` did run as `reader`, which is what made this easy to
+miss: the Model answered for its own role, and its relations for another's.
+An application keeping a restricted connection next to a privileged one — a
+read-only role for public pages, a per-tenant role — was not restricted at
+all on the relation API, whichever Model happened to be created first
+deciding the role for both.
+
+Sharing is now keyed by what the connection actually reached and as whom:
+host, port, database and role, read off the connection once libpq has
+resolved the defaults. A class obtained from a Model is bound to a Model of
+that same identity, and to no other.
+
+What this changes:
+
+- Two Models on the same database under **different roles** no longer share
+  anything. A class registered with `@register` through one is not returned
+  by the other, which gets the generated class instead. Register it through
+  each Model that needs it.
+- Two Models on the same database under the **same role** share their
+  classes as before, `@register`-ed ones included.
+- `Model._classes_` keeps its shape, `{dbname: {fqrn: class}}`, but is now a
+  per-identity view rather than one dictionary for the whole process.
+- `reconnect(config_file)` to another role still changes the role of that
+  Model and of the classes already bound to it; their registry follows it.
+
+### Metadata is cached per server, not per database name
+
+The catalog read at connection time was cached under the database name
+alone, so two servers each holding a database of the same name — a staging
+and a production `blog`, reached from one process — shared one description:
+the second Model saw the relations, columns and foreign keys of the first.
+The cache is now keyed by host, port and database name.
+
 # 1.2.0 (2026-10-29)
 
 ## `Transaction.after_commit()` and `Transaction.after_rollback()`

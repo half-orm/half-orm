@@ -40,6 +40,44 @@ statement:
 A name that fails one of these raises `ValueError` or `UnknownAttributeError`
 rather than reaching the database.
 
+## A relation runs as the role of its Model
+
+A `Model` is a connection: a server, a database and a role. A relation class
+obtained from it — through `get_relation_class`, foreign-key navigation or a
+generated package — sends its queries through that Model, and so with that
+role's privileges and no one else's.
+
+```python
+admin = Model('blog_admin')        # name = blog, user = admin
+ro    = Model('blog_readonly')     # name = blog, user = reader
+
+Post = ro.get_relation_class('blog.post')
+Post(id=1).ho_update(title='...')  # refused by PostgreSQL: reader cannot write
+```
+
+Models are told apart by host, port, database and role, as the connection
+reports them. Two Models that agree on all four share their relation classes,
+`@register`-ed ones included; two that differ on any share nothing, the
+catalog description aside when only the role differs. So a restricted Model
+kept next to a privileged one stays restricted, in whatever order they were
+created.
+
+Two limits follow from a Model *being* a connection rather than holding one
+per caller:
+
+- `Model.reconnect(config_file)` changes the role of that Model, and with it
+  the role of every class already bound to it. The calling thread switches at
+  once; the other threads keep the connection they hold and pick up the new
+  role whenever they next open one. It is therefore not a way to run one
+  request as another role while other threads carry on: use one Model per
+  role instead.
+- The role is the one the connection was opened as. A `SET ROLE` issued
+  through `execute_query` is invisible to halfORM, and applies only to the
+  connection of the thread that issued it.
+
+The privileges themselves are PostgreSQL's. halfORM routes a query to the
+right role; what that role may do is decided by `GRANT` and `REVOKE`.
+
 ## What halfORM cannot check for you
 
 Two things are constrained but not resolved, and the difference matters if you

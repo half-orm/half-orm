@@ -198,13 +198,16 @@ ORDER BY
 class _Meta(dict):
     __d_meta = {}
 
+    # Keyed by (host, port, dbname), not by dbname alone: two servers may
+    # each hold a database of the same name, and answering one with the
+    # catalog of the other describes relations it does not have.
     @classmethod
-    def deja_vu(cls, dbname):
-        return dbname in cls.__d_meta
+    def deja_vu(cls, key):
+        return key in cls.__d_meta
 
     @classmethod
-    def register(cls, dbname, meta):
-        cls.__d_meta[dbname] = meta
+    def register(cls, key, meta):
+        cls.__d_meta[key] = meta
 
     def __getitem__(self, key):
         return _Meta.__d_meta.__getitem__(key)
@@ -228,9 +231,15 @@ class PgMeta:
             reload (bool, optional): A flag indicating whether to reload the metadata from the database. \
             Defaults to False.
         """
-        self.__dbname = connection.info.get_parameters()['dbname']
+        info = connection.info
+        self.__dbname = info.get_parameters()['dbname']
+        # What the connection actually reached, rather than what the
+        # configuration asked for: an omitted host or port is resolved by
+        # libpq from the environment, and only the result tells two servers
+        # apart.
+        self.__key = (info.host, info.port, self.__dbname)
         self.__with_half_orm_meta = with_half_orm_meta
-        if not PgMeta.meta.deja_vu(self.__dbname) or reload:
+        if not PgMeta.meta.deja_vu(self.__key) or reload:
             self.__load_metadata(connection)
 
     def __meta_allowed(self, schema, relname):
@@ -243,15 +252,18 @@ class PgMeta:
         return f'{schema}.{relname}' in allow
 
     def metadata(self, dbname):
-        """Retrieves the metadata for the specified database name.
+        """Retrieves the metadata of the database this instance was built on.
 
         Args:
-            dbname (str): The name of the PostgreSQL database.
+            dbname (str): The name of the PostgreSQL database. Kept for the
+                signature every accessor here shares; the lookup goes
+                through the server the connection reached, since a name
+                alone does not identify a database.
 
         Returns:
-            dict: The metadata of the specified database.
+            dict: The metadata of the database.
         """
-        return self.meta[dbname]
+        return self.meta[self.__key]
 
     def relations_list(self, dbname):
         """Retrieves a list of relations for the specified database.
@@ -348,7 +360,7 @@ class PgMeta:
                         table_key, fields, ffields, confupdtype, confdeltype, True, is_singleton)
 
         metadata['relations_list'].sort()
-        PgMeta.meta.register(self.__dbname, metadata)
+        PgMeta.meta.register(self.__key, metadata)
 
     def has_relation(self, dbname, schema, relation):
         """Checks whether the specified relation exists in the specified database.
@@ -361,7 +373,7 @@ class PgMeta:
         Returns:
             bool: True if the relation exists, False otherwise.
         """
-        return (dbname, schema, relation) in self.meta[dbname]['byname']
+        return (dbname, schema, relation) in self.metadata(dbname)['byname']
 
     def has_extension(self, dbname, name):
         """Checks whether the specified PostgreSQL extension is installed.
@@ -373,7 +385,7 @@ class PgMeta:
         Returns:
             bool: True if the extension is installed, False otherwise.
         """
-        return name in self.meta[dbname]['extensions']
+        return name in self.metadata(dbname)['extensions']
 
 
     def desc(self, dbname):
