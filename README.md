@@ -8,43 +8,6 @@
 [![Coverage](https://coveralls.io/repos/github/half-orm/half-orm/badge.svg?branch=main)](https://coveralls.io/github/half-orm/half-orm?branch=main)
 [![Downloads](https://static.pepy.tech/badge/half_orm)](https://pepy.tech/project/half_orm)
 
-> ## ⚠️ BREAKING CHANGES in v1.0.0
->
-> **Legacy unprefixed API removed** — the pre-`ho_` method names, deprecated
-> since 0.x, no longer exist: `select`, `insert`, `update`, `delete`, `get`,
-> `count`, `is_empty`, `unaccent`, `order_by`, `limit`, `offset`, `_mogrify`.
-> Use their `ho_`-prefixed equivalents (`ho_select`, `ho_insert`, `ho_update`,
-> `ho_delete`, `ho_get`, `ho_count`, `ho_is_empty`, `ho_unaccent`, `ho_mogrify`,
-> passing `order_by`/`limit`/`offset` as `ho_select()` keyword arguments).
->
-> **`DC_Relation`** removed from `half_orm.relation` — this IDE type-checking
-> stub is now generated per-project by `half-orm-dev` instead of shipped in
-> the library.
->
-> **`ho_get()`** is now public and returns a `dict` directly. It raises
-> `NotFoundError` (0 rows) or `MultipleRowsError` (> 1 row) instead of
-> counting first.
->
-> **Deprecated query-builder setters removed** — `ho_limit`, `ho_offset`,
-> `ho_order_by`, `ho_distinct` no longer exist as setters. Pass these as
-> keyword arguments to `ho_select()`:
-> ```python
-> # Before (0.x)
-> rel.ho_limit = 10
-> rel.ho_order_by = 'name'
-> list(rel)
->
-> # After (1.0)
-> list(rel.ho_select(limit=10, order_by='name'))
-> ```
->
-> **`FKEYS_PROPERTIES` / `FKEYS`** class attributes removed — use `Fkeys` only.
->
-> **`ho_cast()`** now raises `CastError` if the target is not in the
-> PostgreSQL inheritance hierarchy of the relation.
->
-> See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
-
 halfORM is a database-first ORM for PostgreSQL. Your schema lives in the
 database; halfORM introspects it at runtime and gives you Python objects to work
 with your data. No migrations, no code generation.

@@ -1,5 +1,34 @@
 # half-orm 1.0.0 — Breaking Changes
 
+## Legacy unprefixed API removed
+
+The method names without the `ho_` prefix, deprecated since 0.x, no longer
+exist: `select`, `insert`, `update`, `delete`, `get`, `count`, `is_empty`,
+`unaccent`, `order_by`, `limit`, `offset`, `_mogrify`.
+
+**Before:**
+```python
+for row in Author(last_name='Martin').select('id'):
+    ...
+Author(id=1).update(email='a@example.com')
+```
+
+**After:**
+```python
+for row in Author(last_name='Martin').ho_select('id'):
+    ...
+Author(id=1).ho_update(email='a@example.com')
+```
+
+`order_by`, `limit` and `offset` are keyword arguments of `ho_select()`, see
+below.
+
+## `DC_Relation` removed from `half_orm.relation`
+
+This IDE type-checking stub is no longer shipped with the library. It is
+generated for each project by `half-orm-dev`, in the package's
+`ho_baseclasses.py`.
+
 ## `ho_get()` returns a `dict` and raises on 0 or >1 rows
 
 `ho_get()` now returns a plain `dict` directly (no longer a Relation

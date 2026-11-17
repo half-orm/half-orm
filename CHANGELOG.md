@@ -87,7 +87,7 @@ columns, so a column called `items` or `keys` replaced it on the instance,
 and `dict(rel)` then failed with *'Field' object is not callable*. Removing
 them frees both names.
 
-See `half_orm/migrations/BREAKING_CHANGES-1.3.0.md` for what to write
+See `half_orm/migrations/BREAKING_CHANGES-2.0.0.md` for what to write
 instead.
 
 ### A dot in a relation name no longer sends half_orm to another relation

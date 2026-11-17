@@ -1,4 +1,4 @@
-# half-orm 1.3.0 — Breaking Changes
+# half-orm 2.0.0 — Breaking Changes
 
 ## A Model refuses a database whose derived names collide
 
@@ -41,7 +41,7 @@ A reverse key named this way is `_reverse_fkey_posts` in `Fkeys` and
 `rfk_posts` on the relation. Renaming the constraint, the column or the
 table settles it too.
 
-**To find out before upgrading**, open the Model with 1.3.0 in a shell:
+**To find out before upgrading**, open the Model with 2.0.0 in a shell:
 `python -m half_orm <config>` prints the list.
 
 ## A relation is no longer a mapping
