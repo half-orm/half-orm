@@ -1,5 +1,7 @@
 # Unreleased
 
+# 2.0.0 (2026-11-17)
+
 ## halfORM follows Semantic Versioning
 
 From this release on, a major release may require changes to your code; a
@@ -160,6 +162,14 @@ when the relation's own name holds none:
 A name is now looked up as it stands among the relations of the database
 before being parsed, so `get_relation_class('a.b.c')` reaches the relation
 spelled that way wherever its dot falls. The quoted forms work as before.
+
+* docs: list the 2.0 line in the security pages (de073ea8)
+* feat(cli): load an extension built for the core's major version (name-collisions-1.3) (810bfb75)
+* fix(relation)!: a column has one name in Python, everywhere (508eb887)
+* docs: keep breaking changes in the notes, not in the README (55e0ebaa)
+* feat(model)!: refuse a database whose derived names collide (2395b6c4)
+* fix: split a qualified relation name with the catalog, not on its last dot (50211d22)
+* feat(relation)!: a relation is no longer a mapping (ba11ba7c)
 
 # 1.2.1 (2026-11-16)
 
