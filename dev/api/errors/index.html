@@ -1580,6 +1580,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#half_orm.model_errors.NamingError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NamingError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#half_orm.model_errors.NamingProblem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NamingProblem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#half_orm.model_errors.UnknownRelation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2508,6 +2530,332 @@ when the predicate does not match exactly one row.</p>
 <a id="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-29" name="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-29"></a><span class="w">    </span><span class="sd">"""The QRN should contain a schema name."""</span>
 <a id="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-30" name="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-30"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qrn</span><span class="p">):</span>
 <a id="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-31" name="half_orm.model_errors.MissingSchemaInName--source--__codelineno-0-31"></a>        <span class="ne">Exception</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"do you mean 'public.</span><span class="si">{</span><span class="n">qrn</span><span class="si">}</span><span class="s2">'?"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="half_orm.model_errors.NamingError" class="doc doc-heading">
+            <code>NamingError</code>
+
+
+<a href="#half_orm.model_errors.NamingError" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+
+        <p>Names derived from the catalog collide, or a declared name is unusable.</p>
+<p>Raised when a Model is created or reloaded. Every problem is listed, in
+the message and in :attr:<code>problems</code>: until they are all settled no Model
+can be opened on the database with these declarations. See
+:mod:<code>half_orm.naming</code> for how to settle them.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingError.dbname">dbname</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the database.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingError.problems">problems</span></code></td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-internal" title="NamingProblem (half_orm.model_errors.NamingProblem)" href="#half_orm.model_errors.NamingProblem">NamingProblem</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>everything that was found.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>half_orm/model_errors.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-75">75</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-76">76</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-77">77</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-80">80</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-87">87</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-88">88</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-89">89</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-90">90</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingError--source--__codelineno-0-91">91</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="half_orm.model_errors.NamingError--source--__codelineno-0-67" name="half_orm.model_errors.NamingError--source--__codelineno-0-67"></a><span class="k">class</span><span class="w"> </span><span class="nc">NamingError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-68" name="half_orm.model_errors.NamingError--source--__codelineno-0-68"></a><span class="w">    </span><span class="sd">"""Names derived from the catalog collide, or a declared name is unusable.</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-69" name="half_orm.model_errors.NamingError--source--__codelineno-0-69"></a>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-70" name="half_orm.model_errors.NamingError--source--__codelineno-0-70"></a><span class="sd">    Raised when a Model is created or reloaded. Every problem is listed, in</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-71" name="half_orm.model_errors.NamingError--source--__codelineno-0-71"></a><span class="sd">    the message and in :attr:`problems`: until they are all settled no Model</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-72" name="half_orm.model_errors.NamingError--source--__codelineno-0-72"></a><span class="sd">    can be opened on the database with these declarations. See</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-73" name="half_orm.model_errors.NamingError--source--__codelineno-0-73"></a><span class="sd">    :mod:`half_orm.naming` for how to settle them.</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-74" name="half_orm.model_errors.NamingError--source--__codelineno-0-74"></a>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-75" name="half_orm.model_errors.NamingError--source--__codelineno-0-75"></a><span class="sd">    Attributes:</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-76" name="half_orm.model_errors.NamingError--source--__codelineno-0-76"></a><span class="sd">        dbname (str): the database.</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-77" name="half_orm.model_errors.NamingError--source--__codelineno-0-77"></a><span class="sd">        problems (list[NamingProblem]): everything that was found.</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-78" name="half_orm.model_errors.NamingError--source--__codelineno-0-78"></a><span class="sd">    """</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-79" name="half_orm.model_errors.NamingError--source--__codelineno-0-79"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">problems</span><span class="p">):</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-80" name="half_orm.model_errors.NamingError--source--__codelineno-0-80"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">dbname</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-81" name="half_orm.model_errors.NamingError--source--__codelineno-0-81"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">problems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-82" name="half_orm.model_errors.NamingError--source--__codelineno-0-82"></a>        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">problems</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-83" name="half_orm.model_errors.NamingError--source--__codelineno-0-83"></a>        <span class="ne">Exception</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-84" name="half_orm.model_errors.NamingError--source--__codelineno-0-84"></a>            <span class="bp">self</span><span class="p">,</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-85" name="half_orm.model_errors.NamingError--source--__codelineno-0-85"></a>            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> naming problem</span><span class="si">{</span><span class="s1">'s'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> in database "</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-86" name="half_orm.model_errors.NamingError--source--__codelineno-0-86"></a>            <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">dbname</span><span class="si">}</span><span class="s2">':</span><span class="se">\n</span><span class="s2">"</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-87" name="half_orm.model_errors.NamingError--source--__codelineno-0-87"></a>            <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">problems</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-88" name="half_orm.model_errors.NamingError--source--__codelineno-0-88"></a>            <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Give one side of each a name of its own -- an '@ho_name' or "</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-89" name="half_orm.model_errors.NamingError--source--__codelineno-0-89"></a>            <span class="s2">"'@ho_reverse_name' line in a comment, or the field_names, "</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-90" name="half_orm.model_errors.NamingError--source--__codelineno-0-90"></a>            <span class="s2">"reverse_names and ignore arguments of Model. "</span>
+<a id="half_orm.model_errors.NamingError--source--__codelineno-0-91" name="half_orm.model_errors.NamingError--source--__codelineno-0-91"></a>            <span class="s2">"See half_orm.naming."</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="half_orm.model_errors.NamingProblem" class="doc doc-heading">
+            <code>NamingProblem</code>
+
+
+<a href="#half_orm.model_errors.NamingProblem" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>One thing that keeps the names of a database from being used as they are.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingProblem.kind">kind</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'reverse_fkey'</code> (two foreign keys filed under one
+name), <code>'attribute'</code> (two attributes of a relation with one
+name), <code>'reserved'</code> (a column named like something Relation
+uses), <code>'qualified_name'</code> (two relations spelled alike without
+quotes) or <code>'declaration'</code> (a declared name that cannot be
+used).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingProblem.name">name</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>the name in dispute.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingProblem.relation">relation</span></code></td>
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>schema.relation</code> it is in dispute on.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingProblem.members">members</span></code></td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>what is competing for it.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="half_orm.model_errors.NamingProblem.hint">hint</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>what to do about it.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>half_orm/model_errors.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-44">44</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-54">54</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-55">55</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-56">56</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#half_orm.model_errors.NamingProblem--source--__codelineno-0-64">64</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-34" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-34"></a><span class="k">class</span><span class="w"> </span><span class="nc">NamingProblem</span><span class="p">:</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-35" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-35"></a><span class="w">    </span><span class="sd">"""One thing that keeps the names of a database from being used as they are.</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-36" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-36"></a>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-37" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-37"></a><span class="sd">    Attributes:</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-38" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-38"></a><span class="sd">        kind (str): ``'reverse_fkey'`` (two foreign keys filed under one</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-39" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-39"></a><span class="sd">            name), ``'attribute'`` (two attributes of a relation with one</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-40" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-40"></a><span class="sd">            name), ``'reserved'`` (a column named like something Relation</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-41" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-41"></a><span class="sd">            uses), ``'qualified_name'`` (two relations spelled alike without</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-42" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-42"></a><span class="sd">            quotes) or ``'declaration'`` (a declared name that cannot be</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-43" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-43"></a><span class="sd">            used).</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-44" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-44"></a><span class="sd">        name (str): the name in dispute.</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-45" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-45"></a><span class="sd">        relation (str | None): ``schema.relation`` it is in dispute on.</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-46" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-46"></a><span class="sd">        members (list[str]): what is competing for it.</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-47" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-47"></a><span class="sd">        hint (str): what to do about it.</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-48" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-48"></a><span class="sd">    """</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-49" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-49"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">relation</span><span class="p">,</span> <span class="n">members</span><span class="p">,</span> <span class="n">hint</span><span class="p">):</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-50" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-50"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-51" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-51"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-52" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-52"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">relation</span> <span class="o">=</span> <span class="n">relation</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-53" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-53"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">members</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">members</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-54" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-54"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">hint</span> <span class="o">=</span> <span class="n">hint</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-55" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-55"></a>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-56" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-56"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-57" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-57"></a>        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">' on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relation</span><span class="si">}</span><span class="s1">'</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">relation</span> <span class="k">else</span> <span class="s1">''</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-58" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-58"></a>        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'- [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}{</span><span class="n">where</span><span class="si">}</span><span class="s1">'</span><span class="p">]</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-59" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-59"></a>        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'    </span><span class="si">{</span><span class="n">member</span><span class="si">}</span><span class="s1">'</span> <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="p">]</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-60" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-60"></a>        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  -&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hint</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-61" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-61"></a>        <span class="k">return</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-62" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-62"></a>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-63" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-63"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="half_orm.model_errors.NamingProblem--source--__codelineno-0-64" name="half_orm.model_errors.NamingProblem--source--__codelineno-0-64"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s1">'NamingProblem(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="si">!r}</span><span class="s1">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s1">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relation</span><span class="si">!r}</span><span class="s1">)'</span>
 </code></pre></div></td></tr></table></div>
               </details>
 

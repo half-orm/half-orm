@@ -2092,9 +2092,69 @@ generated package module.</p>
                   <code>False</code>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field_names</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Python names for columns,
+<code>{'schema.relation': {'column': 'python_name'}}</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>reverse_names</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>names for reverse foreign keys,
+<code>{('schema.relation', 'constraint'): 'name'}</code> — the relation
+and constraint are those of the <em>referencing</em> side; the key is
+then exposed as <code>rfk_&lt;name&gt;</code> on the referenced relation.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ignore</code>
+            </td>
+            <td>
+                  <code>Iterable[<span title="str">str</span>] | <span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>relations to leave out of the
+model, as <code>schema.relation</code> patterns (<code>'old.*'</code>); a
+comma-separated string is accepted too. An ignored relation is
+not loaded, and no foreign key leads to it.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
       </tbody>
     </table>
-        <p>If no file named <code>config_file</code> is found in <code>HALFORM_CONF_DIR</code>, it is
+        <p>The last three settle the naming problems reported by
+:class:<code>~half_orm.model_errors.NamingError</code>, for a database in which the
+names cannot be declared with a comment — see :mod:<code>half_orm.naming</code>.
+They are part of what identifies a Model: two Models that do not declare
+the same names share nothing.</p>
+<p>If no file named <code>config_file</code> is found in <code>HALFORM_CONF_DIR</code>, it is
 used directly as the database name and a peer-authentication connection
 is attempted (no user/password/host/port) — development use only.</p>
 
@@ -2125,6 +2185,29 @@ is attempted (no user/password/host/port) — development use only.</p>
             <td>
               <div class="doc-md-description">
                 <p>if the database connection fails.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code>NamingError</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if two names derived from the catalog collide — two
+reverse foreign keys spelled alike, a column named like a foreign
+key attribute or like something Relation uses. Raised here and
+by <code>reconnect(reload=True)</code>, listing every problem.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if a naming argument does not have the documented shape.</p>
               </div>
             </td>
           </tr>
