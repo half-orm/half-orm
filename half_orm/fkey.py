@@ -127,7 +127,10 @@ class FKey:
         return f_relation
 
     def values(self):
-        return [list(elt.values()) for elt in self.__to_relation.ho_select(*self.__fk_names)]
+        # fk_names are database names; ho_select takes Python ones.
+        to_relation = self.__to_relation
+        return [list(elt.values())
+                for elt in to_relation.ho_select(*to_relation._ho_py_names(self.__fk_names))]
 
     def set(self, ho_to_rel=None, **kwargs):
         """Bind this foreign key to a relation, adding a JOIN condition.
@@ -236,7 +239,10 @@ class FKey:
 
     #@utils.trace
     def _fkey_prep_select(self):
-        return (self.__fields, self.__fk_to._ho_prep_select(*self.fk_names)) if self.__is_set else None
+        if not self.__is_set:
+            return None
+        return (self.__fields,
+                self.__fk_to._ho_prep_select(*self.__fk_to._ho_py_names(self.fk_names)))
 
     @property
     def name(self):

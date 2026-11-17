@@ -106,8 +106,15 @@ class TestColumnRendering(TestCase):
         returning = query.split('returning')[-1]
         self.assertIn(f'"{ODD_COLUMN}"', returning)
 
-    def test_returning_star_is_left_alone(self):
+    def test_returning_star_labels_a_renamed_column(self):
+        """A row is keyed by Python names, RETURNING * included: the column
+        comes back as column5, not as 'a = 1'."""
         query, _ = self.Comment(content='x')._ho_prep_insert('*')
+        self.assertIn(f'"{ODD_COLUMN}" as "{PY_NAME}"', query)
+        self.assertNotIn('returning *', query)
+
+    def test_returning_star_is_left_alone_when_no_column_is_renamed(self):
+        query, _ = halftest.person_cls(first_name='x')._ho_prep_insert('*')
         self.assertIn('returning *', query)
 
     def test_where_already_used_the_real_name(self):

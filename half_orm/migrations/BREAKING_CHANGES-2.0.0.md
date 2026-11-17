@@ -44,6 +44,38 @@ table settles it too.
 **To find out before upgrading**, open the Model with 2.0.0 in a shell:
 `python -m half_orm <config>` prints the list.
 
+## Rows are keyed by Python names
+
+This only concerns relations with a column known in Python under another
+name than its own: one whose name is not a valid identifier (`"a = 1"`,
+exposed as `column<N>`), or one renamed with `fields_aliases`, `@ho_name` or
+`Model(field_names=...)`.
+
+A row returned whole — `ho_select()`, `ho_get()`, `ho_insert()`, `RETURNING
+*`, iterating a relation — was keyed by the SQL name. It is now keyed by the
+Python name, as a row returned by `ho_select('column5')` already was.
+
+**Before:**
+```python
+row = Comment(id=1).ho_get()
+row['a = 1']
+```
+
+**After:**
+```python
+row = Comment(id=1).ho_get()
+row['column5']
+```
+
+In `order_by`, `ho_copy()` (dict keys, CSV header, `columns=`) and the field
+lists of `json_agg`, a column is named by its Python name. These did not work
+with such columns before; if you worked around it with raw SQL, you can drop
+the workaround.
+
+**To find out whether you are affected**, look for the warning halfORM prints
+when it exposes a column under another name (`"a = 1" is not a valid
+identifier in Python`), and for `fields_aliases` in your code.
+
 ## A relation is no longer a mapping
 
 `Relation.keys()`, `Relation.items()` and `rel['col']` are removed, and with

@@ -74,6 +74,35 @@ lookups are now qualified.
 
 ## Relations
 
+### A column has one name in Python, everywhere
+
+**Breaking change.** A column whose name Python cannot write is exposed
+under another one — `"a = 1"` as `column5` — and so is a column given a name
+with `fields_aliases`, `@ho_name` or `field_names`. That name worked as an
+attribute, in the constructor and in `ho_select('column5')`, but not
+everywhere:
+
+- **Rows came back keyed by the SQL name** whenever the whole row was
+  returned: `ho_select()` with no column, `ho_get()`, iterating a relation,
+  `ho_insert()`, `RETURNING *`, the async variants, a `|` rendered as a
+  UNION. Asking for the column by name gave `row['column5']`, asking for the
+  whole row gave `row['a = 1']`, and the row could not be passed back to a
+  constructor: `Comment(**Comment(id=1).ho_get())` raised
+  `UnknownAttributeError`.
+- **`order_by`, `ho_copy()` and `json_agg`** accepted the Python name and
+  wrote it into the statement as if it were the column's, which PostgreSQL
+  refused.
+- **Foreign keys** to or from such a column failed in `FKey.values()`, in
+  `ho_insert()` with the key set, and in `ho_assert_is_singleton()` through
+  the key.
+
+Every row is now keyed by Python names, and every argument naming a column
+takes its Python name. The SQL name is refused where a column name is
+expected; it remains `rel.column5.name`.
+
+Relations whose columns all keep their own name are not affected: the
+statements generated for them are unchanged, `*` included.
+
 ### A relation is no longer a mapping
 
 **Breaking change.** `Relation.keys()`, `Relation.items()` and `rel['col']`

@@ -169,7 +169,7 @@ _ORDER_BY_TERM_RE = re.compile(
     re.IGNORECASE | re.VERBOSE)
 
 
-def _ho_parse_order_by(order_by, columns, context='order_by'):
+def _ho_parse_order_by(order_by, columns, context='order_by', render=None):
     """Render `order_by` as a safe SQL ORDER BY clause.
 
     Accepts the documented forms — ``'name'``, ``'name desc'``,
@@ -186,6 +186,9 @@ def _ho_parse_order_by(order_by, columns, context='order_by'):
         order_by (str): the clause to parse.
         columns (Iterable[str]): the column names accepted in this context.
         context (str): parameter name to quote in error messages.
+        render (Callable[[str], str] | None): turns an accepted name into
+            SQL. By default the name is quoted as it is, which is only right
+            when the Python name of a column is its SQL name.
 
     Returns:
         str: the rendered clause, e.g. ``'"last_name" asc, "id" desc'``.
@@ -213,7 +216,7 @@ def _ho_parse_order_by(order_by, columns, context='order_by'):
             name = quoted.replace('""', '"') if quoted is not None else bare
             if name not in columns:
                 raise relation_errors.UnknownAttributeError(f"{name} ({context})")
-            term = _ho_quote_ident(name)
+            term = render(name) if render else _ho_quote_ident(name)
         if match.group('direction'):
             term += f" {match.group('direction').lower()}"
         if match.group('nulls'):
@@ -443,7 +446,7 @@ class Relation:
         to know the name that could not be an attribute in the first place.
         """
         if name == '*':
-            return name
+            return self._ho_star_sql()
         py_name = _ho_unquote_ident(name) if isinstance(name, str) else name
         field = self._ho_fields.get(py_name)
         if field is None:
@@ -452,6 +455,73 @@ class Relation:
         if labelled and field.name != py_name:
             sql = f'{sql} as {_ho_quote_ident(py_name)}'
         return sql
+
+    def _ho_field_by_column(self, column):
+        """The Field of the column called `column` in the database, or None.
+
+        Foreign keys name their columns as the database does, and a column
+        may be known in Python under another name. Quoted names, as the
+        foreign-key machinery stores them, are unwrapped first.
+        """
+        column = _ho_unquote_ident(column)
+        return next((field for field in self._ho_fields.values()
+                     if field.name == column), None)
+
+    def _ho_py_names(self, columns):
+        """The Python names of `columns`, given as the database names them.
+
+        Raises:
+            UnknownAttributeError: if one of them is not a column of the
+                relation.
+        """
+        names = []
+        by_field = {id(field): py_name for py_name, field in self._ho_fields.items()}
+        for column in columns:
+            field = self._ho_field_by_column(column)
+            if field is None:
+                raise relation_errors.UnknownAttributeError(str(column))
+            names.append(by_field[id(field)])
+        return names
+
+    def _ho_star_sql(self, prefix=''):
+        """Every column of the relation, each under its Python name.
+
+        ``<prefix>*`` when every column is called in Python what it is called
+        in the database, which keeps the statements of an ordinary relation
+        exactly as they were. Otherwise the columns are listed, and the ones
+        known under another name are labelled with it: a row comes back keyed
+        the way the relation is, so that it can be passed back to a
+        constructor -- ``*`` returned ``a = 1`` for the column the relation
+        calls ``column2``.
+        """
+        if all(field.name == py_name for py_name, field in self._ho_fields.items()):
+            return f'{prefix}*'
+        return ', '.join(
+            f'{prefix}{_ho_quote_ident(field.name)}'
+            + ('' if field.name == py_name else f' as {_ho_quote_ident(py_name)}')
+            for py_name, field in self._ho_fields.items())
+
+    def _ho_row_json_sql(self, binary=False):
+        """A JSON object of the whole row, keyed by Python names.
+
+        ``row_to_json``/``to_jsonb`` key the object by the SQL names, so a
+        renamed column is taken out and put back under its Python name. That
+        is done on ``jsonb`` -- ``json`` has no operator to remove a key --
+        and in slices: ``jsonb_build_object`` takes at most 100 arguments.
+        """
+        rel_id = f'r{self.ho_id}'
+        renamed = [(py_name, field.name) for py_name, field in self._ho_fields.items()
+                   if field.name != py_name]
+        if not renamed:
+            return f'to_jsonb({rel_id})' if binary else f'row_to_json({rel_id})'
+        expr = f'to_jsonb({rel_id})' + ''.join(
+            f' - {_ho_quote_literal(column)}' for _, column in renamed)
+        for start in range(0, len(renamed), 50):
+            pairs = ', '.join(
+                f'{_ho_quote_literal(py_name)}, {rel_id}.{_ho_quote_ident(column)}'
+                for py_name, column in renamed[start:start + 50])
+            expr = f'({expr}) || jsonb_build_object({pairs})'
+        return expr
 
     #@utils.trace
     _HO_WRITABLE_KINDS = {'Table', 'Partioned table'}
@@ -576,7 +646,8 @@ class Relation:
         obj._ho_check_writable()
         is_file = hasattr(data, 'read')
         columns = _ho_copy_columns(obj, data, columns, 'ho_copy')
-        cols = ', '.join(_ho_quote_ident(c) for c in columns)
+        # The checked names are Python names; COPY wants the columns'.
+        cols = ', '.join(_ho_quote_ident(obj._ho_fields[c].name) for c in columns)
         conn = cls._ho_model._connection
 
         if is_file:
@@ -632,7 +703,24 @@ class Relation:
                     f"{name} must be an integer, got {type(value).__name__!r}")
         if order_by is None:
             return None
-        return _ho_parse_order_by(order_by, self._ho_fields)
+        return _ho_parse_order_by(
+            order_by, self._ho_fields, render=self.__order_by_column)
+
+    def __order_by_column(self, py_name):
+        """Render one ORDER BY column, named by its Python name.
+
+        A column whose Python name is its SQL name is written as it always
+        was, unqualified, which PostgreSQL resolves against the select list.
+        One that was renamed is not in the select list under its own name:
+        a plain SELECT orders by the qualified column; a UNION or EXCEPT
+        can only order by an output column, which carries the Python name.
+        """
+        field = self._ho_fields[py_name]
+        compound = (self._ho_union_branches is not None
+                    or self._ho_except_branches is not None)
+        if compound or field.name == py_name:
+            return _ho_quote_ident(py_name)
+        return f'r{self.ho_id}.{_ho_quote_ident(field.name)}'
 
     def _ho_prep_select_query(self, *args,
         distinct=False, order_by=None, limit=None, offset=None):
@@ -815,17 +903,19 @@ class Relation:
         # A FK join uniquely identifies self when:
         #   - the fields on self involved in the join form a PK or UNIQUE NOT NULL, AND
         #   - the corresponding fields on the joined relation are all fixed with '='.
+        # A foreign key names its columns as the database does; everything
+        # here is compared on those names, not on the Python ones.
         def _all_eq(names, rel):
+            fields = [rel._ho_field_by_column(n) for n in names]
             return all(
-                rel._ho_fields.get(n.strip('"')) is not None
-                and rel._ho_fields[n.strip('"')].is_set()
-                and rel._ho_fields[n.strip('"')]._comp() == '='
-                for n in names
-            )
+                field is not None and field.is_set() and field._comp() == '='
+                for field in fields)
+        pk_columns = frozenset(field.name for field in self._ho_pkey.values())
         for fkey, fk_rel in self._ho_join_to.items():
-            self_fields = frozenset(fkey.names)
-            on_pk = bool(self._ho_pkey) and self_fields == frozenset(self._ho_pkey.keys())
-            on_ukey = any(self_fields == frozenset(uk.keys()) for uk in self._ho_ukeys)
+            self_fields = frozenset(_ho_unquote_ident(n) for n in fkey.names)
+            on_pk = bool(self._ho_pkey) and self_fields == pk_columns
+            on_ukey = any(self_fields == frozenset(field.name for field in uk.values())
+                          for uk in self._ho_ukeys)
             if (on_pk or on_ukey) and _all_eq(fkey.fk_names, fk_rel):
                 return self
         if not self._ho_pkey and not self._ho_ukeys:
@@ -1749,7 +1839,7 @@ Fkeys = {"""
         """Returns the columns expression and WHERE Expr node.
         """
         rel_id_ = self.ho_id
-        what = f'r{rel_id_}.*'
+        what = self._ho_star_sql(f'r{rel_id_}.')
         if args:
             what = ', '.join(
                 [f'r{rel_id_}.{self._ho_column_sql(arg, labelled=True)}'
@@ -2029,16 +2119,17 @@ Fkeys = {"""
                 # equality operator to work with (json type has none).
                 if scalar_mode:
                     _ho_check_json_agg_field(leaf_rel, fields, fkey_attr)
-                    obj_expr = f'{rel_id}.{_ho_quote_ident(fields)}'
+                    obj_expr = f'{rel_id}.{_ho_quote_ident(leaf_rel._ho_fields[fields].name)}'
                 else:
                     pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields, fkey_attr)
                     if pairs:
                         obj_pairs = ', '.join(
-                            f'{_ho_quote_literal(f)}, r{rel.ho_id}.{_ho_quote_ident(f)}'
+                            f'{_ho_quote_literal(f)}, '
+                            f'r{rel.ho_id}.{_ho_quote_ident(rel._ho_fields[f].name)}'
                             for f, rel in pairs)
                         obj_expr = f'jsonb_build_object({obj_pairs})'
                     else:
-                        obj_expr = f'to_jsonb({rel_id})'
+                        obj_expr = leaf_rel._ho_row_json_sql(binary=True)
 
                 from_sql = ' '.join(from_parts)
                 where_sql = ' and '.join(where_parts)
@@ -2080,12 +2171,13 @@ Fkeys = {"""
                 rel_id = f'r{leaf_rel.ho_id}'
                 if scalar_mode:
                     _ho_check_json_agg_field(leaf_rel, fields, fkey_attr)
-                    obj_expr = f'{rel_id}.{_ho_quote_ident(fields)}'
+                    obj_expr = f'{rel_id}.{_ho_quote_ident(leaf_rel._ho_fields[fields].name)}'
                 else:
                     pairs = _ho_build_json_agg_pairs(fk_rel, hops, spec, fields, fkey_attr)
                     if pairs:
                         obj_pairs = ', '.join(
-                            f'{_ho_quote_literal(f)}, r{rel.ho_id}.{_ho_quote_ident(f)}'
+                            f'{_ho_quote_literal(f)}, '
+                            f'r{rel.ho_id}.{_ho_quote_ident(rel._ho_fields[f].name)}'
                             for f, rel in pairs)
                         # Use jsonb when outer SELECT DISTINCT is requested (json has no equality op).
                         obj_expr = (
@@ -2093,7 +2185,7 @@ Fkeys = {"""
                             else f'json_build_object({obj_pairs})'
                         )
                     else:
-                        obj_expr = f'to_jsonb({rel_id})' if distinct else f'row_to_json({rel_id})'
+                        obj_expr = leaf_rel._ho_row_json_sql(binary=bool(distinct))
 
                 if is_list:
                     has_reverse = True
@@ -2335,7 +2427,8 @@ Fkeys = {"""
         obj._ho_check_writable()
         is_file = hasattr(data, 'read')
         columns = _ho_copy_columns(obj, data, columns, 'ho_acopy')
-        cols = ', '.join(_ho_quote_ident(c) for c in columns)
+        # The checked names are Python names; COPY wants the columns'.
+        cols = ', '.join(_ho_quote_ident(obj._ho_fields[c].name) for c in columns)
         aconn = cls._ho_model._aconnection
 
         if is_file:
