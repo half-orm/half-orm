@@ -27,11 +27,13 @@ to disclose on a schedule, say so in the first message and we will work to it.
 
 | Version | Supported |
 | ------- | --------- |
-| 1.x     | ✅        |
+| 2.x     | ✅        |
+| 1.2     | ✅ fixes backported on request |
+| 1.0, 1.1 | ❌ upgrade to 1.2.1 or 2.x |
 | < 1.0   | ❌        |
 
 Fixes land on `main` and are released from there. Maintenance branches are cut
-per minor version, so a fix can be backported to the latest `1.x` on request.
+per minor version, so a fix can be backported to the 1.2 line on request.
 
 ## What halfORM defends, and what it cannot
 
