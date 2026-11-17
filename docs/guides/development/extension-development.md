@@ -58,24 +58,15 @@ half-orm-example/
 
 ### 2. Package Configuration with Auto-Version Detection
 
-Create `setup.py` with automatic halfORM version discovery:
+Create `setup.py`. halfORM follows Semantic Versioning from 2.0.0, and the
+CLI loads an extension built for the same **major** version as the core. The
+extension's version number is its own; what ties it to the core is the
+dependency it declares, which pip enforces:
 
 ```python
 from setuptools import setup, find_packages
 
-# Get halfORM version for compatibility
-def get_half_orm_version():
-    """Get half_orm version to ensure major.minor compatibility."""
-    try:
-        import half_orm
-        version_parts = half_orm.__version__.split('.')
-        # Use same major.minor, but allow independent patch versions
-        return f"{version_parts[0]}.{version_parts[1]}.0"
-    except ImportError:
-        # Fallback if half_orm not installed during setup
-        return "0.16.0"
-
-VERSION = get_half_orm_version()
+VERSION = '2.0.0'
 
 setup(
     name='half-orm-example',
@@ -104,7 +95,9 @@ This extension provides basic commands to demonstrate the halfORM CLI integratio
     license='GPL-3.0',
     packages=find_packages(),
     install_requires=[
-        f'half_orm>={VERSION.rsplit(".", 1)[0]}',  # Same major.minor
+        # The oldest 2.x providing what the extension uses, and below 3:
+        # a major release may break the API.
+        'half_orm>=2.0,<3',
     ],
     extras_require={
         'dev': ['pytest', 'black', 'flake8'],
@@ -147,7 +140,7 @@ import click
 EXTENSION_INFO = {
     'name': 'example',
     'description': 'Example extension demonstrating halfORM extension system',
-    'version': '0.16.0',  # Should match halfORM major.minor
+    'version': '2.0.0',  # Major version of the halfORM core it is built for
     'commands': ['greet', 'status'],
     'author': 'Your Name',
     'homepage': 'https://github.com/yourusername/half-orm-example',
@@ -230,7 +223,7 @@ half-orm-example: An example extension for halfORM
 This package demonstrates how to create extensions for the halfORM ecosystem.
 """
 
-__version__ = '0.16.0'  # Should match halfORM major.minor
+__version__ = '2.0.0'  # Major version of the halfORM core it is built for
 __author__ = 'Your Name'
 
 # Import main functionality

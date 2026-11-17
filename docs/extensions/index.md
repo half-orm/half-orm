@@ -25,7 +25,7 @@ Extensions integrate seamlessly with the halfORM CLI by providing:
 
 - **Auto-discovery**: Packages matching `half-orm-*` pattern
 - **CLI integration**: Commands added to the main `half_orm` interface
-- **Version compatibility**: Extensions must match halfORM core major.minor version
+- **Version compatibility**: Extensions must be built for the core's major version
 
 ### Security Model
 
@@ -39,8 +39,9 @@ running it. halfORM asks before doing that, and remembers what it ran.
 - **Module ownership** — the module that gets imported must belong to the
   distribution that was checked. A directory of the right name earlier on
   `sys.path` does not inherit its verdict.
-- **Version compatibility** — an extension you rely on must match the core
-  `major.minor`; one you never approved is skipped rather than fatal.
+- **Version compatibility** — an extension you rely on must be built for
+  the core's major version; one you never approved is skipped rather than
+  fatal. Before 2.0.0 the rule was `major.minor`.
 
 ```bash
 # Approving a community extension: prompted on first use
@@ -173,7 +174,7 @@ def add_commands(main_group):
 - **Auto-registration**: Use `@create_and_register_extension` decorator
 - **Automatic metadata**: Version, description, and commands discovered automatically
 - **Security model**: official extensions loaded without prompting but watched, community extensions approved per project
-- **Version compatibility**: Must match halfORM core major.minor version
+- **Version compatibility**: Must be built for the core's major version
 
 For a complete working example, see [half-orm-test-extension](https://github.com/half-orm/half-orm-test-extension) which demonstrates all the essential patterns.
 

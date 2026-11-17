@@ -1,5 +1,28 @@
 # Unreleased
 
+## halfORM follows Semantic Versioning
+
+From this release on, a major release may require changes to your code; a
+minor or a patch release does not, save for a security fix whose old
+behaviour was the vulnerability, which the release's advisory lists. Until
+now a minor release could break the API: this release breaks it, and is
+therefore 2.0.0 rather than 1.3.0.
+
+`half_orm>=2.0,<3` is a safe requirement. The versioning policy is on the
+[Breaking changes](https://half-orm.github.io/half-orm/latest/breaking-changes/)
+page.
+
+### The CLI loads an extension built for the same major version
+
+The `half_orm` command refused an extension whose `major.minor` differed
+from the core's. Under Semantic Versioning a minor release breaks nothing,
+so an extension built for 2.1 now loads on 2.4: only the major versions have
+to match. An extension needing something added in a later minor release
+says so in its dependency, `half_orm>=2.3,<3`, which pip enforces.
+
+An extension built for 1.x does not load on 2.0: `half-orm-dev` and the
+other official extensions need a 2.x release.
+
 ## Names derived from the catalog must be unambiguous
 
 **Breaking change.** A relation is reached through Python names — its

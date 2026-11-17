@@ -27,7 +27,7 @@ sys.path.insert(0, '.')
 import half_orm
 from half_orm import cli as half_orm_cli
 from half_orm.cli import (
-    main, discover_extensions, check_version_compatibility,
+    main, discover_extensions, check_version_compatibility, warn_version_incompatibility,
     is_trusted_extension, is_official_extension, add_trusted_extension,
     canonical_name, recorded_official_build, forget_official_build,
     remove_trusted_extension, load_cli_config, save_cli_config,
@@ -67,16 +67,27 @@ class TestVersionCompatibility:
     """Test version compatibility checking."""
     
     def test_compatible_versions(self):
-        """Test compatible version combinations."""
+        """Semantic Versioning: the major version is the contract."""
         assert check_version_compatibility("1.2.3", "1.2.5") == True
-        assert check_version_compatibility("1.2.0", "1.2.99") == True
         assert check_version_compatibility("2.0.1", "2.0.0") == True
-    
+        # a minor release breaks nothing, either way round
+        assert check_version_compatibility("2.1.0", "2.4.3") == True
+        assert check_version_compatibility("2.4.0", "2.1.0") == True
+        # pre-releases belong to their major version
+        assert check_version_compatibility("2.0.0rc1", "2.3.0") == True
+        assert check_version_compatibility("2.1.0-a1", "2.0.0") == True
+
     def test_incompatible_versions(self):
-        """Test incompatible version combinations."""
-        assert check_version_compatibility("1.2.3", "1.3.0") == False
+        """A different major version is a different contract."""
         assert check_version_compatibility("1.2.3", "2.2.3") == False
         assert check_version_compatibility("2.0.0", "1.2.0") == False
+        assert check_version_compatibility("1.99.0", "2.0.0") == False
+        assert check_version_compatibility("10.0.0", "1.0.0") == False
+
+    def test_warning_names_the_major_version(self, capsys):
+        with pytest.raises(SystemExit):
+            warn_version_incompatibility('half-orm-x', '1.4.0', '2.3.1')
+        assert 'Expected: 2.x' in capsys.readouterr().err
     
     def test_malformed_versions(self):
         """Test handling of malformed version strings."""
@@ -282,14 +293,8 @@ class TestExtensionDiscovery:
         import half_orm
         core_version = half_orm.__version__
         
-        # Create incompatible version (different major.minor)
-        # Use different variable names to avoid shadowing 'patch' function
-        major_version, minor_version, patch_version = core_version.split('.')
-        if int(minor_version) > 0:
-            incompatible_version = f"{major_version}.{int(minor_version)-1}.0"
-        else:
-            # If minor is 0, change major_version
-            incompatible_version = f"{max(0, int(major_version)-1)}.99.0"
+        # Incompatible means another major version.
+        incompatible_version = f"{int(core_version.split('.')[0]) + 1}.0.0"
         
         mock_dist = Mock()
         mock_dist.metadata = {'Name': 'half-orm-test-extension'}
@@ -324,8 +329,7 @@ class TestExtensionDiscovery:
         used to diagnose and remove it.
         """
         import half_orm
-        major, minor, _ = half_orm.__version__.split('.')
-        incompatible = f"{major}.{int(minor) + 1}.0"
+        incompatible = f"{int(half_orm.__version__.split('.')[0]) + 1}.0.0"
 
         mock_dist = Mock()
         mock_dist.metadata = {'Name': 'half-orm-stranger'}

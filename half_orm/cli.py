@@ -247,26 +247,39 @@ def save_cli_config(config):
     except OSError:
         return False
 
+# The start of a version string: 2.1 in '2.1.0', '2.1.0rc1', '2.1.0-a1'.
+_VERSION_RE = re.compile(r'^(\d+)\.(\d+)')
+
+
+def _major(version):
+    "The major version number, or None when `version` is not a version."
+    match = _VERSION_RE.match(str(version))
+    return int(match.group(1)) if match else None
+
+
 def check_version_compatibility(extension_version: str, core_version: str) -> bool:
-    """Check if extension version is compatible with core version (major.minor must match)."""
-    try:
-        ext_parts = extension_version.split('.')
-        core_parts = core_version.split('.')
+    """Whether an extension can run on this version of the core.
 
-        if len(ext_parts) < 2 or len(core_parts) < 2:
-            return False
+    halfORM follows Semantic Versioning from 2.0.0: within a major version a
+    release adds and fixes, and breaks nothing. An extension built for 2.1
+    therefore runs on 2.4, and only the major versions have to match.
 
-        # Major.minor must match exactly, patch can differ
-        return ext_parts[0] == core_parts[0] and ext_parts[1] == core_parts[1]
-    except (ValueError, IndexError):
-        return False
+    A finer bound is the extension's own business, stated where pip enforces
+    it: one that needs something added in 2.3 declares ``half_orm>=2.3,<3``.
+
+    Until 2.0.0 a minor release could break the API, and major.minor had to
+    match. That rule ships with the 1.x cores, which are the only ones it
+    applies to.
+    """
+    ext_major = _major(extension_version)
+    return ext_major is not None and ext_major == _major(core_version)
 
 def warn_version_incompatibility(package_name: str, ext_version: str, core_version: str):
     """Warn about version incompatibility."""
     click.echo(f"❌ ERROR: '{package_name}' v{ext_version} is incompatible", err=True)
     click.echo(f"   halfORM core: v{core_version}", err=True)
-    click.echo(f"   Extension must have same major.minor version", err=True)
-    click.echo(f"   Expected: {'.'.join(core_version.split('.')[:2])}.x", err=True)
+    click.echo("   An extension must be built for the core's major version", err=True)
+    click.echo(f"   Expected: {_major(core_version)}.x", err=True)
     sys.exit(1)
 
 def is_official_extension(package_name):
