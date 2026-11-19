@@ -13,7 +13,18 @@ py_test:
 	export LC_MESSAGES=C PYTHONPATH=$$PWD HALFORM_CONF_DIR=$$PWD/.config && pytest -x -vv --assert=plain --cov-config=.coveragerc --cov=half_orm --cov-report html test
 	flake8 half_orm --count --select=E9,F63,F7,F82 --show-source --statistics
 
-test: clean_coverage py_test
+# The test database is rebuilt from this branch's own schema: it differs
+# between lines (1.x added actor.person.motto), and tests run against another
+# line's schema fail for no reason of their own. `make py_test` skips the
+# rebuild.
+HALFTEST_DB ?= halftest
+
+test_db:
+	dropdb --if-exists $(HALFTEST_DB)
+	createdb $(HALFTEST_DB) -O halftest
+	psql -q -v ON_ERROR_STOP=1 -d $(HALFTEST_DB) -f test/sql/halftest.sql
+
+test: clean_coverage test_db py_test
 
 build: test clean_build
 	python -m build
