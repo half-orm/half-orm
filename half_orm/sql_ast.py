@@ -308,7 +308,8 @@ class Insert:
     table : str
         Fully qualified table name (no alias).
     columns : list[str]
-        Column names to insert into.
+        Column names to insert into. Empty, every column takes its default
+        (``DEFAULT VALUES``).
     placeholders : list[str]
         One ``%s`` per column (may include sub-selects for FK values).
     values : list
@@ -324,7 +325,12 @@ class Insert:
     def to_sql(self) -> Tuple[str, list]:
         cols = ", ".join(self.columns)
         phs = ", ".join(self.placeholders)
-        sql = f"insert into {self.table} ({cols}) values ({phs})"
+        if self.columns:
+            sql = f"insert into {self.table} ({cols}) values ({phs})"
+        else:
+            # No field set: every column takes its default. "() values ()" is
+            # not SQL.
+            sql = f"insert into {self.table} default values"
         if self.returning:
             sql += self.returning.to_sql()
         return sql, list(self.values)
