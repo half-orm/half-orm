@@ -313,6 +313,18 @@ class TestInsert(unittest.TestCase):
         self.assertEqual(sql, 'insert into "public"."person" ("name", "age") values (%s, %s) on conflict ("name", "age") do update set "name" = %s, "age" = %s')
         self.assertEqual(vals, ["Alice", 30, "Alice", 30])
 
+    def test_no_column_inserts_default_values(self):
+        stmt = Insert(
+            table='"public"."person"',
+            columns=[],
+            placeholders=[],
+            values=[],
+            returning=Returning(["*"]),
+        )
+        sql, vals = stmt.to_sql()
+        self.assertEqual(sql, 'insert into "public"."person" default values returning *')
+        self.assertEqual(vals, [])
+
     def test_with_returning(self):
         stmt = Insert(
             table='"public"."person"',

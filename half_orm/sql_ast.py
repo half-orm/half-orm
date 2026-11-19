@@ -294,7 +294,8 @@ class Insert:
     table : str
         Fully qualified table name (no alias).
     columns : list[str]
-        Column names to insert into.
+        Column names to insert into. Empty, every column takes its default
+        (``DEFAULT VALUES``).
     placeholders : list[str]
         One ``%s`` per column (may include sub-selects for FK values).
     values : list
@@ -313,7 +314,12 @@ class Insert:
         cols = ", ".join(self.columns)
         phs = ", ".join(self.placeholders)
         values = list(self.values)
-        sql = f"insert into {self.table} ({cols}) values ({phs})"
+        if self.columns:
+            sql = f"insert into {self.table} ({cols}) values ({phs})"
+        else:
+            # No field set: every column takes its default. "() values ()" is
+            # not SQL.
+            sql = f"insert into {self.table} default values"
         if self.upsert:
             conflict_target = ", ".join(self.pk_columns or self.columns)
             non_pk = [c for c in self.columns if c not in (self.pk_columns or [])]
