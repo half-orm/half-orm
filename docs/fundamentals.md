@@ -41,6 +41,16 @@ Author = blog.get_relation_class('blog.author')  # Adapts to your schema
 - Easy integration with existing databases
 - Database evolution independent of code
 
+!!! note "`get_relation_class` defines a class; it does not look one up"
+    `get_relation_class()` is how you get the class of a relation to subclass
+    or to use, in a script or in a project without a generated package. In a
+    project managed by [half-orm-dev](https://github.com/half-orm/half-orm-dev),
+    the generated modules already hold one class per relation, with your
+    business methods: import those. Calling `get_relation_class()` from
+    business code, with a relation name read at run time, bypasses that model
+    and the methods it carries. To walk the foreign keys of a relation, use
+    its `Fkeys` aliases.
+
 ### SQL Transparency
 
 halfORM generates SQL that you can inspect and understand:

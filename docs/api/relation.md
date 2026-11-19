@@ -292,6 +292,18 @@ These methods inspect or assert on the predicate **without executing SQL**.
     Always verify the actual extension with `ho_count()` or `ho_mogrify()`
     before destructive operations on set-operator predicates.
 
+!!! note "A write touches the rows the predicate denotes"
+    `ho_update()` and `ho_delete()` change exactly the rows `ho_select()`
+    returns, whatever the predicate is made of: foreign-key navigation, `&`,
+    `|`, `-`. When the predicate joins other tables, the write selects its
+    rows with a subquery on the primary key.
+
+    *Changed in version 2.0.1 (and 1.2.2, 0.18.15)*: before, a write through
+    `|` or `-` whose operands navigate a foreign key dropped their joins and
+    touched other rows; `(a.rfk_posts() | b.rfk_posts()).ho_delete()`
+    emptied the table. See the
+    [CHANGELOG](https://github.com/half-orm/half-orm/blob/main/CHANGELOG.md).
+
 ::: half_orm.relation.Relation.ho_where_display
     options:
       show_root_heading: true

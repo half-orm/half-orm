@@ -506,6 +506,22 @@ relevant = (
 print(relevant.ho_count())
 ```
 
+A write follows the predicate too, however it was composed:
+[`ho_update()`](api/relation.md#half_orm.relation.Relation.ho_update) and
+[`ho_delete()`](api/relation.md#half_orm.relation.Relation.ho_delete) touch
+exactly the rows `ho_select()` would return, joins included. Count them first
+when the write is destructive:
+
+```python
+# The Martins' comments on posts a Dupont also commented on
+martins_comments = Author(last_name='Martin').comment_rfk()
+on_dupont_posts  = Author(last_name='Dupont').comment_rfk().post_fk().comment_rfk()
+
+doomed = martins_comments & on_dupont_posts
+doomed.ho_count()    # check the extension
+doomed.ho_delete()   # deletes those comments, and only those
+```
+
 ---
 
 ## 10. Transactions (5 min)
@@ -572,7 +588,10 @@ alice.publish('My post', 'Content here')   # @singleton verifies alice is a sing
 ```
 
 Use [`@transaction`](api/relation.md#half_orm.relation.transaction) to wrap a method in an atomic unit — equivalent to
-`with Transaction(model)` around the body, but declarative:
+`with Transaction(model)` around the body, but declarative. It decorates a
+method of a `Relation` subclass: the instance (`self`) gives the model whose
+connection the transaction runs on, so it cannot decorate a `staticmethod` or a
+plain function. Outside a relation method, use `with Transaction(model):`.
 
 ```python
 from half_orm.relation import singleton, transaction
