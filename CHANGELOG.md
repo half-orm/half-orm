@@ -1,5 +1,7 @@
 # Unreleased
 
+# 2.0.1 (2026-11-19)
+
 ### `@transaction` outside a relation method says so
 
 `@transaction` and `@atransaction` take the model from the instance they are
@@ -37,6 +39,11 @@ key. Until you upgrade, write it as several writes on predicates without those
 operators, or check the rows with `ho_count()` first. After upgrading, a write
 that used to update nothing now updates the rows it names: check that this is
 what the code meant.
+
+* docs: writes follow the predicate, @transaction needs a relation method, get_relation_class is not a lookup (ab4c06b1)
+* fix(relation): say so when @transaction decorates something else than a relation method (020ddb9b)
+* fix(relation): insert DEFAULT VALUES when no field is set (20691e22)
+* fix(relation): write through | and - with foreign keys on the predicate's rows (da95c57a)
 
 # 2.0.0 (2026-11-17)
 
