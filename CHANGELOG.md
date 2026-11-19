@@ -1,5 +1,7 @@
 # Unreleased
 
+# 1.2.2 (2026-11-19)
+
 ### `ho_update()` and `ho_delete()` on `|` or `-` with foreign keys now touch the right rows
 
 Since 0.18.13, a predicate combined with `|` or `-` is compiled as a SQL
@@ -30,6 +32,11 @@ key. Until you upgrade, write it as several writes on predicates without those
 operators, or check the rows with `ho_count()` first. After upgrading, a write
 that used to update nothing now updates the rows it names: check that this is
 what the code meant.
+
+* test(release): look for the script's line, not for its words (4336c1a4)
+* ci: run the tests on the maintenance branches (64cbf589)
+* fix(relation): insert DEFAULT VALUES when no field is set (5ff78371)
+* fix(relation): write through | and - with foreign keys on the predicate's rows (db205e20)
 
 # 1.2.1 (2026-11-16)
 
