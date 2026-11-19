@@ -198,7 +198,11 @@ class TestDryRun(TestCase):
         old_maj, old_min = parse_major_minor(old)
         new_version = f'{old_maj}.{old_min}.99'
         r = self._run_dry(new_version)
-        self.assertNotIn('maintenance branch', r.stdout)
+        # The script's own line, not the words: the generated log can quote a
+        # commit subject that mentions maintenance branches.
+        self.assertFalse(any(
+            line.startswith('[DRY RUN] Would create maintenance branch')
+            for line in r.stdout.splitlines()))
 
     def test_dry_run_shows_dry_run_label(self):
         r = self._run_dry('1.0.0')
