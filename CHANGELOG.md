@@ -1,5 +1,36 @@
 # Unreleased
 
+### `ho_update()` and `ho_delete()` on `|` or `-` with foreign keys now touch the right rows
+
+Since 0.18.13, a predicate combined with `|` or `-` is compiled as a SQL
+`UNION` or `EXCEPT` when one of its operands navigates a foreign key. Reading
+it (`ho_select()`, `ho_count()`, iteration) was right. Writing through it was
+not: `ho_update()` and `ho_delete()` dropped the operands' joins and kept only
+their own `WHERE` clauses, so they touched other rows than the predicate
+denotes, without an error.
+
+```python
+alices = Author(name='Alice').rfk_posts()
+bobs   = Author(name='Bob').rfk_posts()
+
+(alices | bobs).ho_delete()                         # deleted every post
+(alices - Post(published=True)).ho_update(content='x')
+                                                    # updated every unpublished post
+```
+
+The `delete_all` / `update_all` guard did not stop it: both operands are
+constrained, so `ho_is_set()` is true.
+
+Such a write now goes through a subquery, like a write on a navigated
+predicate already did, and touches exactly the rows `ho_select()` returns.
+
+**What to do.** Look in your code for `ho_update()` or `ho_delete()` called on
+an expression built with `|`, `-` or `^` where an operand follows a foreign
+key. Until you upgrade, write it as several writes on predicates without those
+operators, or check the rows with `ho_count()` first. After upgrading, a write
+that used to update nothing now updates the rows it names: check that this is
+what the code meant.
+
 # 1.2.1 (2026-11-16)
 
 ## Model and connections
