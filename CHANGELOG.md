@@ -1,5 +1,12 @@
 # Unreleased
 
+### `@transaction` outside a relation method says so
+
+`@transaction` and `@atransaction` take the model from the instance they are
+called on. On a `staticmethod`, a `classmethod` or a plain function they now
+raise a `TypeError` that names the method, instead of an `AttributeError` on
+`_ho_model`.
+
 ### `ho_update()` and `ho_delete()` on `|` or `-` with foreign keys now touch the right rows
 
 Since 0.18.13, a predicate combined with `|` or `-` is compiled as a SQL

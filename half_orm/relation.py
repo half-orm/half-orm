@@ -2685,6 +2685,21 @@ def singleton(fct):
     wrapper.__orig_args = inspect.getfullargspec(fct)
     return wrapper
 
+def _ho_transaction_model(decorator, fct, self):
+    """The model a @transaction / @atransaction method runs on: its instance's.
+
+    Raises a TypeError naming the method when the first argument is not a
+    Relation (a staticmethod, a classmethod or a plain function), instead of
+    the AttributeError on ``_ho_model`` it used to end with.
+    """
+    if not isinstance(self, Relation):
+        raise TypeError(
+            f"@{decorator} decorates a method of a Relation subclass: "
+            f"{fct.__qualname__}() got {type(self).__name__!r} as its first "
+            f"argument. Use 'with Transaction(model):' outside a relation method.")
+    return self._ho_model
+
+
 def transaction(fct):
     """Decorator that wraps a Relation method in a database transaction.
 
@@ -2694,6 +2709,11 @@ def transaction(fct):
 
     Nested ``@transaction`` calls use PostgreSQL savepoints: a failure in an
     inner method rolls back only that inner scope.
+
+    It decorates a method of a Relation subclass: the instance (``self``)
+    gives the model whose connection the transaction runs on. A staticmethod,
+    a classmethod or a plain function raises ``TypeError``; outside a
+    relation method, use ``with Transaction(model):``.
 
     Example:
         transaction decorator usage:
@@ -2711,7 +2731,7 @@ def transaction(fct):
     """
     @wraps(fct)
     def wrapper(self, *args, **kwargs):
-        with Transaction(self._ho_model):
+        with Transaction(_ho_transaction_model('transaction', fct, self)):
             return fct(self, *args, **kwargs)
     return wrapper
 
@@ -2726,7 +2746,8 @@ def atransaction(fct):
     operations — ``await model.aconnect()`` must have been called first.
 
     Nested ``@atransaction`` calls use PostgreSQL savepoints: a failure in
-    an inner method rolls back only that inner scope.
+    an inner method rolls back only that inner scope. Like
+    :func:`transaction`, it decorates a method of a Relation subclass.
 
     Example:
         transaction decorator usage:
@@ -2745,7 +2766,7 @@ def atransaction(fct):
     """
     @wraps(fct)
     async def wrapper(self, *args, **kwargs):
-        async with AsyncTransaction(self._ho_model):
+        async with AsyncTransaction(_ho_transaction_model('atransaction', fct, self)):
             return await fct(self, *args, **kwargs)
     return wrapper
 
