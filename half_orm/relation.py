@@ -1000,6 +1000,20 @@ class Relation:
         return where, values
 
     #@utils.trace
+    def _ho_writes_through_subquery(self):
+        """True when UPDATE and DELETE must select their rows with a subquery.
+
+        That is the case when the predicate carries FK joins, and when it is
+        a UNION or EXCEPT container built by ``|`` or ``-`` (see ``__or__``
+        and ``__sub__``): such a container has no join of its own, its
+        operands do, and only the SELECT compiler knows how to combine them.
+        Writing with the operands' WHERE clauses alone would drop their joins
+        and touch rows outside the predicate.
+        """
+        return bool(self._ho_join_to
+                    or self._ho_union_branches is not None
+                    or self._ho_except_branches is not None)
+
     def _ho_prep_update(self, *args, update_all=False, **kwargs):
         """Prepare an UPDATE query. Returns (query, vals, update_args) or None if nothing to update."""
         self._ho_check_writable()
@@ -1017,7 +1031,7 @@ class Relation:
         for field_name, new_value in update_args.items():
             col_name = self._ho_fields[field_name].name
             set_clause.append((f'{_ho_quote_ident(col_name)} = %s', new_value))
-        if self._ho_join_to:
+        if self._ho_writes_through_subquery():
             # Build a subquery to avoid any DB round-trip and to correctly
             # propagate JOIN constraints into the UPDATE predicate.
             pk_names = list(self._ho_pkey.keys())
@@ -1102,7 +1116,7 @@ class Relation:
                 f'Attempt to delete all rows from {self.__class__.__name__}'
                 ' without delete_all being set to True!')
         self._ho_query_type = 'delete'
-        if self._ho_join_to:
+        if self._ho_writes_through_subquery():
             # Build a subquery to avoid any DB round-trip and to correctly
             # propagate JOIN constraints into the DELETE predicate.
             pk_names = list(self._ho_pkey.keys())
