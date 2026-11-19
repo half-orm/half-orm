@@ -3837,6 +3837,18 @@ these predicates will silently operate on the <strong>entire table</strong>.</p>
 <p>Always verify the actual extension with <code>ho_count()</code> or <code>ho_mogrify()</code>
 before destructive operations on set-operator predicates.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">A write touches the rows the predicate denotes</p>
+<p><code>ho_update()</code> and <code>ho_delete()</code> change exactly the rows <code>ho_select()</code>
+returns, whatever the predicate is made of: foreign-key navigation, <code>&amp;</code>,
+<code>|</code>, <code>-</code>. When the predicate joins other tables, the write selects its
+rows with a subquery on the primary key.</p>
+<p><em>Changed in version 2.0.1 (and 1.2.2, 0.18.15)</em>: before, a write through
+<code>|</code> or <code>-</code> whose operands navigate a foreign key dropped their joins and
+touched other rows; <code>(a.rfk_posts() | b.rfk_posts()).ho_delete()</code>
+emptied the table. See the
+<a href="https://github.com/half-orm/half-orm/blob/main/CHANGELOG.md">CHANGELOG</a>.</p>
+</div>
 
 
 <div class="doc doc-object doc-function">
@@ -4301,6 +4313,10 @@ inside a single atomic unit. Commits on normal return, rolls back and
 re-raises on any exception.</p>
 <p>Nested <code>@transaction</code> calls use PostgreSQL savepoints: a failure in an
 inner method rolls back only that inner scope.</p>
+<p>It decorates a method of a Relation subclass: the instance (<code>self</code>)
+gives the model whose connection the transaction runs on. A staticmethod,
+a classmethod or a plain function raises <code>TypeError</code>; outside a
+relation method, use <code>with Transaction(model):</code>.</p>
 
 
 <details class="example" open>
@@ -4473,7 +4489,7 @@ edge case entirely.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 25, 2026 14:36:14 UTC">September 25, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 19, 2026 15:15:43 UTC">November 19, 2026</span>
   </span>
 
     
