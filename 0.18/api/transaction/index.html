@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1050,7 +1050,7 @@ block, leaving the outer transaction intact.</p>
                 <code>model</code>
             </td>
             <td>
-                  <code><span title="Model">Model</span></code>
+                  <code>Model</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1069,25 +1069,25 @@ connection should be used.</p>
 <details class="example" open>
   <summary>Example</summary>
   <p>Atomic insert of two related rows:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.transaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Transaction</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n">first_name</span><span class="o">=</span><span class="s1">'Alice'</span><span class="p">,</span> <span class="n">last_name</span><span class="o">=</span><span class="s1">'Martin'</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">email</span><span class="o">=</span><span class="s1">'alice@example.com'</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">Post</span><span class="p">(</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="n">title</span><span class="o">=</span><span class="s1">'First post'</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s1">'Hello world'</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="n">author_id</span><span class="o">=</span><span class="n">alice</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># both rows are committed, or neither is</span>
+    <div class="highlight"><pre><span></span><code><a id="half_orm.transaction.Transaction--__codelineno-0-1" name="half_orm.transaction.Transaction--__codelineno-0-1" href="#half_orm.transaction.Transaction--__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">half_orm.transaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Transaction</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-2" name="half_orm.transaction.Transaction--__codelineno-0-2" href="#half_orm.transaction.Transaction--__codelineno-0-2"></a>
+<a id="half_orm.transaction.Transaction--__codelineno-0-3" name="half_orm.transaction.Transaction--__codelineno-0-3" href="#half_orm.transaction.Transaction--__codelineno-0-3"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-4" name="half_orm.transaction.Transaction--__codelineno-0-4" href="#half_orm.transaction.Transaction--__codelineno-0-4"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-5" name="half_orm.transaction.Transaction--__codelineno-0-5" href="#half_orm.transaction.Transaction--__codelineno-0-5"></a>        <span class="n">first_name</span><span class="o">=</span><span class="s1">'Alice'</span><span class="p">,</span> <span class="n">last_name</span><span class="o">=</span><span class="s1">'Martin'</span><span class="p">,</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-6" name="half_orm.transaction.Transaction--__codelineno-0-6" href="#half_orm.transaction.Transaction--__codelineno-0-6"></a>        <span class="n">email</span><span class="o">=</span><span class="s1">'alice@example.com'</span><span class="p">,</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-7" name="half_orm.transaction.Transaction--__codelineno-0-7" href="#half_orm.transaction.Transaction--__codelineno-0-7"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-8" name="half_orm.transaction.Transaction--__codelineno-0-8" href="#half_orm.transaction.Transaction--__codelineno-0-8"></a>    <span class="n">Post</span><span class="p">(</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-9" name="half_orm.transaction.Transaction--__codelineno-0-9" href="#half_orm.transaction.Transaction--__codelineno-0-9"></a>        <span class="n">title</span><span class="o">=</span><span class="s1">'First post'</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s1">'Hello world'</span><span class="p">,</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-10" name="half_orm.transaction.Transaction--__codelineno-0-10" href="#half_orm.transaction.Transaction--__codelineno-0-10"></a>        <span class="n">author_id</span><span class="o">=</span><span class="n">alice</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-11" name="half_orm.transaction.Transaction--__codelineno-0-11" href="#half_orm.transaction.Transaction--__codelineno-0-11"></a>    <span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="half_orm.transaction.Transaction--__codelineno-0-12" name="half_orm.transaction.Transaction--__codelineno-0-12" href="#half_orm.transaction.Transaction--__codelineno-0-12"></a><span class="c1"># both rows are committed, or neither is</span>
 </code></pre></div></p>
 <p>Nested transactions use savepoints:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>          <span class="c1"># savepoint</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="n">Post</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="c1"># exception here rolls back only the post, not Alice</span>
+    <div class="highlight"><pre><span></span><code><a id="half_orm.transaction.Transaction--__codelineno-1-1" name="half_orm.transaction.Transaction--__codelineno-1-1" href="#half_orm.transaction.Transaction--__codelineno-1-1"></a><span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>
+<a id="half_orm.transaction.Transaction--__codelineno-1-2" name="half_orm.transaction.Transaction--__codelineno-1-2" href="#half_orm.transaction.Transaction--__codelineno-1-2"></a>    <span class="n">alice</span> <span class="o">=</span> <span class="n">Author</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="half_orm.transaction.Transaction--__codelineno-1-3" name="half_orm.transaction.Transaction--__codelineno-1-3" href="#half_orm.transaction.Transaction--__codelineno-1-3"></a>    <span class="k">with</span> <span class="n">Transaction</span><span class="p">(</span><span class="n">blog</span><span class="p">):</span>          <span class="c1"># savepoint</span>
+<a id="half_orm.transaction.Transaction--__codelineno-1-4" name="half_orm.transaction.Transaction--__codelineno-1-4" href="#half_orm.transaction.Transaction--__codelineno-1-4"></a>        <span class="n">Post</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">ho_insert</span><span class="p">()</span>
+<a id="half_orm.transaction.Transaction--__codelineno-1-5" name="half_orm.transaction.Transaction--__codelineno-1-5" href="#half_orm.transaction.Transaction--__codelineno-1-5"></a>        <span class="c1"># exception here rolls back only the post, not Alice</span>
 </code></pre></div></p>
 </details>        <p><em>New in version 0.18.0:</em> nested <code>Transaction</code> blocks use savepoints.</p>
 
@@ -1275,10 +1275,10 @@ connection should be used.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
