@@ -244,14 +244,19 @@ jobs:
           # else: an expression written inside `run:` is substituted into the
           # script text, and one exception is how the rule gets forgotten.
           DOC_VERSION: ${{ steps.version.outputs.version }}
-        if: >
-          (github.event_name == 'workflow_dispatch' && inputs.cleanup == 'true') ||
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+        # On request only (workflow_dispatch with cleanup=true), never on a tag
+        # push. This step deletes every version absent from the list below,
+        # and the list goes stale each time a line is released: run on every
+        # tag, it turned each stale entry into a deletion. Tagging v1.1.0
+        # removed the 1.0 documentation, v2.0.0 removed 1.2, and v1.2.2 removed
+        # 2.0 -- and the `latest` alias with it, leaving the site with no
+        # default release. Deleting published documentation is a decision,
+        # not a side effect of publishing.
+        if: github.event_name == 'workflow_dispatch' && inputs.cleanup == 'true'
         run: |
-          # Minor versions to keep in the doc menu. This list was stale once --
-          # it still read "0.17 0.18 dev" after 1.0 and 1.1 were released, and
-          # since this step deletes anything absent from it, tagging v1.1.0
-          # removed the 1.0 documentation.
+          # Minor versions to keep in the doc menu. Add a line when it is
+          # released (2.1 with v2.1.0); the step no longer runs on its own, so
+          # forgetting costs nothing until someone asks for a cleanup.
           #
           # 1.0 is absent on purpose, and is not an oversight to correct: it
           # was current for a week, 1.1.0 introduced no breaking change, so the
@@ -260,7 +265,7 @@ jobs:
           # site could not even say it was out of date -- the banner's text
           # lives in overrides/main.html, which postdates the v1.0.0 tag by ten
           # days, so the block rendered empty.
-          KEPT_VERSIONS="0.17 0.18 1.1 dev"
+          KEPT_VERSIONS="0.17 0.18 1.1 1.2 2.0 dev"
 
           EXISTING=$(mike list --json | python3 -c "import sys,json; [print(e['version']) for e in json.load(sys.stdin)]" || true)
           for v in $EXISTING; do
