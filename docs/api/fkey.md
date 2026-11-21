@@ -55,7 +55,29 @@ convention: the key is then `_reverse_fkey_<name>`.
   ```
 
 Either way the reverse key becomes `_reverse_fkey_posts`, exposed by default
-as `rfk_posts`.
+as `rfk_posts`. The `Fkeys` template printed with the relation offers it under
+the declared name, ready to paste:
+
+```python
+Fkeys = {
+    'posts': '_reverse_fkey_posts',
+}
+```
+
+When that name is already taken on the relation (by a column, a name
+half_orm uses itself, another foreign key or an attribute of the class), the
+template keeps `rfk_posts` and the line says where the name was declared and
+what already holds it:
+
+```
+    'rfk_posts': '_reverse_fkey_posts',  # FIX ME! 'posts', declared by '@ho_reverse_name' in the comment of the constraint 'post_author_id_fkey' on blog.post, is the column 'posts' of blog.author. Choose another alias for this foreign key, or declare another name
+```
+
+Two constraints from the same columns to the same ones (a migration replayed,
+an `ON DELETE` changed by adding a constraint instead of replacing it) spell
+the same reverse name: half_orm refuses the database until one is named. Drop
+the duplicate instead. Naming it settles the name and leaves the error in the
+model; the `FIX ME` line then lists both constraints.
 
 The name is declared on the constraint, in the referencing table, although it
 appears on the referenced one. The constraint is the only object that carries

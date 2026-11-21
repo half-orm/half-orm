@@ -1325,6 +1325,62 @@ class Relation:
                 self.__expose_fkey(naming.fkey_attribute(fkeyname), fkey)
         self._ho_fkeys_properties = True
 
+    def __name_taken(self, name):
+        """What already answers to `name` on this relation, or None.
+
+        Used for the alias the printed Fkeys template offers: an alias over a
+        column or a name of Relation is refused, and one over an attribute of
+        the class shadows it.
+        """
+        _, schema, relation = self._t_fqrn
+        taken = self.__dict__.get(name)
+        if isinstance(taken, Field):
+            column = f"the column '{taken.name}' of {schema}.{relation}"
+            if taken.name != name:
+                column += f", reached as '{name}'"
+            return column
+        if name in self._ho_fkeys_attr:
+            return f"the attribute of the foreign key '{taken.name}' of {schema}.{relation}"
+        if naming.is_reserved(name):
+            return "a name half_orm reserves for itself"
+        for cls in type(self).__mro__:
+            if name in cls.__dict__:
+                return f"an attribute of {cls.__module__}.{cls.__qualname__}"
+        if name in self.__dict__:
+            return f"an attribute of this {type(self).__name__} instance"
+        return None
+
+    def _ho_reverse_name_origin(self, fkeyname):
+        """Where the name of the reverse foreign key `fkeyname` was declared.
+
+        Not kept in the metadata, and not needed there: the constraint is the
+        direct foreign key of the referencing relation that leads here from
+        the same columns to the same ones, and the declaration is on the
+        Model if the Model names it, in the constraint's comment otherwise.
+        """
+        table_key, fields, ffields = self._ho_model._fkeys_metadata(
+            self._t_fqrn)[fkeyname][:3]
+        dotted = f'{table_key[1]}.{table_key[2]}'
+        declared = fkeyname[len(naming.REVERSE_PREFIX):]
+        constraints = [
+            name for name, (target, target_fields, local_fields, *rest)
+            in self._ho_model._fkeys_metadata(table_key).items()
+            if not rest[2] and target == self._t_fqrn
+            and list(target_fields) == list(ffields)
+            and list(local_fields) == list(fields)]
+        on_model = self._ho_model._reverse_names()
+        for constraint in constraints:
+            if on_model.get((dotted, constraint)) == declared:
+                return (f"declared by Model(reverse_names={{({dotted!r}, "
+                        f"{constraint!r}): {declared!r}}})")
+        if len(constraints) == 1:
+            return (f"declared by '@ho_reverse_name' in the comment of the "
+                    f"constraint '{constraints[0]}' on {dotted}")
+        listed = ', '.join(f"'{name}'" for name in constraints)
+        return (f"declared by '@ho_reverse_name' in the comment of one of the "
+                f"constraints {listed} on {dotted} (duplicates, same columns "
+                f"and target: drop one rather than name it)")
+
     def __expose_fkey(self, attr_name, fkey):
         """Make `fkey` an attribute of this relation.
 
@@ -1728,13 +1784,36 @@ Fkeys = {"""
                     if fkey is fkey_obj:
                         fkey_to_attr[fkeyname] = attr_name
                         break
+            # A reverse key given a name of its own is offered under that
+            # name: it is the alias one would choose. When the name is taken,
+            # the derived attribute is kept and the line says why, and where
+            # each of the two names comes from.
+            fix_me = {}
+            fkeys_metadata = self._ho_model._fkeys_metadata(self._t_fqrn)
+            for fkeyname, metadata in fkeys_metadata.items():
+                declared = naming.declared_reverse_name(
+                    fkeyname, metadata[0], metadata[1])
+                if not declared or fkeyname not in fkey_to_attr:
+                    continue
+                taken = self.__name_taken(declared)
+                if taken:
+                    fix_me[fkeyname] = (
+                        f"FIX ME! '{declared}', {self._ho_reverse_name_origin(fkeyname)}, "
+                        f"is {taken}. Choose another alias for this foreign key, "
+                        "or declare another name")
+                else:
+                    fkey_to_attr[fkeyname] = declared
             ret.append(fkeys_usage)
             if hasattr(self, 'Fkeys'):
                 for key, value in self.Fkeys.items():
                     fkey_to_attr[value] = key
+                    fix_me.pop(value, None)
             for fkey in self._ho_fkeys:
                 if fkey in fkey_to_attr: # skip joins
-                    ret.append(f"    '{fkey_to_attr[fkey]}': '{fkey}',")
+                    line = f"    '{fkey_to_attr[fkey]}': '{fkey}',"
+                    if fkey in fix_me:
+                        line = f"{line}  # {fix_me[fkey]}"
+                    ret.append(line)
             ret.append('}')
         return '\n'.join(ret)
 

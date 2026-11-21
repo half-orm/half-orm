@@ -99,12 +99,12 @@ def _renamed_reverse(cls, value):
         table_key, fields, is_reverse = metadata[0], metadata[1], metadata[5]
         if not is_reverse:
             continue
-        derived = naming.reverse_fkey_name(table_key, fields)
-        if derived == value and fkey_name != derived:
+        if (naming.reverse_fkey_name(table_key, fields) == value
+                and naming.declared_reverse_name(fkey_name, table_key, fields)):
             return (
                 f"'{value}' is the name half_orm derives for the reverse foreign "
                 f"key from {table_key[1]}.{table_key[2]}({', '.join(fields)}). "
-                "That foreign key has been given a name of its own "
-                "('@ho_reverse_name' in the constraint's comment, or "
-                f"Model(reverse_names=...)), which replaces it: use '{fkey_name}'.\n")
+                "That foreign key has been given a name of its own, "
+                f"{cls._ho_reverse_name_origin(fkey_name)}, which replaces it: "
+                f"use '{fkey_name}'.\n")
     return ''

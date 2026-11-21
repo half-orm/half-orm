@@ -172,6 +172,19 @@ def reverse_fkey_name(table_key, fields, declared=None) -> str:
     return name.replace('.', '_').replace(':', '_').replace('"', '')
 
 
+def declared_reverse_name(fkey_name, table_key, fields):
+    """The name declared for a reverse foreign key, or None.
+
+    `table_key` and `fields` are the referencing relation and columns. A
+    reverse key filed under another name than the derived one has been given
+    a name of its own; that name is returned without the prefix.
+    """
+    if (fkey_name.startswith(REVERSE_PREFIX)
+            and fkey_name != reverse_fkey_name(table_key, fields)):
+        return fkey_name[len(REVERSE_PREFIX):]
+    return None
+
+
 def fkey_attribute(fkey_name: str) -> str:
     "The attribute a foreign key is exposed as when no alias is given."
     if fkey_name.startswith(REVERSE_PREFIX):

@@ -228,7 +228,106 @@ def test_a_derived_name_replaced_by_a_declaration_says_so():
     message = str(exc.value)
     assert message.startswith(f"Can't find '{derived}'!\n'{derived}' is the name")
     assert "reverse foreign key from honame.attrs(owner_id)" in message
-    assert "use '_reverse_fkey_owned'." in message
+    assert ("given a name of its own, declared by "
+            "Model(reverse_names={('honame.attrs', 'owner'): 'owned'}), "
+            "which replaces it: use '_reverse_fkey_owned'.") in message
+
+
+def _template_lines(relation):
+    "The lines of the printed Fkeys template."
+    text = repr(relation)
+    return text[text.index('Fkeys = {'):].splitlines()[1:-1]
+
+
+def test_the_template_offers_the_declared_name():
+    author = open_model(
+        field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
+        ignore=IGNORE).get_relation_class('honame.author')()
+    lines = _template_lines(author)
+    assert "    'posts': '_reverse_fkey_posts'," in lines
+    # a derived name keeps its derived attribute
+    assert f"    'rfk_{REVERSE_LEGACY[len('_reverse_fkey_'):]}': '{REVERSE_LEGACY}'," in lines
+    assert not any('FIX ME' in line for line in lines)
+    # the offered template works once pasted
+    class Author(open_model(
+            field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
+            ignore=IGNORE).get_relation_class('honame.author')):
+        Fkeys = {'posts': '_reverse_fkey_posts'}
+    assert Author(id=1).posts().ho_count() == 2
+
+
+MODEL_ORIGIN = "declared by Model(reverse_names={('honame.post', 'post_author_fk'): '%s'})"
+
+
+@pytest.mark.parametrize('declared, reason', [
+    ('id', "is the column 'id' of honame.author."),
+    ('ho_posts', 'is a name half_orm reserves for itself.'),
+    (REVERSE_LEGACY.replace('_reverse_fkey_', 'rfk_'),
+     f"is the attribute of the foreign key '{REVERSE_LEGACY}' of honame.author."),
+])
+def test_the_template_says_when_the_declared_name_is_taken(declared, reason):
+    author = open_model(
+        field_names=FIELD_NAMES, ignore=IGNORE,
+        reverse_names={('honame.post', 'post_author_fk'): declared}
+    ).get_relation_class('honame.author')()
+    line, = [line for line in _template_lines(author)
+             if f"'_reverse_fkey_{declared}'" in line]
+    assert line == (
+        f"    'rfk_{declared}': '_reverse_fkey_{declared}',  # FIX ME! "
+        f"'{declared}', {MODEL_ORIGIN % declared}, {reason} "
+        "Choose another alias for this foreign key, or declare another name")
+
+
+def _author_with_a_posts_method(a_model):
+    class Author(a_model.get_relation_class('honame.author')):
+        def posts(self):
+            "A method the alias would shadow."
+    return Author
+
+
+def test_the_template_says_which_class_holds_the_name():
+    Author = _author_with_a_posts_method(open_model(
+        field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES, ignore=IGNORE))
+    line, = [line for line in _template_lines(Author())
+             if "'_reverse_fkey_posts'" in line]
+    assert line.startswith("    'rfk_posts': '_reverse_fkey_posts',  # FIX ME! ")
+    assert f"is an attribute of {__name__}.{Author.__qualname__}." in line
+
+
+def test_the_template_says_the_name_comes_from_a_comment(comments):
+    Author = _author_with_a_posts_method(open_model(ignore=IGNORE))
+    line, = [line for line in _template_lines(Author())
+             if "'_reverse_fkey_posts'" in line]
+    assert ("'posts', declared by '@ho_reverse_name' in the comment of the "
+            "constraint 'post_author_fk' on honame.post, is an attribute") in line
+
+
+def test_the_template_points_at_duplicate_constraints(comments):
+    model.execute_query(
+        'alter table honame.post add constraint post_author_fk_bis '
+        'foreign key (author_id) references honame.author(id)')
+    try:
+        Author = _author_with_a_posts_method(open_model(
+            ignore=IGNORE,
+            reverse_names={('honame.post_author', 'post_author_id_fk'): 'owners'}))
+        line, = [line for line in _template_lines(Author())
+                 if "'_reverse_fkey_posts'" in line]
+    finally:
+        model.execute_query(
+            'alter table honame.post drop constraint post_author_fk_bis')
+    assert ("declared by '@ho_reverse_name' in the comment of one of the "
+            "constraints 'post_author_fk', 'post_author_fk_bis' on honame.post "
+            "(duplicates, same columns and target: drop one rather than name "
+            "it), is an attribute") in line
+
+
+def test_an_alias_in_fkeys_is_kept_and_not_flagged():
+    class Author(open_model(
+            field_names=FIELD_NAMES, ignore=IGNORE,
+            reverse_names={('honame.post', 'post_author_fk'): 'id'}
+    ).get_relation_class('honame.author')):
+        Fkeys = {'rfk_writings': '_reverse_fkey_id'}
+    assert "    'rfk_writings': '_reverse_fkey_id'," in _template_lines(Author())
 
 
 def test_an_unknown_fkey_name_is_not_explained():

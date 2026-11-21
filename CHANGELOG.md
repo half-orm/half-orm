@@ -19,6 +19,20 @@ an `Fkeys` entry written with the derived name no longer finds its key. The
 name to use instead. `docs/api/fkey.md` now says that declaring a reverse
 name is a rename that breaks code written against the derived one.
 
+### The `Fkeys` template offers a declared reverse name as the alias
+
+`print()` of a relation ends with an `Fkeys` template to paste. A reverse
+foreign key that has been given a name of its own is now offered under that
+name (`'posts': '_reverse_fkey_posts'`) instead of `rfk_posts`. When the name
+is already taken on the relation (a column, a name half_orm uses itself,
+another foreign key's attribute or an attribute of the class), the template
+keeps `rfk_posts` and the line carries a `FIX ME!` comment that says where
+the name was declared (the constraint's comment, or `Model(reverse_names=...)`)
+and what already holds it (a column, a foreign key, the class that defines the
+attribute). The attribute exposed without `Fkeys` is still `rfk_posts`.
+`WrongFkeyError` now also says where the name that replaced a derived one was
+declared.
+
 # 2.0.1 (2026-11-19)
 
 ### `@transaction` outside a relation method says so

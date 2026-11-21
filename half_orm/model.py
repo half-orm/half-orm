@@ -916,6 +916,11 @@ class Model:
         "Proxy to PgMeta.fields_meta"
         return self.__pg_meta.fields_meta(self.__dbname, sfqrn)
 
+    def _reverse_names(self):
+        """The reverse names declared on this Model, as
+        ``{('schema.relation', 'constraint'): name}``."""
+        return dict(self.__naming.reverse)
+
     def _fkeys_metadata(self, sfqrn):
         "Proxy to PgMeta.fkeys_meta"
         return self.__pg_meta.fkeys_meta(self.__dbname, sfqrn)
