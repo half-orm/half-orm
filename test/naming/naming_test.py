@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from half_orm import naming
+from half_orm import naming, relation_errors
 from half_orm.fkey import FKey
 from half_orm.field import Field
 from half_orm.model import Model, CONF_DIR
@@ -212,6 +212,34 @@ def test_the_model_wins_over_the_comment(comments):
     assert 'from_model' in a_model.get_relation_class('honame.attrs')()._ho_fields
     assert 'a_b' not in a_model.get_relation_class('honame.attrs')()._ho_fields
     assert '_reverse_fkey_from_model' in a_model.get_relation_class('honame.author')()._ho_fkeys
+
+
+def test_a_derived_name_replaced_by_a_declaration_says_so():
+    derived = f'_reverse_fkey_{DB}_honame_attrs_owner_id'
+    a_model = open_model(
+        field_names=FIELD_NAMES, ignore=IGNORE,
+        reverse_names={**REVERSE_NAMES, ('honame.attrs', 'owner'): 'owned'})
+
+    class Author(a_model.get_relation_class('honame.author')):
+        Fkeys = {'rfk_owned': derived}
+
+    with pytest.raises(relation_errors.WrongFkeyError) as exc:
+        Author()
+    message = str(exc.value)
+    assert message.startswith(f"Can't find '{derived}'!\n'{derived}' is the name")
+    assert "reverse foreign key from honame.attrs(owner_id)" in message
+    assert "use '_reverse_fkey_owned'." in message
+
+
+def test_an_unknown_fkey_name_is_not_explained():
+    class Author(open_model(
+            field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
+            ignore=IGNORE).get_relation_class('honame.author')):
+        Fkeys = {'nope': '_reverse_fkey_nope'}
+
+    with pytest.raises(relation_errors.WrongFkeyError) as exc:
+        Author()
+    assert 'is the name half_orm derives' not in str(exc.value)
 
 
 # -- declarations that cannot be used -----------------------------------------

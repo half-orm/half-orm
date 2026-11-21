@@ -1,5 +1,7 @@
 """This module provides the errors for the relation module."""
 
+from half_orm import naming
+
 class ExpectedOneError(Exception):
     """Base exception raised by :meth:`~half_orm.relation.Relation.ho_get`
     when the predicate does not match exactly one row.
@@ -80,6 +82,29 @@ class WrongFkeyError(Exception):
     def __init__(self, cls, value):
         fkeys_list = "\n".join([f" - {fkey}" for fkey in cls._ho_fkeys.keys()])
         err = f"Can't find '{value}'!\n" \
+            f"{_renamed_reverse(cls, value)}" \
             f"List of keys for {cls.__class__.__name__}:\n" \
             f"{fkeys_list}"
         super().__init__(err)
+
+
+def _renamed_reverse(cls, value):
+    """What became of `value` if it is the derived name of a reverse foreign
+    key that has been given a name of its own since.
+
+    A declared reverse name replaces the derived one: code written with the
+    derived name stops working, and this is where it is told why.
+    """
+    for fkey_name, metadata in cls._ho_model._fkeys_metadata(cls._t_fqrn).items():
+        table_key, fields, is_reverse = metadata[0], metadata[1], metadata[5]
+        if not is_reverse:
+            continue
+        derived = naming.reverse_fkey_name(table_key, fields)
+        if derived == value and fkey_name != derived:
+            return (
+                f"'{value}' is the name half_orm derives for the reverse foreign "
+                f"key from {table_key[1]}.{table_key[2]}({', '.join(fields)}). "
+                "That foreign key has been given a name of its own "
+                "('@ho_reverse_name' in the constraint's comment, or "
+                f"Model(reverse_names=...)), which replaces it: use '{fkey_name}'.\n")
+    return ''

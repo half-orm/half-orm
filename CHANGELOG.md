@@ -11,6 +11,14 @@ and each member of the problem says where its name comes from
 (`named by '@ho_reverse_name' in its comment` or
 `named by Model(reverse_names=...)`).
 
+### `WrongFkeyError` points to the name that replaced a derived one
+
+A name declared for a reverse foreign key replaces the one half_orm derives:
+an `Fkeys` entry written with the derived name no longer finds its key. The
+`WrongFkeyError` raised then says so, names the foreign key, and gives the
+name to use instead. `docs/api/fkey.md` now says that declaring a reverse
+name is a rename that breaks code written against the derived one.
+
 # 2.0.1 (2026-11-19)
 
 ### `@transaction` outside a relation method says so

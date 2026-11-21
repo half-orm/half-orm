@@ -57,6 +57,26 @@ convention: the key is then `_reverse_fkey_<name>`.
 Either way the reverse key becomes `_reverse_fkey_posts`, exposed by default
 as `rfk_posts`.
 
+The name is declared on the constraint, in the referencing table, although it
+appears on the referenced one. The constraint is the only object that carries
+the link: its comment goes away with it when it is dropped and stays with it
+when it is renamed, and the change that adds a foreign key can name its
+reverse in the same place.
+
+A declared name *replaces* the derived one; it is not an alias. Naming a
+reverse key is a rename, like renaming a column, and code written against the
+derived name stops working:
+
+- `author.rfk_blog_blog_post_author_id` raises `AttributeError`;
+- an `Fkeys` entry whose value is `'_reverse_fkey_blog_blog_post_author_id'`
+  raises `WrongFkeyError` when the class is instantiated, and the message
+  gives the name that replaced it.
+
+Declare the name before writing code against the key, or update the `Fkeys`
+that use it in the same change. In a collision, the other foreign key keeps
+the derived name: an `Fkeys` entry using that name still works, but leads to
+that other key, so check it was the one meant.
+
 ---
 
 ## Fkeys on views
