@@ -1596,29 +1596,51 @@ a name, a common enough arrangement, the word appears twice, as in
 <code>_reverse_fkey_blog_blog_post_author_id</code>. It reads like a typo and is not one;
 a name missing that component matches no foreign key. Copy the names from the
 printed relation rather than assembling them by hand.</p>
+<p>Joining the parts with underscores lets two different foreign keys spell the
+same: <code>post(author_id)</code> and <code>post_author(id)</code> both give
+<code>_reverse_fkey_blog_blog_post_author_id</code>. halfORM does not pick one:
+<code>Model()</code> raises a <code>NamingError</code> listing every such collision. It is settled
+by giving one of the two reverse keys a name of its own, which replaces the
+convention: the key is then <code>_reverse_fkey_&lt;name&gt;</code>.</p>
+<ul>
+<li>In the database, where every client reads it, with an annotation line in
+  the constraint's comment (the rest of the comment is free text):</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">COMMENT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">CONSTRAINT</span><span class="w"> </span><span class="n">post_author_id_fkey</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">blog</span><span class="p">.</span><span class="n">post</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="k">IS</span><span class="w"> </span><span class="s1">'@ho_reverse_name posts'</span><span class="p">;</span>
+</code></pre></div>
+<ul>
+<li>On the Model, for a database you cannot write to (this declaration wins
+  over the one in the database):</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">blog</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">,</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>             <span class="n">reverse_names</span><span class="o">=</span><span class="p">{(</span><span class="s1">'blog.post'</span><span class="p">,</span> <span class="s1">'post_author_id_fkey'</span><span class="p">):</span> <span class="s1">'posts'</span><span class="p">})</span>
+</code></pre></div>
+<p>Either way the reverse key becomes <code>_reverse_fkey_posts</code>, exposed by default
+as <code>rfk_posts</code>.</p>
 <hr />
 <h2 id="fkeys-on-views">Fkeys on views<a class="headerlink" href="#fkeys-on-views" title="Permanent link">&para;</a></h2>
 <p>PostgreSQL stores no FK metadata for views, so halfORM cannot discover
 navigation attributes automatically. Use a <strong>dict</strong> as the <code>Fkeys</code> value
 instead of the internal FK name string:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">PostComment</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">'blog.view.post_comment'</span><span class="p">)):</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        <span class="c1"># direct FK: view.author_id → blog.author.id</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="s1">'fk_author'</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'blog.author'</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'author_id'</span><span class="p">,),</span> <span class="p">(</span><span class="s1">'id'</span><span class="p">,)],</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="p">},</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="c1"># reverse FK: blog.comment.post_id → view.id</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="s1">'rfk_comments'</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'blog.comment'</span><span class="p">,</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'id'</span><span class="p">,),</span> <span class="p">(</span><span class="s1">'post_id'</span><span class="p">,)],</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        <span class="p">},</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="c1"># composite FK (two columns)</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="s1">'fk_address'</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'geo.address'</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'country_code'</span><span class="p">,</span> <span class="s1">'city_code'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'country'</span><span class="p">,</span> <span class="s1">'city'</span><span class="p">)],</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>        <span class="p">},</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">PostComment</span><span class="p">(</span><span class="n">blog</span><span class="o">.</span><span class="n">get_relation_class</span><span class="p">(</span><span class="s1">'blog.view.post_comment'</span><span class="p">)):</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">Fkeys</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="c1"># direct FK: view.author_id → blog.author.id</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="s1">'fk_author'</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'blog.author'</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'author_id'</span><span class="p">,),</span> <span class="p">(</span><span class="s1">'id'</span><span class="p">,)],</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="p">},</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="c1"># reverse FK: blog.comment.post_id → view.id</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>        <span class="s1">'rfk_comments'</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'blog.comment'</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'id'</span><span class="p">,),</span> <span class="p">(</span><span class="s1">'post_id'</span><span class="p">,)],</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>        <span class="p">},</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>        <span class="c1"># composite FK (two columns)</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        <span class="s1">'fk_address'</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>            <span class="s1">'to'</span><span class="p">:</span>   <span class="s1">'geo.address'</span><span class="p">,</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>            <span class="s1">'join'</span><span class="p">:</span> <span class="p">[(</span><span class="s1">'country_code'</span><span class="p">,</span> <span class="s1">'city_code'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'country'</span><span class="p">,</span> <span class="s1">'city'</span><span class="p">)],</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="p">},</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="p">}</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1927,7 +1949,7 @@ constructor. Ignored when <code>ho_to_rel</code> is provided.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 18, 2026 12:49:05 UTC">September 18, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 21, 2026 06:27:29 UTC">November 21, 2026</span>
   </span>
 
     
