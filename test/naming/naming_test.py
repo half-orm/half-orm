@@ -255,6 +255,33 @@ def test_a_declared_reverse_name_can_collide_too():
             ('honame.post', 'post_author_fk'): 'same',
             ('honame.post_author', 'post_author_id_fk'): 'same'})
     assert _problems(exc) == {('reverse_fkey', '_reverse_fkey_same', 'honame.author')}
+    problem, = exc.value.problems
+    # Both already have a name: telling to name one of them would not help.
+    assert problem.hint.startswith('this name was declared: declare a different one')
+    assert all(member.endswith('named by Model(reverse_names=...)')
+               for member in problem.members)
+
+
+def test_a_declared_reverse_name_says_where_it_was_declared(comments):
+    _comment('constraint post_author_id_fk on honame.post_author', '@ho_reverse_name posts')
+    try:
+        with pytest.raises(NamingError) as exc:
+            open_model(ignore=IGNORE)
+    finally:
+        _comment('constraint post_author_id_fk on honame.post_author', None)
+    problem, = [p for p in exc.value.problems if p.kind == 'reverse_fkey']
+    assert problem.name == '_reverse_fkey_posts'
+    assert problem.hint.startswith('this name was declared')
+    assert all(member.endswith("named by '@ho_reverse_name' in its comment")
+               for member in problem.members)
+
+
+def test_an_undeclared_collision_says_to_name_one():
+    with pytest.raises(NamingError) as exc:
+        open_model()
+    problem, = [p for p in exc.value.problems if p.kind == 'reverse_fkey']
+    assert problem.hint.startswith('name one of them: ')
+    assert not any('named by' in member for member in problem.members)
 
 
 @pytest.mark.parametrize('arguments', [

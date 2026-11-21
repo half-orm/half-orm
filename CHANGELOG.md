@@ -1,5 +1,16 @@
 # Unreleased
 
+### A collision between declared reverse names says so
+
+When two reverse foreign keys are declared under one name (with
+`@ho_reverse_name` or `Model(reverse_names=...)`), or when a declared name
+is the one half_orm derives for another foreign key, the `NamingError` no
+longer says to "name one of them": they already have a name. It says that
+the name was declared and should be a different one for each foreign key,
+and each member of the problem says where its name comes from
+(`named by '@ho_reverse_name' in its comment` or
+`named by Model(reverse_names=...)`).
+
 # 2.0.1 (2026-11-19)
 
 ### `@transaction` outside a relation method says so

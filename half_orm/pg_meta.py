@@ -392,6 +392,9 @@ class PgMeta:
             # with more than one entry is a foreign key that would have
             # replaced another.
             fkey_owners = {}
+            # The keys of fkey_owners under which a declared reverse name is
+            # filed.
+            declared_owners = set()
             seen_constraints = set()
             for dct in all_:
                 tableid = dct['tableid']
@@ -414,9 +417,11 @@ class PgMeta:
                 if declaration in declared_reverse:
                     used_declarations.add(('reverse', declaration))
                     declared = declared_reverse[declaration]
+                    origin = 'Model(reverse_names=...)'
                 else:
                     declared = _naming.annotation(
                         dct['fkeydescription'], _naming.REVERSE_ANNOTATION)
+                    origin = "'@ho_reverse_name' in its comment"
                 if declared is not None and not _naming.is_python_name(declared):
                     problems.append(NamingProblem(
                         'declaration', declared, dotted,
@@ -448,8 +453,13 @@ class PgMeta:
                                 if target == group:
                                     is_singleton = True
                                     break
-                fkey_owners.setdefault((ftable_key, rev_fkey_name), []).append(
-                    f"{dotted}({', '.join(fields)}), constraint '{fkeyname}'")
+                owner = f"{dotted}({', '.join(fields)}), constraint '{fkeyname}'"
+                if declared is not None:
+                    # The name is not the derived one: say who chose it, the
+                    # fix is then to choose differently, not to name it.
+                    owner += f", named by {origin}"
+                    declared_owners.add((ftable_key, rev_fkey_name))
+                fkey_owners.setdefault((ftable_key, rev_fkey_name), []).append(owner)
                 # setdefault, not assignment: the second foreign key to spell
                 # this name used to take the place of the first.
                 byname[ftable_key]['fkeys'].setdefault(rev_fkey_name, (
@@ -465,7 +475,7 @@ class PgMeta:
             bydotted.setdefault(_dotted(table_key), []).append(table_key)
 
         problems += self.__naming_problems(
-            byname, bydotted, fkey_owners,
+            byname, bydotted, fkey_owners, declared_owners,
             declared_fields, declared_reverse, used_declarations)
         if problems:
             # Including on a reload: the description read before the schema
@@ -476,7 +486,7 @@ class PgMeta:
         PgMeta.meta.register(self.__key, metadata)
 
     @staticmethod
-    def __naming_problems(byname, bydotted, fkey_owners,
+    def __naming_problems(byname, bydotted, fkey_owners, declared_owners,
                           declared_fields, declared_reverse, used_declarations):
         """Everything that keeps the names of this catalog from being used.
 
@@ -496,9 +506,14 @@ class PgMeta:
         # Two foreign keys filed under one name on the same relation.
         for (table_key, name), owners in fkey_owners.items():
             if len(owners) > 1:
+                if (table_key, name) in declared_owners:
+                    hint = ("this name was declared: declare a different one "
+                            "for each foreign key. ")
+                else:
+                    hint = "name one of them: "
                 problems.append(NamingProblem(
                     'reverse_fkey', name, _dotted(table_key), owners,
-                    "name one of them: COMMENT ON CONSTRAINT <constraint> ON "
+                    hint + "COMMENT ON CONSTRAINT <constraint> ON "
                     "<relation> IS '@ho_reverse_name <name>', or "
                     "Model(reverse_names={('<relation>', '<constraint>'): '<name>'})"))
 
