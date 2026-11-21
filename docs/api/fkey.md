@@ -31,6 +31,32 @@ a name, a common enough arrangement, the word appears twice, as in
 a name missing that component matches no foreign key. Copy the names from the
 printed relation rather than assembling them by hand.
 
+Joining the parts with underscores lets two different foreign keys spell the
+same: `post(author_id)` and `post_author(id)` both give
+`_reverse_fkey_blog_blog_post_author_id`. halfORM does not pick one:
+`Model()` raises a `NamingError` listing every such collision. It is settled
+by giving one of the two reverse keys a name of its own, which replaces the
+convention: the key is then `_reverse_fkey_<name>`.
+
+- In the database, where every client reads it, with an annotation line in
+  the constraint's comment (the rest of the comment is free text):
+
+  ```sql
+  COMMENT ON CONSTRAINT post_author_id_fkey ON blog.post
+      IS '@ho_reverse_name posts';
+  ```
+
+- On the Model, for a database you cannot write to (this declaration wins
+  over the one in the database):
+
+  ```python
+  blog = Model('blog',
+               reverse_names={('blog.post', 'post_author_id_fkey'): 'posts'})
+  ```
+
+Either way the reverse key becomes `_reverse_fkey_posts`, exposed by default
+as `rfk_posts`.
+
 ---
 
 ## Fkeys on views

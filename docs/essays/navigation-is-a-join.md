@@ -59,7 +59,11 @@ under its constraint name, in both directions. If `post` declares a foreign key
 to `author`, you get the forward key on `Post` *and* a reverse key on `Author`,
 named by convention `_reverse_fkey_<database>_<schema>_<table>_<field>`.
 That first component is the database name, which is why `blog` appears twice
-below: the database and the schema happen to share a name here. Nothing is
+below: the database and the schema happen to share a name here. Two foreign
+keys can spell the same this way, `post(author_id)` and `post_author(id)`;
+halfORM then refuses the database with a `NamingError` until one of them is
+given a name of its own (`@ho_reverse_name posts` in the constraint's
+comment), under which it is filed as `_reverse_fkey_posts`. Nothing is
 declared in Python. Nothing is configured. Print a bare relation and it tells
 you what's available:
 
