@@ -14,7 +14,7 @@ from half_orm import naming, relation_errors
 from half_orm.fkey import FKey
 from half_orm.field import Field
 from half_orm.model import Model, CONF_DIR
-from half_orm.model_errors import NamingError
+from half_orm.model_errors import NamingError, NamingWarning
 from half_orm.relation import Relation
 from ..init import model
 
@@ -360,11 +360,6 @@ def test_an_unknown_fkey_name_is_not_explained():
      ('declaration', 'x', 'honame.post')),
     ({'reverse_names': {('honame.post', 'post_author_fk'): 'not valid'}},
      ('declaration', 'not valid', 'honame.post')),
-    # identifiers Python would read as another name (PEP 3131, NFKC)
-    ({'field_names': {'honame.attrs': {'a b': '\uff49\uff44'}}},
-     ('declaration', '\uff49\uff44', 'honame.attrs')),
-    ({'reverse_names': {('honame.post', 'post_author_fk'): '\ufb01le'}},
-     ('declaration', '\ufb01le', 'honame.post')),
 ])
 def test_unusable_declaration(declarations, problem):
     merged = {
@@ -503,21 +498,21 @@ def test_instance_attributes_of_relation_are_reserved():
     assert [name for name in own if not naming.is_reserved(name)] == []
 
 
-@pytest.mark.parametrize('name, problem', [
-    ('id', None),
-    ('\u00e9t\u00e9', None),                  # été: NFKC already
-    ('a b', 'not a Python identifier'),
-    ('class', 'a Python keyword'),
-    ('\uff49\uff44', "not in the form Python reads it in: written in a program, it is 'id'"),
-    ('\ufb01le', "not in the form Python reads it in: written in a program, it is 'file'"),
+@pytest.mark.parametrize('name, python_name, read_as_written', [
+    ('id', True, True),
+    ('\u00e9t\u00e9', True, True),                  # été: NFKC already
+    ('a b', False, True),
+    ('class', False, True),
+    ('\uff49\uff44', True, False),
+    ('\ufb01le', True, False),
 ])
-def test_python_name_problem(name, problem):
-    assert naming.python_name_problem(name) == problem
-    assert naming.is_python_name(name) is (problem is None)
+def test_python_names(name, python_name, read_as_written):
+    assert naming.is_python_name(name) is python_name
+    assert naming.is_read_as_written(name) is read_as_written
 
 
 def test_python_reads_a_name_in_nfkc_form():
-    "The reason for the check: setattr keeps the string, the source does not."
+    "The reason for the warning: setattr keeps the string, the source does not."
     class Bare:
         "An object to set attributes on."
     obj = Bare()
@@ -526,47 +521,112 @@ def test_python_reads_a_name_in_nfkc_form():
     assert obj.ｉｄ == 1 and getattr(obj, '\uff49\uff44') == 2
 
 
-@pytest.mark.parametrize('annotation, problem', [
-    ('@ho_name a b', 'not a Python identifier'),
-    ('@ho_name', 'not a Python identifier'),
-    ('@ho_name \uff49\uff44', "written in a program, it is 'id'"),
+# -- accepted in 2.x, refused in 3.0: a NamingWarning ----------------------------
+
+def _warned(record):
+    return [str(warning.message) for warning in record
+            if issubclass(warning.category, NamingWarning)]
+
+
+@pytest.mark.parametrize('declarations, attribute, expected', [
+    ({'reverse_names': REVERSE_NAMES,
+      'field_names': {**FIELD_NAMES, 'honame.attrs': {
+          **FIELD_NAMES['honame.attrs'], 'a b': '\uff41_b'}}},
+     ('honame.attrs', '\uff41_b'),
+     "The name declared for the column 'a b' of honame.attrs, '\uff41_b', is not "
+     "in the form Python reads it in: written in a program, it is 'a_b', another "
+     "attribute. half_orm 3.0 will refuse this database: no Model will open "
+     "on it until this is fixed."),
+    ({'field_names': FIELD_NAMES,
+      'reverse_names': {('honame.post', 'post_author_fk'): '\ufb01le'}},
+     ('honame.author', 'rfk_\ufb01le'),
+     "The reverse name declared for the constraint 'post_author_fk' of honame.post, "
+     "'\ufb01le', is not in the form Python reads it in"),
 ])
-def test_a_malformed_annotation_is_reported(comments, annotation, problem):
+def test_a_declared_name_python_would_misread_is_warned_about(
+        declarations, attribute, expected):
+    with pytest.warns(NamingWarning) as record:
+        a_model = open_model(ignore=IGNORE, **declarations)
+    assert any(message.startswith(expected) for message in _warned(record))
+    relation, name = attribute
+    # accepted as in 2.0
+    assert hasattr(a_model.get_relation_class(relation)(), name)
+
+
+@pytest.mark.parametrize('annotation', ['@ho_name a b', '@ho_name'])
+def test_a_malformed_annotation_is_ignored_with_a_warning(comments, annotation):
     _comment('column honame.attrs."a b"', annotation)
-    with pytest.raises(NamingError) as exc:
+    with pytest.raises(NamingError) as exc, pytest.warns(NamingWarning) as record:
         open_model(ignore=IGNORE)
-    found, = [p for p in exc.value.problems
-              if p.kind == 'declaration' and p.relation == 'honame.attrs']
-    assert found.members == ["name declared for the column 'a b'"]
-    assert found.hint.startswith('a column name must be written after a dot, and this one is ')
-    assert problem in found.hint
+    assert (f"The line '{annotation}' in the comment of the column 'a b' of "
+            "honame.attrs holds no name and is ignored. half_orm 3.0 will "
+            "refuse this database: no Model will open on it until this is "
+            "fixed.") in _warned(record)
+    # ignored, as in 2.0: the column2 clash it was meant to settle remains,
+    # and the error says why
+    assert ('attribute', 'column2', 'honame.attrs') in _problems(exc)
+    clash, = [p for p in exc.value.problems if p.name == 'column2']
+    assert (f"column 'a b'; its comment's line '{annotation}' holds no name "
+            "and was ignored") in clash.members
 
 
-def test_a_malformed_reverse_annotation_is_reported(comments):
+def test_a_malformed_reverse_annotation_is_ignored_with_a_warning(comments):
     _comment('constraint post_author_fk on honame.post', '@ho_reverse_name the posts')
+    with pytest.raises(NamingError) as exc, pytest.warns(NamingWarning) as record:
+        open_model(ignore=IGNORE)
+    assert any("'@ho_reverse_name the posts'" in message for message in _warned(record))
+    assert ('reverse_fkey', REVERSE_LEGACY, 'honame.author') in _problems(exc)
+    clash, = [p for p in exc.value.problems if p.kind == 'reverse_fkey']
+    assert ("honame.post(author_id), constraint 'post_author_fk'; its comment's "
+            "line '@ho_reverse_name the posts' holds no name and was ignored"
+            ) in clash.members
+
+
+def test_an_annotation_that_is_not_an_identifier_is_still_refused(comments):
+    _comment('column honame.attrs."a b"', "@ho_name x');drop")
     with pytest.raises(NamingError) as exc:
         open_model(ignore=IGNORE)
-    assert ('declaration', 'the posts', 'honame.post') in _problems(exc)
+    assert ('declaration', "x');drop", 'honame.attrs') in _problems(exc)
 
 
-def test_a_column_python_would_misread_is_numbered():
+def test_a_column_python_would_misread_is_warned_about():
     model.execute_query('create table honame.wide (id int primary key, "\uff4e" int)')
     try:
-        wide = open_model(ignore=IGNORE, field_names=FIELD_NAMES,
-                          reverse_names=REVERSE_NAMES
-                          ).get_relation_class('honame.wide')()
-        assert list(wide._ho_fields) == ['id', 'column2']
-        assert wide.column2.name == '\uff4e'
+        with pytest.warns(NamingWarning) as record:
+            wide = open_model(ignore=IGNORE, field_names=FIELD_NAMES,
+                              reverse_names=REVERSE_NAMES
+                              ).get_relation_class('honame.wide')()
     finally:
         model.execute_query('drop table honame.wide')
+    assert list(wide._ho_fields) == ['id', '\uff4e']
+    assert any(message.startswith(
+        "The name of the column '\uff4e' of honame.wide, '\uff4e', is not in the form")
+        for message in _warned(record))
 
 
-def test_an_fkeys_alias_python_would_misread_is_refused():
+def test_an_fkeys_alias_python_would_misread_is_warned_about():
     class Author(open_model(
             field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
             ignore=IGNORE).get_relation_class('honame.author')):
         Fkeys = {'\uff50osts': '_reverse_fkey_posts'}
-    with pytest.raises(NamingError) as exc:
-        Author()
-    assert _problems(exc) == {('declaration', '\uff50osts', 'honame.author')}
-    assert "it is 'posts'" in exc.value.problems[0].hint
+    with pytest.warns(NamingWarning) as record:
+        author = Author(id=1)
+    assert getattr(author, '\uff50osts')().ho_count() == 2
+    assert any(message.startswith(
+        "The alias in Fkeys of Author for the foreign key '_reverse_fkey_posts' "
+        "of honame.author, '\uff50osts', is not in the form Python reads it in: "
+        "written in a program, it is 'posts', another attribute. half_orm 3.0 "
+        "will refuse this alias with a NamingError.") for message in _warned(record))
+
+
+def test_a_naming_warning_can_be_made_an_error():
+    "What 3.0 will do, available now."
+    import warnings
+    class Author(open_model(
+            field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
+            ignore=IGNORE).get_relation_class('honame.author')):
+        Fkeys = {'\uff50osts': '_reverse_fkey_posts'}
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', NamingWarning)
+        with pytest.raises(NamingWarning):
+            Author()

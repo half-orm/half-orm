@@ -1,59 +1,128 @@
 # Unreleased
 
-### Names Python would read as other names are refused
+2.1.0 is about the names declared for reverse foreign keys with
+`@ho_reverse_name` or `Model(reverse_names=...)`, introduced in 2.0.0: the
+`Fkeys` template offers them, and the errors around them say where they come
+from. It breaks nothing. It also warns about names that 3.0 will refuse,
+**refusing the whole database**: see *Deprecations* below.
 
-Python reads the identifiers of a program in NFKC form (PEP 3131), while
-`setattr` and `getattr` take their string as it is. A column declared as
-`ｉｄ` (fullwidth letters) was set as the attribute `'ｉｄ'`, next to the
-column `id` and unseen by the collision checks, and `author.ｉｄ` written in
-a program read `id`. Such a name is now refused:
-
-- declared with `@ho_name`, `@ho_reverse_name`, `field_names` or
-  `reverse_names`: `NamingError` when the Model is created;
-- given as an alias in `Fkeys`: `NamingError` when the class is instantiated;
-- a column's own name: the column is exposed as `column<N>`, like one whose
-  name is not an identifier, and can be named with `@ho_name`.
-
-### A malformed annotation is reported
-
-A line `@ho_name a b` or `@ho_reverse_name` with nothing after it was taken
-for no annotation at all, without a word: the collision it was meant to
-settle stayed, unexplained. Such a line is now a `declaration` problem of
-the `NamingError`, which says why the name cannot be used. A database whose
-comments hold such a line is refused until it is fixed.
-
-### A collision between declared reverse names says so
-
-When two reverse foreign keys are declared under one name (with
-`@ho_reverse_name` or `Model(reverse_names=...)`), or when a declared name
-is the one half_orm derives for another foreign key, the `NamingError` no
-longer says to "name one of them": they already have a name. It says that
-the name was declared and should be a different one for each foreign key,
-and each member of the problem says where its name comes from
-(`named by '@ho_reverse_name' in its comment` or
-`named by Model(reverse_names=...)`).
-
-### `WrongFkeyError` points to the name that replaced a derived one
-
-A name declared for a reverse foreign key replaces the one half_orm derives:
-an `Fkeys` entry written with the derived name no longer finds its key. The
-`WrongFkeyError` raised then says so, names the foreign key, and gives the
-name to use instead. `docs/api/fkey.md` now says that declaring a reverse
-name is a rename that breaks code written against the derived one.
+## Declared reverse names
 
 ### The `Fkeys` template offers a declared reverse name as the alias
 
 `print()` of a relation ends with an `Fkeys` template to paste. A reverse
 foreign key that has been given a name of its own is now offered under that
-name (`'posts': '_reverse_fkey_posts'`) instead of `rfk_posts`. When the name
-is already taken on the relation (a column, a name half_orm uses itself,
-another foreign key's attribute or an attribute of the class), the template
-keeps `rfk_posts` and the line carries a `FIX ME!` comment that says where
-the name was declared (the constraint's comment, or `Model(reverse_names=...)`)
-and what already holds it (a column, a foreign key, the class that defines the
-attribute). The attribute exposed without `Fkeys` is still `rfk_posts`.
-`WrongFkeyError` now also says where the name that replaced a derived one was
-declared.
+name instead of `rfk_<name>`:
+
+```python
+Fkeys = {
+    'posts': '_reverse_fkey_posts',
+    'rfk_blog_blog_comment_author_id': '_reverse_fkey_blog_blog_comment_author_id',
+}
+```
+
+When the name is already taken on the relation (by a column, another foreign
+key's attribute, a name half_orm reserves, or an attribute of the class), the
+template keeps `rfk_<name>` and the line says where the name was declared and
+what holds it:
+
+```
+    'rfk_posts': '_reverse_fkey_posts',  # FIX ME! 'posts', declared by '@ho_reverse_name' in the comment of the constraint 'post_author_id_fkey' on blog.post, is the column 'posts' of blog.author. Choose another alias for this foreign key, or declare another name
+```
+
+Where the name was declared is found from what half_orm already reads: the
+constraint is the foreign key of the referencing relation with the same
+columns and target, declared on the Model if the Model names it, in the
+constraint's comment otherwise. Two constraints from the same columns to the
+same ones cannot be told apart that way; the line lists both and advises
+dropping the duplicate rather than naming it.
+
+The attribute exposed without `Fkeys` is unchanged: `rfk_posts`.
+
+### `WrongFkeyError` points to the name that replaced a derived one
+
+A declared reverse name replaces the derived one, it is not an alias: an
+`Fkeys` entry written with the derived name no longer finds its key. The
+`WrongFkeyError` now says so, names the foreign key, where its new name was
+declared, and the name to use:
+
+```
+Can't find '_reverse_fkey_blog_blog_post_author_id'!
+'_reverse_fkey_blog_blog_post_author_id' is the name half_orm derives for the reverse foreign key from blog.post(author_id). That foreign key has been given a name of its own, declared by '@ho_reverse_name' in the comment of the constraint 'post_author_id_fkey' on blog.post, which replaces it: use '_reverse_fkey_posts'.
+```
+
+### A collision between declared names says so
+
+When two reverse foreign keys are declared under one name, or a declared name
+is the one half_orm derives for another foreign key, the `NamingError` no
+longer says to "name one of them": they already have a name. It says the
+name was declared and must differ for each, and each member says where its
+name comes from (`named by '@ho_reverse_name' in its comment` or
+`named by Model(reverse_names=...)`).
+
+## Deprecations: names 3.0 will refuse
+
+A new warning category, `half_orm.model_errors.NamingWarning` (a
+`FutureWarning`, shown by default), reports names half_orm accepts as 2.0 did
+and 3.0 will refuse. **In 3.0, a database holding such a name will be
+refused**: creating a Model on it will raise `NamingError` until the name is
+fixed, as for the collisions 2.0 introduced. An `Fkeys` alias of that kind
+will be refused when the class is instantiated. Each warning says which:
+
+```
+... half_orm 3.0 will refuse this database: no Model will open on it until this is fixed.
+... half_orm 3.0 will refuse this alias with a NamingError.
+```
+
+Fix them during 2.x. To check that none is left, or to get 3.0's behaviour
+now:
+
+```python
+import warnings
+from half_orm.model_errors import NamingWarning
+warnings.simplefilter('error', NamingWarning)
+```
+
+or `python -W error::half_orm.model_errors.NamingWarning`.
+
+### Names Python would read as other names
+
+Python reads the identifiers of a program in NFKC form (PEP 3131), while
+`setattr` and `getattr` take their string as it is. A column declared as
+`ｉｄ` (fullwidth letters) becomes the attribute `'ｉｄ'`, next to `id` and
+unseen by the collision checks, but `author.ｉｄ` written in a program reads
+`author.id`, the other column. A warning is now given for such a name:
+
+- declared with `@ho_name`, `@ho_reverse_name`, `field_names` or
+  `reverse_names`, when the Model is created;
+- a column's own name, when the Model is created (name it with `@ho_name`);
+- an alias in `Fkeys`, when the class is instantiated.
+
+### Annotation lines that hold no name
+
+A line `@ho_name a b`, or `@ho_reverse_name` with nothing after it, is not
+read as an annotation, and was ignored without a word: the collision it was
+meant to settle stayed, unexplained. It is still ignored, with a warning that
+names the column or the constraint. When the line was meant to settle a
+collision, the `NamingError` says it too, next to the column or constraint
+involved, so that the explanation is where one looks even when warnings are
+filtered:
+
+```
+- [reverse_fkey] '_reverse_fkey_blog_blog_post_author_id' on blog.author
+    blog.post(author_id), constraint 'post_author_fk'; its comment's line '@ho_reverse_name the posts' holds no name and was ignored
+    blog.post_author(id), constraint 'post_author_id_fkey'
+```
+ A name that is one word but not an
+identifier (`@ho_name x');drop`) is refused with a `NamingError`, as in 2.0.
+
+## Documentation
+
+- `docs/api/fkey.md`: what a declared reverse name replaces, why it is
+  declared on the constraint, how to settle a collision, and what the `Fkeys`
+  template offers.
+- The essay *You Can't Have an N+1 Problem if Navigation Isn't a Query* says
+  how derived reverse names can collide.
 
 # 2.0.1 (2026-11-19)
 

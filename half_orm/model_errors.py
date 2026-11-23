@@ -1,5 +1,16 @@
 """This module provides the errors for the model module."""
 
+class NamingWarning(FutureWarning):
+    """A name half_orm accepts in 2.x and will refuse in 3.0.
+
+    A name Python would read as another one (not in NFKC form), or an
+    annotation line that holds no name. Read from the database, it will make
+    3.0 refuse the database (NamingError when the Model is created); given
+    as an Fkeys alias, it will make 3.0 refuse the alias. Turn it into an error now with
+    ``-W error::half_orm.model_errors.NamingWarning``, or
+    ``warnings.simplefilter('error', NamingWarning)``.
+    """
+
 class MissingConfigFile(Exception):
     """The config file has not been found."""
     def __init__(self, filename):

@@ -40,8 +40,9 @@ convention: the key is then `_reverse_fkey_<name>`.
 
 - In the database, where every client reads it, with an annotation line in
   the constraint's comment (the rest of the comment is free text; the name
-  must be a Python identifier that Python reads as it is written, so not
-  `ｐｏｓｔｓ` in fullwidth letters, which a program reads as `posts`):
+  must be a Python identifier, and one Python reads as it is written: not
+  `ｐｏｓｔｓ` in fullwidth letters, which a program reads as `posts` — 2.x
+  warns with a `NamingWarning`, 3.0 will refuse the database):
 
   ```sql
   COMMENT ON CONSTRAINT post_author_id_fkey ON blog.post

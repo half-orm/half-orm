@@ -1383,20 +1383,17 @@ class Relation:
                 f"and target: drop one rather than name it)")
 
     def __check_alias(self, alias, fkey):
-        """Refuse an alias Python would read as another name.
+        """Warn about an alias Python would read as another name.
 
         Written in a program, `obj.ｐｏｓｔｓ` is `obj.posts` (PEP 3131), not
         the attribute set under the alias. A derived name is not checked: it
         is the constraint's, and an alias is the way around it.
         """
-        if naming.is_read_as_written(alias):
-            return
         _, schema, relation = self._t_fqrn
-        raise model_errors.NamingError(self._dbname, [model_errors.NamingProblem(
-            'declaration', alias, f'{schema}.{relation}',
-            [f"alias in Fkeys for the foreign key '{fkey.name}'"],
-            f'choose another alias: this one is '
-            f'{naming.python_name_problem(alias)}')])
+        naming.misread_warning(
+            alias, f"The alias in Fkeys of {type(self).__name__} for the "
+            f"foreign key '{fkey.name}' of {schema}.{relation}",
+            naming.REFUSED_ALIAS)
 
     def __expose_fkey(self, attr_name, fkey):
         """Make `fkey` an attribute of this relation.

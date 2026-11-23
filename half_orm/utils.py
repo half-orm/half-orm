@@ -7,8 +7,6 @@ import sys
 from functools import wraps
 from keyword import iskeyword
 
-from half_orm import naming
-
 class Color:
     "Colors for the console"
     @staticmethod
@@ -139,8 +137,6 @@ def check_attribute_name(string: str):
         err = f'"{string}" is not a valid identifier in Python.'
     if iskeyword(string):
         err = f'"{string}" is a reserved keyword in Python.'
-    if err is None and not naming.is_python_name(string):
-        err = f'"{string}" is {naming.python_name_problem(string)}.'
     return err
 
 def get_caller_info(skip_frames=2):

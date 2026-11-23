@@ -380,6 +380,13 @@ class PgMeta:
                 else:
                     dct['ho_name'] = _naming.annotation(
                         dct['fielddescription'], _naming.FIELD_ANNOTATION)
+                    if dct['ho_name'] is not None and _naming.is_malformed(dct['ho_name']):
+                        _naming.malformed_warning(
+                            _naming.FIELD_ANNOTATION, dct['ho_name'],
+                            f"the column '{fieldname}' of {dotted}")
+                        dct['ho_ignored'] = _naming.ignored_line(
+                            _naming.FIELD_ANNOTATION, dct['ho_name'])
+                        dct['ho_name'] = None
                 byname[table_key]['tableid'] = tableid
                 byname[table_key]['tablekind'] = tablekind
                 byname[table_key]['inherits'] = inherits
@@ -418,10 +425,19 @@ class PgMeta:
                     used_declarations.add(('reverse', declaration))
                     declared = declared_reverse[declaration]
                     origin = 'Model(reverse_names=...)'
+                    ignored = None
                 else:
                     declared = _naming.annotation(
                         dct['fkeydescription'], _naming.REVERSE_ANNOTATION)
                     origin = "'@ho_reverse_name' in its comment"
+                    ignored = None
+                    if declared is not None and _naming.is_malformed(declared):
+                        _naming.malformed_warning(
+                            _naming.REVERSE_ANNOTATION, declared,
+                            f"the constraint '{fkeyname}' of {dotted}")
+                        ignored = _naming.ignored_line(
+                            _naming.REVERSE_ANNOTATION, declared)
+                        declared = None
                 if declared is not None and not _naming.is_python_name(declared):
                     problems.append(NamingProblem(
                         'declaration', declared, dotted,
@@ -429,6 +445,10 @@ class PgMeta:
                         f'a reverse name must be written after a dot, and this '
                         f'one is {_naming.python_name_problem(declared)}'))
                     declared = None
+                elif declared is not None:
+                    _naming.misread_warning(
+                        declared, "The reverse name declared for the constraint "
+                        f"'{fkeyname}' of {dotted}")
                 rev_fkey_name = _naming.reverse_fkey_name(table_key, fields, declared)
                 fkey_owners.setdefault((table_key, fkeyname), []).append(
                     f"the constraint '{fkeyname}' of {dotted}")
@@ -460,6 +480,8 @@ class PgMeta:
                     # fix is then to choose differently, not to name it.
                     owner += f", named by {origin}"
                     declared_owners.add((ftable_key, rev_fkey_name))
+                elif ignored:
+                    owner += f"; {ignored}"
                 fkey_owners.setdefault((ftable_key, rev_fkey_name), []).append(owner)
                 # setdefault, not assignment: the second foreign key to spell
                 # this name used to take the place of the first.
@@ -530,17 +552,26 @@ class PgMeta:
                         f'a column name must be written after a dot, and this '
                         f'one is {_naming.python_name_problem(declared)}'))
                     declared = field['ho_name'] = None
+                elif declared is not None:
+                    _naming.misread_warning(
+                        declared, f"The name declared for the column '{column}' of {dotted}")
+                else:
+                    _naming.misread_warning(
+                        column, f"The name of the column '{column}' of {dotted}")
                 py_name = _naming.python_field_name(
                     column, field['fieldnum'], declared)
+                member = f"column '{column}'"
+                if field.get('ho_ignored'):
+                    member += f"; {field['ho_ignored']}"
                 if _naming.is_reserved(py_name):
                     problems.append(NamingProblem(
-                        'reserved', py_name, dotted, [f"column '{column}'"],
+                        'reserved', py_name, dotted, [member],
                         "half_orm uses this name itself. Give the column "
                         f"another one: COMMENT ON COLUMN {normalize_qrn(table_key)}"
                         f".{quote_ident(column)} IS '@ho_name <name>', or "
                         f"Model(field_names={{{dotted!r}: {{{column!r}: '<name>'}}}})"))
                     continue
-                attributes.setdefault(py_name, []).append(f"column '{column}'")
+                attributes.setdefault(py_name, []).append(member)
             for fkey_name, fkey in relation['fkeys'].items():
                 what = 'reverse foreign key' if fkey[5] else 'foreign key'
                 attributes.setdefault(

@@ -30,11 +30,16 @@ The rest of an annotated comment is free text; only the ``@ho_...`` line is
 read. A declaration on the Model wins over one in the database.
 """
 
+import os
 import re
+import sys
 import unicodedata
+import warnings
 from fnmatch import fnmatchcase
 from keyword import iskeyword
 from typing import NamedTuple
+
+from half_orm.model_errors import NamingWarning
 
 FIELD_ANNOTATION = 'ho_name'
 REVERSE_ANNOTATION = 'ho_reverse_name'
@@ -78,8 +83,11 @@ def is_reserved(name: str) -> bool:
 
 
 def is_python_name(name) -> bool:
-    "Whether `name` can be written after a dot."
-    return python_name_problem(name) is None
+    """Whether `name` is an identifier Python accepts after a dot.
+
+    Not whether Python reads it as it is written: see is_read_as_written.
+    """
+    return isinstance(name, str) and name.isidentifier() and not iskeyword(name)
 
 
 def is_read_as_written(name) -> bool:
@@ -155,6 +163,59 @@ def is_ignored(naming: Naming, schema: str, relation: str) -> bool:
     """
     dotted = f'{schema}.{relation}'
     return any(fnmatchcase(dotted, pattern) for pattern in naming.ignore)
+
+
+def is_malformed(value) -> bool:
+    """Whether what follows an annotation keyword cannot be a name at all:
+    nothing, or more than one word. 2.0 took such a line for no annotation."""
+    return value == '' or any(char.isspace() for char in value)
+
+
+# What 3.0 will do instead of warning.
+REFUSED_DATABASE = ('half_orm 3.0 will refuse this database: no Model will '
+                    'open on it until this is fixed.')
+REFUSED_ALIAS = 'half_orm 3.0 will refuse this alias with a NamingError.'
+
+
+def _outside_half_orm():
+    """The stacklevel of the first caller outside half_orm, so that a warning
+    points at the user's line (skip_file_prefixes needs Python 3.12)."""
+    package = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    frame, level = sys._getframe(1), 1  # pylint: disable=protected-access
+    while frame is not None and os.path.abspath(
+            frame.f_code.co_filename).startswith(package):
+        frame, level = frame.f_back, level + 1
+    return level
+
+
+def warn(message, consequence=REFUSED_DATABASE):
+    "Warn about a name half_orm accepts now and will refuse in 3.0."
+    warnings.warn(f'{message} {consequence}', NamingWarning,
+                  stacklevel=_outside_half_orm())
+
+
+def misread_warning(name, what, consequence=REFUSED_DATABASE):
+    "Warn, if Python would read `name` as another name."
+    if is_python_name(name) and not is_read_as_written(name):
+        warn(f"{what}, '{name}', is not in the form Python reads it in: "
+             f"written in a program, it is "
+             f"'{unicodedata.normalize('NFKC', name)}', another attribute.",
+             consequence)
+
+
+def ignored_line(keyword, value):
+    """What a NamingError member says of an annotation line ignored because
+    it holds no name: when that line was meant to settle the problem, the
+    error is where one looks for why it did not."""
+    line = f'@{keyword} {value}'.rstrip()
+    return f"its comment's line '{line}' holds no name and was ignored"
+
+
+def malformed_warning(keyword, value, what):
+    "Warn that the annotation line `@<keyword> <value>` is ignored."
+    line = f'@{keyword} {value}'.rstrip()
+    warn(f"The line '{line}' in the comment of {what} holds no name and is "
+         "ignored.")
 
 
 def annotation(comment, keyword):
