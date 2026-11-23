@@ -9,7 +9,8 @@ Steps (normal mode):
   1. Verify the repository is clean.
   2. Show the current version and last tag.
   3. Ask for the new version.
-  4. If major or minor changes: create maintenance branch X.Y from last tag.
+  4. If major or minor changes: create maintenance branch X.Y from last tag,
+     unless it already exists and contains that tag.
   5. Update half_orm/version.txt, pyproject.toml, CHANGELOG.md.
 
 Hand-written notes -- anything a reader has to *do*, which generated commit
@@ -105,6 +106,45 @@ def current_version() -> str:
 def last_tag():
     r = git('describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*.[0-9]*.[0-9]*')
     return r.stdout.strip() if r.returncode == 0 else None
+
+
+def check_tag_free(name: str, dry: bool = False):
+    """Abort if the tag the release would create already exists.
+
+    An earlier attempt abandoned after tagging leaves its tag behind, and
+    `git tag` would then fail after the release commit was made. A dry run
+    reports it and goes on with the preview.
+    """
+    r = git('rev-parse', '--verify', '--quiet', f'refs/tags/{name}')
+    if r.returncode != 0:
+        return
+    message = (
+        f'tag {name} already exists ({r.stdout.strip()[:8]}).\n'
+        f'If it is left over from an abandoned release, delete it with '
+        f'`git tag -d {name}` (and on the remotes it was pushed to).')
+    if dry:
+        print(f'[DRY RUN] The release would stop here: {message}')
+        return
+    sys.exit(f'ERROR: {message}')
+
+
+def maintenance_branch_exists(branch: str, tag: str) -> bool:
+    """True if *branch* exists and contains *tag*, which it must.
+
+    The maintenance branch of a line may predate the next minor release
+    (cut by hand, or by an earlier attempt); it is then kept. A branch of
+    that name which does not contain the line's last release is not the
+    line's branch, and the release stops rather than guess.
+    """
+    r = git('rev-parse', '--verify', '--quiet', f'refs/heads/{branch}')
+    if r.returncode != 0:
+        return False
+    if git('merge-base', '--is-ancestor', tag, branch).returncode != 0:
+        sys.exit(
+            f'ERROR: branch {branch!r} exists but does not contain {tag}.\n'
+            f'It is not the maintenance branch of {branch}: rename it, or '
+            f'bring it up to {tag}, then release again.')
+    return True
 
 
 def parse_major_minor(version: str):
@@ -235,10 +275,17 @@ def main():
     old_maj, old_min = parse_major_minor(old)
     new_maj, new_min = parse_major_minor(new)
 
+    # Checked before anything is written: a failure past this point would
+    # leave the version bumped and committed without its tag.
+    check_tag_free(f'v{new}', dry)
+
     # --- Maintenance branch ---------------------------------------------------
     if tag and (old_maj != new_maj or old_min != new_min):
         branch = f'{old_maj}.{old_min}'
-        if dry:
+        if maintenance_branch_exists(branch, tag):
+            print(f'Maintenance branch {branch!r} already exists and contains '
+                  f'{tag}: kept as is.')
+        elif dry:
             print(f'[DRY RUN] Would create maintenance branch {branch!r} from {tag}')
         else:
             print(f'\nCreating maintenance branch {branch!r} from {tag} …')

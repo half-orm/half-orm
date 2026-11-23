@@ -29,6 +29,8 @@ from scripts.do_release import (
     generate_log,
     current_version,
     last_tag,
+    check_tag_free,
+    maintenance_branch_exists,
 )
 
 
@@ -259,3 +261,64 @@ class TestCheckGithubCI(TestCase):
             with self.assertRaises(SystemExit) as ctx:
                 check_github_ci('abc1234')
             self.assertIn('no CI', str(ctx.exception))
+
+class TestExistingRefs(TestCase):
+    """A release must not stumble on refs an earlier release left behind.
+
+    Run in a throwaway repository: `git` is pointed at it through ROOT.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp)
+
+        def sh(*args):
+            subprocess.run(['git', *args], cwd=self.tmp, check=True,
+                           capture_output=True)
+
+        sh('init', '-q')
+        sh('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q',
+           '--allow-empty', '-m', 'first')
+        sh('tag', 'v2.0.1')
+        sh('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q',
+           '--allow-empty', '-m', 'second')
+        self.sh = sh
+        patcher = mock.patch('scripts.do_release.ROOT', Path(self.tmp))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_missing_branch_is_to_be_created(self):
+        self.assertFalse(maintenance_branch_exists('2.0', 'v2.0.1'))
+
+    def test_existing_branch_containing_the_tag_is_kept(self):
+        self.sh('branch', '2.0', 'v2.0.1')
+        self.assertTrue(maintenance_branch_exists('2.0', 'v2.0.1'))
+
+    def test_existing_branch_ahead_of_the_tag_is_kept(self):
+        # Fixes made on the line since its last release.
+        self.sh('branch', '2.0', 'HEAD')
+        self.assertTrue(maintenance_branch_exists('2.0', 'v2.0.1'))
+
+    def test_existing_branch_without_the_tag_stops(self):
+        self.sh('checkout', '-q', '--orphan', '2.0')
+        self.sh('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q',
+                '--allow-empty', '-m', 'unrelated')
+        with self.assertRaises(SystemExit) as ctx:
+            maintenance_branch_exists('2.0', 'v2.0.1')
+        self.assertIn('does not contain v2.0.1', str(ctx.exception))
+
+    def test_free_tag_passes(self):
+        check_tag_free('v2.1.0')
+
+    def test_existing_tag_stops(self):
+        self.sh('tag', 'v2.1.0')
+        with self.assertRaises(SystemExit) as ctx:
+            check_tag_free('v2.1.0')
+        self.assertIn('git tag -d v2.1.0', str(ctx.exception))
+
+    def test_existing_tag_is_reported_in_a_dry_run(self):
+        self.sh('tag', 'v2.1.0')
+        with mock.patch('sys.stdout', new_callable=io.StringIO) as out:
+            check_tag_free('v2.1.0', dry=True)
+        self.assertIn('would stop here: tag v2.1.0 already exists',
+                      out.getvalue())
