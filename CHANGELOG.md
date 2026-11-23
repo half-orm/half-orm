@@ -1,5 +1,7 @@
 # Unreleased
 
+# 2.1.0 (2026-11-23)
+
 2.1.0 is about the names declared for reverse foreign keys with
 `@ho_reverse_name` or `Model(reverse_names=...)`, introduced in 2.0.0: the
 `Fkeys` template offers them, and the errors around them say where they come
@@ -123,6 +125,18 @@ identifier (`@ho_name x');drop`) is refused with a `NamingError`, as in 2.0.
   template offers.
 - The essay *You Can't Have an N+1 Problem if Navigation Isn't a Query* says
   how derived reverse names can collide.
+
+* fix(release): keep an existing maintenance branch, refuse a taken tag before writing (aeb1273d)
+* fix(naming): warn instead of refusing what 2.0 accepted; release notes for 2.1.0 (a240c2a3)
+* fix(naming): refuse names Python would read as other names, report malformed annotations (90f65dc4)
+* feat(relation): the Fkeys template offers a declared reverse name as the alias (84193f88)
+* fix(relation): WrongFkeyError points to the name that replaced a derived one (c3f4af63)
+* fix(naming): a collision between declared reverse names says so (475c68fa)
+* docs: reverse FK names can collide, and how to name one (44e52b8a)
+* ci(docs): clean up published versions on request only, and keep 1.2 and 2.0 (73512a3f)
+* build: rebuild the test database from the branch's schema in `make test` (033337c4)
+* test(release): look for the script's line, not for its words (c5473055)
+* ci: run the tests on the maintenance branches (3130c79f)
 
 # 2.0.1 (2026-11-19)
 
