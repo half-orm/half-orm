@@ -1,5 +1,27 @@
 # Unreleased
 
+### Names Python would read as other names are refused
+
+Python reads the identifiers of a program in NFKC form (PEP 3131), while
+`setattr` and `getattr` take their string as it is. A column declared as
+`ｉｄ` (fullwidth letters) was set as the attribute `'ｉｄ'`, next to the
+column `id` and unseen by the collision checks, and `author.ｉｄ` written in
+a program read `id`. Such a name is now refused:
+
+- declared with `@ho_name`, `@ho_reverse_name`, `field_names` or
+  `reverse_names`: `NamingError` when the Model is created;
+- given as an alias in `Fkeys`: `NamingError` when the class is instantiated;
+- a column's own name: the column is exposed as `column<N>`, like one whose
+  name is not an identifier, and can be named with `@ho_name`.
+
+### A malformed annotation is reported
+
+A line `@ho_name a b` or `@ho_reverse_name` with nothing after it was taken
+for no annotation at all, without a word: the collision it was meant to
+settle stayed, unexplained. Such a line is now a `declaration` problem of
+the `NamingError`, which says why the name cannot be used. A database whose
+comments hold such a line is refused until it is fixed.
+
 ### A collision between declared reverse names says so
 
 When two reverse foreign keys are declared under one name (with

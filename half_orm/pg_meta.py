@@ -426,7 +426,8 @@ class PgMeta:
                     problems.append(NamingProblem(
                         'declaration', declared, dotted,
                         [f"reverse name declared for the constraint '{fkeyname}'"],
-                        'a reverse name must be a Python identifier'))
+                        f'a reverse name must be written after a dot, and this '
+                        f'one is {_naming.python_name_problem(declared)}'))
                     declared = None
                 rev_fkey_name = _naming.reverse_fkey_name(table_key, fields, declared)
                 fkey_owners.setdefault((table_key, fkeyname), []).append(
@@ -526,7 +527,8 @@ class PgMeta:
                     problems.append(NamingProblem(
                         'declaration', declared, dotted,
                         [f"name declared for the column '{column}'"],
-                        'a column name must be a Python identifier'))
+                        f'a column name must be written after a dot, and this '
+                        f'one is {_naming.python_name_problem(declared)}'))
                     declared = field['ho_name'] = None
                 py_name = _naming.python_field_name(
                     column, field['fieldnum'], declared)

@@ -31,6 +31,7 @@ read. A declaration on the Model wins over one in the database.
 """
 
 import re
+import unicodedata
 from fnmatch import fnmatchcase
 from keyword import iskeyword
 from typing import NamedTuple
@@ -78,7 +79,31 @@ def is_reserved(name: str) -> bool:
 
 def is_python_name(name) -> bool:
     "Whether `name` can be written after a dot."
-    return isinstance(name, str) and name.isidentifier() and not iskeyword(name)
+    return python_name_problem(name) is None
+
+
+def is_read_as_written(name) -> bool:
+    "Whether Python reads `name`, written in a program, as this very string."
+    return unicodedata.normalize('NFKC', name) == name
+
+
+def python_name_problem(name):
+    """Why `name` cannot be written after a dot, or None if it can.
+
+    Being an identifier is not enough. Python reads the identifiers of its
+    source in NFKC form (PEP 3131), and the strings given to setattr and
+    getattr as they are: `obj.ｉｄ` in a program is `obj.id`, and an
+    attribute set as 'ｉｄ' is reachable through getattr only, next to an
+    `id` no collision check would see.
+    """
+    if not isinstance(name, str) or not name.isidentifier():
+        return 'not a Python identifier'
+    if iskeyword(name):
+        return 'a Python keyword'
+    if not is_read_as_written(name):
+        return (f"not in the form Python reads it in: written in a program, "
+                f"it is '{unicodedata.normalize('NFKC', name)}'")
+    return None
 
 
 def normalize(field_names=None, reverse_names=None, ignore=None) -> Naming:
@@ -136,13 +161,17 @@ def annotation(comment, keyword):
     """Read ``@<keyword> <name>`` from a comment, or return None.
 
     The annotation is a line of its own; whatever else the comment says is
-    the author's business.
+    the author's business. What follows the keyword on that line is returned
+    as it is, empty or not a name: a malformed annotation is reported as
+    such, not taken for no annotation at all.
     """
     if not comment:
         return None
     match = re.search(
-        rf'^[ \t]*@{keyword}[ \t]+(\S+)[ \t]*$', comment, re.MULTILINE)
-    return match.group(1) if match else None
+        rf'^[ \t]*@{keyword}(?:[ \t]+(.*?))?[ \t]*$', comment, re.MULTILINE)
+    if not match:
+        return None
+    return match.group(1) or ''
 
 
 def python_field_name(column: str, fieldnum: int, declared=None) -> str:

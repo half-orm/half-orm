@@ -1316,6 +1316,7 @@ class Relation:
                             fkey = self._ho_fkeys[value]
                         except KeyError as exp:
                             raise relation_errors.WrongFkeyError(self, value) from exp
+                        self.__check_alias(key, fkey)
                         self.__expose_fkey(key, fkey)
                         aliased_fkeys.add(value)
             # Auto-expose non-aliased FK with fk_/rfk_ prefix
@@ -1380,6 +1381,22 @@ class Relation:
         return (f"declared by '@ho_reverse_name' in the comment of one of the "
                 f"constraints {listed} on {dotted} (duplicates, same columns "
                 f"and target: drop one rather than name it)")
+
+    def __check_alias(self, alias, fkey):
+        """Refuse an alias Python would read as another name.
+
+        Written in a program, `obj.ｐｏｓｔｓ` is `obj.posts` (PEP 3131), not
+        the attribute set under the alias. A derived name is not checked: it
+        is the constraint's, and an alias is the way around it.
+        """
+        if naming.is_read_as_written(alias):
+            return
+        _, schema, relation = self._t_fqrn
+        raise model_errors.NamingError(self._dbname, [model_errors.NamingProblem(
+            'declaration', alias, f'{schema}.{relation}',
+            [f"alias in Fkeys for the foreign key '{fkey.name}'"],
+            f'choose another alias: this one is '
+            f'{naming.python_name_problem(alias)}')])
 
     def __expose_fkey(self, attr_name, fkey):
         """Make `fkey` an attribute of this relation.

@@ -360,6 +360,11 @@ def test_an_unknown_fkey_name_is_not_explained():
      ('declaration', 'x', 'honame.post')),
     ({'reverse_names': {('honame.post', 'post_author_fk'): 'not valid'}},
      ('declaration', 'not valid', 'honame.post')),
+    # identifiers Python would read as another name (PEP 3131, NFKC)
+    ({'field_names': {'honame.attrs': {'a b': '\uff49\uff44'}}},
+     ('declaration', '\uff49\uff44', 'honame.attrs')),
+    ({'reverse_names': {('honame.post', 'post_author_fk'): '\ufb01le'}},
+     ('declaration', '\ufb01le', 'honame.post')),
 ])
 def test_unusable_declaration(declarations, problem):
     merged = {
@@ -471,10 +476,12 @@ def test_models_declaring_different_names_share_nothing():
     ('@ho_name x', 'x'),
     ('text\n@ho_name x\nmore', 'x'),
     ('  @ho_name   x  ', 'x'),
-    ('@ho_name', None),
+    # malformed: returned as it is, to be reported, not taken for nothing
+    ('@ho_name', ''),
+    ('@ho_name x y', 'x y'),
+    ("@ho_name x');drop table t;--", "x');drop table t;--"),
     ('see @ho_name x', None),
     ('@ho_named x', None),
-    ('@ho_name x y', None),
     ('', None),
     (None, None),
 ])
@@ -494,3 +501,72 @@ def test_instance_attributes_of_relation_are_reserved():
     person = model.get_relation_class('actor.person')()
     own = set(person.__dict__) - set(person._ho_fields) - person._ho_fkeys_attr
     assert [name for name in own if not naming.is_reserved(name)] == []
+
+
+@pytest.mark.parametrize('name, problem', [
+    ('id', None),
+    ('\u00e9t\u00e9', None),                  # été: NFKC already
+    ('a b', 'not a Python identifier'),
+    ('class', 'a Python keyword'),
+    ('\uff49\uff44', "not in the form Python reads it in: written in a program, it is 'id'"),
+    ('\ufb01le', "not in the form Python reads it in: written in a program, it is 'file'"),
+])
+def test_python_name_problem(name, problem):
+    assert naming.python_name_problem(name) == problem
+    assert naming.is_python_name(name) is (problem is None)
+
+
+def test_python_reads_a_name_in_nfkc_form():
+    "The reason for the check: setattr keeps the string, the source does not."
+    class Bare:
+        "An object to set attributes on."
+    obj = Bare()
+    setattr(obj, 'id', 1)
+    setattr(obj, '\uff49\uff44', 2)
+    assert obj.ｉｄ == 1 and getattr(obj, '\uff49\uff44') == 2
+
+
+@pytest.mark.parametrize('annotation, problem', [
+    ('@ho_name a b', 'not a Python identifier'),
+    ('@ho_name', 'not a Python identifier'),
+    ('@ho_name \uff49\uff44', "written in a program, it is 'id'"),
+])
+def test_a_malformed_annotation_is_reported(comments, annotation, problem):
+    _comment('column honame.attrs."a b"', annotation)
+    with pytest.raises(NamingError) as exc:
+        open_model(ignore=IGNORE)
+    found, = [p for p in exc.value.problems
+              if p.kind == 'declaration' and p.relation == 'honame.attrs']
+    assert found.members == ["name declared for the column 'a b'"]
+    assert found.hint.startswith('a column name must be written after a dot, and this one is ')
+    assert problem in found.hint
+
+
+def test_a_malformed_reverse_annotation_is_reported(comments):
+    _comment('constraint post_author_fk on honame.post', '@ho_reverse_name the posts')
+    with pytest.raises(NamingError) as exc:
+        open_model(ignore=IGNORE)
+    assert ('declaration', 'the posts', 'honame.post') in _problems(exc)
+
+
+def test_a_column_python_would_misread_is_numbered():
+    model.execute_query('create table honame.wide (id int primary key, "\uff4e" int)')
+    try:
+        wide = open_model(ignore=IGNORE, field_names=FIELD_NAMES,
+                          reverse_names=REVERSE_NAMES
+                          ).get_relation_class('honame.wide')()
+        assert list(wide._ho_fields) == ['id', 'column2']
+        assert wide.column2.name == '\uff4e'
+    finally:
+        model.execute_query('drop table honame.wide')
+
+
+def test_an_fkeys_alias_python_would_misread_is_refused():
+    class Author(open_model(
+            field_names=FIELD_NAMES, reverse_names=REVERSE_NAMES,
+            ignore=IGNORE).get_relation_class('honame.author')):
+        Fkeys = {'\uff50osts': '_reverse_fkey_posts'}
+    with pytest.raises(NamingError) as exc:
+        Author()
+    assert _problems(exc) == {('declaration', '\uff50osts', 'honame.author')}
+    assert "it is 'posts'" in exc.value.problems[0].hint
