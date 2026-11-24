@@ -439,6 +439,14 @@ def check_official_extension(package_name, current_version, fingerprint):
     if recorded.get('fingerprint') == fingerprint:
         return True
 
+    if recorded.get('fingerprint') is None or fingerprint is None:
+        # One side is an editable install, which has no fingerprint: there is
+        # nothing to compare. Going from a working tree to the published
+        # package of the same version (or back) is what testing a release
+        # looks like, not tampering; pin whatever is installed now.
+        record_official_build(package_name, current_version, fingerprint)
+        return True
+
     click.echo(
         f"⚠️  '{package_name}' v{current_version} is not the build recorded "
         "for this installation, and its version number has not changed.",

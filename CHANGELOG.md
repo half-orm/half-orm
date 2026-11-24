@@ -1,5 +1,14 @@
 # Unreleased
 
+## Fixes
+
+- An official extension installed in editable mode, then installed from
+  its published package at the same version (or the other way round), is
+  no longer refused as a changed build. An editable install has no
+  fingerprint, so there is nothing to compare: the build installed now is
+  recorded instead. Two different fingerprints at the same version are
+  still refused.
+
 # 2.1.0 (2026-11-23)
 
 2.1.0 is about the names declared for reverse foreign keys with

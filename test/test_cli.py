@@ -1009,6 +1009,32 @@ class TestTrustOnFirstUse:
         assert 'version number has not changed' in err
         assert '--untrust half-orm-dev' in err
 
+    def test_editable_then_published_build_is_not_an_alarm(self, capsys):
+        """An editable install has no fingerprint, so nothing to compare.
+
+        Testing a release from its working tree, then installing the
+        published package of the same version, is the normal path.
+        """
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', None)
+        capsys.readouterr()
+
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:aaa') is True
+        assert capsys.readouterr().err == ''
+        # ...and the published build is pinned from then on.
+        assert recorded_official_build('half-orm-dev')['fingerprint'] == 'sha256:aaa'
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', 'sha256:bbb') is False
+
+    def test_published_then_editable_build_is_not_an_alarm(self, capsys):
+        half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
+        capsys.readouterr()
+
+        assert half_orm_cli.check_official_extension(
+            'half-orm-dev', '1.0.0', None) is True
+        assert capsys.readouterr().err == ''
+        assert recorded_official_build('half-orm-dev')['fingerprint'] is None
+
     def test_version_change_is_an_upgrade_not_an_alarm(self, capsys):
         half_orm_cli.check_official_extension('half-orm-dev', '1.0.0', 'sha256:aaa')
         capsys.readouterr()
